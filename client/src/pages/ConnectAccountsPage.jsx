@@ -297,11 +297,11 @@ const ConnectAccountsPage = () => {
                             My Sites
                         </button>
                         <span className="text-neutral-300">→</span>
-                        <span className="text-neutral-900 dark:text-white">Connect Tools</span>
+                        <span className="text-neutral-900 dark:text-white">Connect</span>
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-neutral-900 dark:text-white tracking-tight">Connect Your Tools</h1>
-                        <p className="text-neutral-500 dark:text-neutral-400 font-bold mt-1">Link your marketing platforms to track everything in one place</p>
+                        <h1 className="text-3xl font-black text-neutral-900 dark:text-white tracking-tight">Connect Your Marketing Platforms</h1>
+                        <p className="text-neutral-500 dark:text-neutral-400 font-bold mt-1">Link your analytics and advertising accounts to track everything in one place</p>
                     </div>
                 </div>
 
@@ -398,12 +398,17 @@ const ConnectAccountsPage = () => {
                                                 <p className="text-xs font-bold text-neutral-400 dark:text-neutral-500">Managing multiple Google properties</p>
                                             </div>
                                         </div>
-                                        <button 
-                                            onClick={() => window.location.href = getApiUrl(`/auth/google?token=${encodeURIComponent(token)}`)}
-                                            className="text-xs font-black text-brand-600 hover:text-brand-700 border border-brand-200 dark:border-brand-500/30 px-4 py-2 rounded-xl bg-white dark:bg-dark-card transition-all shadow-sm active:scale-95"
-                                        >
-                                            + Link Another Account
-                                        </button>
+                                        <div className="flex flex-col items-end gap-1">
+                                            <button 
+                                                onClick={() => window.location.href = getApiUrl(`/auth/google?token=${encodeURIComponent(token)}`)}
+                                                className="text-xs font-black text-brand-600 hover:text-brand-700 border border-brand-200 dark:border-brand-500/30 px-4 py-2.5 rounded-xl bg-white dark:bg-dark-card transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                                            >
+                                                + Link Another Account
+                                            </button>
+                                            <span className="text-[10px] font-medium text-neutral-400 dark:text-neutral-500 text-right mt-0.5">
+                                                Adds another account to the selection lists below
+                                            </span>
+                                        </div>
                                     </div>
 
                                     <div className="p-6 space-y-8">
@@ -632,12 +637,17 @@ const ConnectAccountsPage = () => {
                                                 <p className="text-xs font-bold text-neutral-400 dark:text-neutral-500">Syncing Facebook Ad Performance</p>
                                             </div>
                                         </div>
-                                        <button 
-                                            onClick={() => window.location.href = getApiUrl(`/auth/facebook?token=${encodeURIComponent(token)}`)}
-                                            className="text-xs font-black text-[#1877F2] hover:text-[#1565C0] border border-blue-200 dark:border-blue-500/30 px-4 py-2 rounded-xl bg-white dark:bg-dark-card transition-all shadow-sm active:scale-95"
-                                        >
-                                            + Link Another Profile
-                                        </button>
+                                        <div className="flex flex-col items-end gap-1">
+                                            <button 
+                                                onClick={() => window.location.href = getApiUrl(`/auth/facebook?token=${encodeURIComponent(token)}`)}
+                                                className="text-xs font-black text-[#1877F2] hover:text-[#1565C0] border border-blue-200 dark:border-blue-500/30 px-4 py-2.5 rounded-xl bg-white dark:bg-dark-card transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                                            >
+                                                + Link Another Profile
+                                            </button>
+                                            <span className="text-[10px] font-medium text-neutral-400 dark:text-neutral-500 text-right mt-0.5">
+                                                Adds another profile to the selection lists below
+                                            </span>
+                                        </div>
                                     </div>
 
                                     <div className="p-6 space-y-6">
@@ -708,7 +718,7 @@ const ConnectAccountsPage = () => {
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
                                     <p className="text-xs font-bold text-neutral-500">
-                                        {isViewOnly ? '💡 Only disconnected tools can be updated' : isNew ? '💡 You can always add more connections later' : '💡 Changes will sync automatically'}
+                                        {isViewOnly ? '💡 Only disconnected marketing platforms can be updated' : isNew ? '💡 You can always add more connections later' : '💡 Changes will sync automatically'}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-3 w-full sm:w-auto">

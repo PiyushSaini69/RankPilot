@@ -135,24 +135,50 @@ const SitesPage = () => {
                         <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent-500/5 rounded-full blur-[100px] -ml-32 -mb-32"></div>
                         
                         <div className="relative z-10 flex flex-col items-center justify-center h-full">
-                            <div className="w-20 h-20 rounded-[2rem] bg-neutral-50 dark:bg-neutral-800 flex items-center justify-center mb-6 border border-neutral-100 dark:border-neutral-700 shadow-inner">
-                                <GlobeAltIcon className="w-10 h-10 text-neutral-400 dark:text-neutral-500" />
+                            <div className="w-20 h-20 rounded-[2.5rem] bg-neutral-50 dark:bg-neutral-800/80 flex items-center justify-center mb-6 border border-neutral-100 dark:border-neutral-700 shadow-inner transition-transform duration-300">
+                                <GlobeAltIcon className="w-10 h-10 text-brand-600 dark:text-brand-400" />
                             </div>
-                            <h2 className="text-2xl md:text-3xl font-black text-neutral-900 dark:text-white mb-4 tracking-tight leading-tight">
-                                Add your first website <br className="hidden sm:block" /> to get started
+                            
+                            <h2 className="text-2xl md:text-3xl font-black text-neutral-900 dark:text-white mb-3 tracking-tight leading-tight">
+                                Welcome to RankPilot! <br className="hidden sm:block" /> Let's connect your first website
                             </h2>
-                            <p className="text-neutral-500 dark:text-neutral-400 font-bold text-base max-w-xl mb-8 leading-relaxed">
-                                Connect a website to start tracking Google Analytics, Search Console, and Ad performance all in one place.
+                            
+                            <p className="text-neutral-500 dark:text-neutral-400 font-medium text-base max-w-xl mb-6 leading-relaxed">
+                                Link your domain to track search keyword rankings, web traffic analytics, and advertising campaigns across Google & Meta in one clean, unified dashboard.
                             </p>
+
+                            {/* Connected Tools Badge pills with soft pastel borders and dynamic pulsing indicators */}
+                            <div className="flex flex-wrap items-center justify-center gap-2 mb-8 max-w-lg">
+                                <span className="px-3 py-1.5 text-[11px] font-extrabold bg-neutral-50 dark:bg-neutral-800/40 text-neutral-600 dark:text-neutral-300 rounded-xl border border-neutral-200/60 dark:border-neutral-700/60 flex items-center gap-2 shadow-sm transition-all hover:scale-105 duration-200">
+                                    <span className="w-2 h-2 bg-[#4285F4] rounded-full shadow-[0_0_8px_#4285F4]"></span>
+                                    Google Analytics
+                                </span>
+                                <span className="px-3 py-1.5 text-[11px] font-extrabold bg-neutral-50 dark:bg-neutral-800/40 text-neutral-600 dark:text-neutral-300 rounded-xl border border-neutral-200/60 dark:border-neutral-700/60 flex items-center gap-2 shadow-sm transition-all hover:scale-105 duration-200">
+                                    <span className="w-2 h-2 bg-[#EA4335] rounded-full shadow-[0_0_8px_#EA4335]"></span>
+                                    Search Console
+                                </span>
+                                <span className="px-3 py-1.5 text-[11px] font-extrabold bg-neutral-50 dark:bg-neutral-800/40 text-neutral-600 dark:text-neutral-300 rounded-xl border border-neutral-200/60 dark:border-neutral-700/60 flex items-center gap-2 shadow-sm transition-all hover:scale-105 duration-200">
+                                    <span className="w-2 h-2 bg-[#FBBC05] rounded-full shadow-[0_0_8px_#FBBC05]"></span>
+                                    Google Ads
+                                </span>
+                                <span className="px-3 py-1.5 text-[11px] font-extrabold bg-neutral-50 dark:bg-neutral-800/40 text-neutral-600 dark:text-neutral-300 rounded-xl border border-neutral-200/60 dark:border-neutral-700/60 flex items-center gap-2 shadow-sm transition-all hover:scale-105 duration-200">
+                                    <span className="w-2 h-2 bg-[#1877F2] rounded-full shadow-[0_0_8px_#1877F2]"></span>
+                                    Meta Ads
+                                </span>
+                            </div>
+
                             <div className="space-y-4">
                                 <button
                                     onClick={() => navigate('/connect-accounts?new=true')}
-                                    className="inline-flex items-center gap-3 px-10 py-4 bg-brand-600 hover:bg-brand-700 text-white text-base font-black rounded-2xl transition-all shadow-2xl shadow-brand-600/30 hover:-translate-y-1 active:scale-95"
+                                    className="inline-flex items-center gap-3 px-10 py-4 bg-brand-600 hover:bg-brand-700 text-white text-base font-black rounded-2xl transition-all shadow-xl shadow-brand-600/30 hover:shadow-2xl hover:shadow-brand-600/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 duration-200"
                                 >
                                     <PlusIcon className="w-5 h-5" strokeWidth={3} />
                                     Connect Your First Website
                                 </button>
-                                <p className="text-[10px] font-black text-neutral-400 dark:text-neutral-500 tracking-[0.2em] uppercase">Takes less than 2 minutes to set up</p>
+                                <div className="flex items-center justify-center gap-2 text-[10px] font-extrabold text-neutral-400 dark:text-neutral-500 tracking-[0.15em] uppercase">
+                                    <CheckCircleIcon className="w-4 h-4 text-emerald-500" strokeWidth={2.5} />
+                                    Takes less than 2 minutes to set up
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -198,7 +224,7 @@ const SitesPage = () => {
                                         </div>
                                     </div>
 
-                                    {/* COLUMN 2: Connected Tools */}
+                                    {/* COLUMN 2: Connected Platforms */}
                                     <div className="flex flex-col justify-center space-y-2">
                                         <div className="flex flex-wrap gap-1.5">
                                             <ToolBadge connected={!!site.ga4PropertyId} label="GA4" />
@@ -212,7 +238,7 @@ const SitesPage = () => {
                                                 className="flex items-center gap-1 text-[10px] font-bold text-amber-600 hover:text-amber-700 transition-colors tracking-wide"
                                             >
                                                 <ExclamationTriangleIcon className="w-3 h-3" />
-                                                Connect {disconnectedCount} more tools →
+                                                Connect {disconnectedCount} more platforms →
                                             </button>
                                         )}
                                     </div>
