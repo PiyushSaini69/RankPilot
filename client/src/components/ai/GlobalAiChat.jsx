@@ -174,7 +174,17 @@ const GlobalAiChat = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    if (location.pathname === '/dashboard/ai-chat') return null;
+    const allowedPaths = [
+        '/dashboard',
+        '/dashboard/gsc',
+        '/dashboard/ga4',
+        '/dashboard/google-ads',
+        '/dashboard/facebook-ads'
+    ];
+
+    if (!allowedPaths.includes(location.pathname)) {
+        return null;
+    }
 
     const { isOpen, setIsOpen, initialQuestion, clearInitialQuestion } = useAiChatStore();
     const [messages, setMessages] = useState([]);
