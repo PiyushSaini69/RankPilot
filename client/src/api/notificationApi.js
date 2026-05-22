@@ -31,6 +31,12 @@ export const notificationApi = {
         return response.data;
     },
 
+    // Clear all
+    clearAll: async () => {
+        const response = await api.delete('/notifications/clear-all');
+        return response.data;
+    },
+
     // Create (usually for testing/manual triggering)
     createNotification: async (data) => {
         const response = await api.post('/notifications', data);

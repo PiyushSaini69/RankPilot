@@ -1,8 +1,5 @@
 import Notification from '../models/Notification.js';
 
-// @desc    Get user notifications
-// @route   GET /api/notifications
-// @access  Private
 export const getNotifications = async (req, res) => {
     try {
         const notifications = await Notification.find({ userId: req.user._id })
@@ -24,9 +21,6 @@ export const getNotifications = async (req, res) => {
     }
 };
 
-// @desc    Mark notification as read
-// @route   PUT /api/notifications/:id/read
-// @access  Private
 export const markAsRead = async (req, res) => {
     try {
         const notification = await Notification.findOneAndUpdate(
@@ -45,9 +39,6 @@ export const markAsRead = async (req, res) => {
     }
 };
 
-// @desc    Mark all notifications as read
-// @route   PUT /api/notifications/read-all
-// @access  Private
 export const markAllAsRead = async (req, res) => {
     try {
         await Notification.updateMany(
@@ -61,9 +52,6 @@ export const markAllAsRead = async (req, res) => {
     }
 };
 
-// @desc    Delete a notification
-// @route   DELETE /api/notifications/:id
-// @access  Private
 export const deleteNotification = async (req, res) => {
     try {
         const notification = await Notification.findOneAndDelete({
@@ -81,9 +69,6 @@ export const deleteNotification = async (req, res) => {
     }
 };
 
-// @desc    Clear all read notifications
-// @route   DELETE /api/notifications/clear-read
-// @access  Private
 export const clearReadNotifications = async (req, res) => {
     try {
         await Notification.deleteMany({
@@ -97,9 +82,18 @@ export const clearReadNotifications = async (req, res) => {
     }
 };
 
-// @desc    Add a notification (Internal/System use usually, but here for API completeness)
-// @route   POST /api/notifications
-// @access  Private
+export const clearAllNotifications = async (req, res) => {
+    try {
+        await Notification.deleteMany({
+            userId: req.user._id
+        });
+
+        res.status(200).json({ success: true, message: 'All notifications cleared' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 export const createNotification = async (req, res) => {
     try {
         const { type, title, message, source, actionLabel, actionPath } = req.body;

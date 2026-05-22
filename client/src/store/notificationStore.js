@@ -128,6 +128,24 @@ export const useNotificationStore = create((set, get) => ({
         }
     },
 
+    // ── Clear all notifications (both read and unread) ──
+    clearAll: async () => {
+        try {
+            const markRes = await notificationApi.markAllRead();
+            if (markRes.success) {
+                const clearRes = await notificationApi.clearRead();
+                if (clearRes.success) {
+                    set({
+                        notifications: [],
+                        unreadCount: 0,
+                    });
+                }
+            }
+        } catch (err) {
+            console.error('Failed to clear all notifications', err);
+        }
+    },
+
     // ── Get notifications by type ──
     getByType: (type) => get().notifications.filter(n => n.type === type),
 

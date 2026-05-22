@@ -654,7 +654,27 @@ const DashboardLayout = ({ children, noScroll = false, title }) => {
                                         {notifications.length > 0 && (
                                             <div className="px-4 py-3 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/30 dark:bg-neutral-800/20 flex items-center justify-between">
                                                 <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">{notifications.length} total · {unreadCount} unread</p>
-                                                <button onClick={clearRead} className="text-[10px] font-black uppercase tracking-wider text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">Clear read</button>
+                                                <div className="flex items-center gap-3">
+                                                    {unreadCount > 0 && (
+                                                        <button 
+                                                            onClick={markAllRead} 
+                                                            className="text-[10px] font-black uppercase tracking-wider text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"
+                                                        >
+                                                            Mark all read
+                                                        </button>
+                                                     )}
+                                                     {unreadCount > 0 && (notifications.length - unreadCount > 0) && (
+                                                         <span className="text-neutral-300 dark:text-neutral-700 text-[10px]">·</span>
+                                                     )}
+                                                     {notifications.length - unreadCount > 0 && (
+                                                         <button 
+                                                             onClick={clearRead} 
+                                                             className="text-[10px] font-black uppercase tracking-wider text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors"
+                                                         >
+                                                             Clear read
+                                                         </button>
+                                                     )}
+                                                 </div>
                                             </div>
                                         )}
                                     </div>
