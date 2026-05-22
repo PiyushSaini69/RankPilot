@@ -52,7 +52,7 @@ const ConnectAccountsPage = () => {
     const [selectedGsc, setSelectedGsc] = useState('');
     const [selectedGAds, setSelectedGAds] = useState('');
     const [selectedFbAds, setSelectedFbAds] = useState('');
-    const [siteName, setSiteName] = useState('My Website');
+    const [siteName, setSiteName] = useState('');
     const [initialValues, setInitialValues] = useState({});
 
     // Modification state (to unlock fields in 'view' mode)
@@ -121,11 +121,11 @@ const ConnectAccountsPage = () => {
                     } else {
                         if (activeSiteId) setAccounts({ activeSiteId: null });
                         setInitialValues({});
-                        setSiteName('My Website');
+                        setSiteName('');
                     }
                 } else {
                     setInitialValues({});
-                    setSiteName('New Website');
+                    setSiteName('');
                     setSelectedGa4('');
                     setSelectedGsc('');
                     setSelectedGAds('');
@@ -313,7 +313,7 @@ const ConnectAccountsPage = () => {
                         <div className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 shadow-sm">
                             <div className="flex items-center justify-between mb-4">
                                 <div>
-                                    <label className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-wider">Website Name</label>
+                                    <label className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-wider">Website Name <span className="text-red-500">*</span></label>
                                     <p className="text-xs text-neutral-400 dark:text-neutral-500 font-bold">Give this website a name so you can identify it easily</p>
                                 </div>
                             </div>
@@ -322,6 +322,7 @@ const ConnectAccountsPage = () => {
                                     type="text"
                                     value={siteName}
                                     onChange={e => setSiteName(e.target.value)}
+                                    required
                                     placeholder="e.g. My Portfolio, Client XYZ"
                                     className="w-full text-base font-bold rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent py-3 px-4 outline-none transition-all placeholder:text-neutral-300 dark:placeholder:text-neutral-600"
                                 />

@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const userAccountsSchema = new mongoose.Schema({
     // Core Identity
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    siteName: { type: String, required: true, default: 'My Website' },
+    siteName: { type: String, required: true },
     syncStatus: { type: String, enum: ['idle', 'syncing', 'error', 'pending'], default: 'idle' },
 
     // GA4 Integration
