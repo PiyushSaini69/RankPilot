@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/ui/DashboardLayout';
@@ -24,6 +24,8 @@ const ConnectAccountsPage = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [resumingSource, setResumingSource] = useState(null);
+    const [showNameError, setShowNameError] = useState(false);
+    const websiteNameRef = useRef(null);
 
     const { connectedSources, activeSiteId, setAccounts } = useAccountsStore();
     const { token } = useAuthStore();
@@ -201,7 +203,10 @@ const ConnectAccountsPage = () => {
         if (e) e.preventDefault();
         
         if (!siteName.trim()) {
+            setShowNameError(true);
             toast.error('Please enter a website name');
+            websiteNameRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            websiteNameRef.current?.focus();
             return;
         }
 
@@ -280,7 +285,7 @@ const ConnectAccountsPage = () => {
 
     return (
         <DashboardLayout>
-            <div className="space-y-4 pb-32 px-6 pt-2">
+            <div className="space-y-4 pb-8 px-6 pt-2">
                 {/* 1. Page Header */}
                 <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-widest">
@@ -313,19 +318,36 @@ const ConnectAccountsPage = () => {
                         <div className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 shadow-sm">
                             <div className="flex items-center justify-between mb-4">
                                 <div>
-                                    <label className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-wider">Website Name <span className="text-red-500">*</span></label>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <label className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-wider">Website Name <span className="text-red-500">*</span></label>
+                                        <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/30 uppercase tracking-wider">Required</span>
+                                    </div>
                                     <p className="text-xs text-neutral-400 dark:text-neutral-500 font-bold">Give this website a name so you can identify it easily</p>
                                 </div>
                             </div>
                             <div className="relative max-w-md">
                                 <input
+                                    ref={websiteNameRef}
                                     type="text"
                                     value={siteName}
-                                    onChange={e => setSiteName(e.target.value)}
+                                    onChange={e => {
+                                        setSiteName(e.target.value);
+                                        if (e.target.value.trim()) setShowNameError(false);
+                                    }}
                                     required
                                     placeholder="e.g. My Portfolio, Client XYZ"
-                                    className="w-full text-base font-bold rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent py-3 px-4 outline-none transition-all placeholder:text-neutral-300 dark:placeholder:text-neutral-600"
+                                    className={`w-full text-base font-bold rounded-xl border bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:border-transparent py-3 px-4 outline-none transition-all placeholder:text-neutral-300 dark:placeholder:text-neutral-600 ${
+                                        showNameError 
+                                            ? 'border-red-500 focus:ring-red-500 dark:border-red-500/50' 
+                                            : 'border-neutral-200 dark:border-neutral-700 focus:ring-brand-500'
+                                    }`}
                                 />
+                                {showNameError && (
+                                    <p className="text-xs text-red-500 font-bold mt-1.5 flex items-center gap-1.5 pl-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                                        Website name is required
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -681,8 +703,8 @@ const ConnectAccountsPage = () => {
                         </div>
 
                         {/* 6. Save Actions Footer */}
-                        <div className="sticky bottom-0 left-0 right-0 bg-white dark:bg-dark-card border-t border-neutral-200 dark:border-neutral-800 p-4 z-50 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] -mx-6 mt-8">
-                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pl-6 pr-6 sm:pr-40">
+                        <div className="sticky bottom-4 bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-800 p-4 rounded-2xl z-50 shadow-[0_8px_30px_rgb(0,0,0,0.08)] mt-8">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pl-6 pr-6">
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
                                     <p className="text-xs font-bold text-neutral-500">
