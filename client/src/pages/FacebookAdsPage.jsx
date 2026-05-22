@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import AiSectionChat from '../components/ai/AiSectionChat';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/ui/DashboardLayout';
 import KpiCard from '../components/dashboard/KpiCard';
 import DataTable from '../components/dashboard/DataTable';
 import { useDateRangeStore } from '../store/dateRangeStore';
 import { useAccountsStore } from '../store/accountsStore';
+import { useAiChatStore } from '../store/aiChatStore';
 import api from '../api';
 import { getActiveAccounts } from '../api/accountApi';
 import {
@@ -17,7 +17,8 @@ import {
     BanknotesIcon,
     CurrencyDollarIcon,
     UserCircleIcon,
-    ArrowPathIcon
+    ArrowPathIcon,
+    SparklesIcon
 } from '@heroicons/react/24/outline';
 import { exportToServerPdf } from '../utils/reportExport';
 import {
@@ -42,6 +43,10 @@ const EmptyState = ({ message = 'No data for this period', sub = 'Try selecting 
     </div>
 );
 
+const FacebookAdsLogo = ({ className = "w-6 h-6" }) => (
+    <img src="https://www.vectorlogo.zone/logos/facebook/facebook-icon.svg" alt="Meta Ads" className={`${className} object-contain`} />
+);
+
 const FacebookAdsPage = () => {
     const { startDate, endDate } = useDateRangeStore();
     const { device, campaign, searchQuery } = useFilterStore();
@@ -49,6 +54,7 @@ const FacebookAdsPage = () => {
     const isConnected = connectedSources.includes('facebook-ads');
     const hasAccount = !!activeFacebookAdAccountId;
     const navigate = useNavigate();
+    const openWithQuestion = useAiChatStore(s => s.openWithQuestion);
     const [loading, setLoading] = useState(false);
     const [isExportingPdf, setIsExportingPdf] = useState(false);
 
@@ -241,31 +247,77 @@ const FacebookAdsPage = () => {
     ] : [];
 
 
-    if (!isConnected) {
+    if (!isConnected || !hasAccount) {
+        const isMissingConn = !isConnected;
         return (
             <DashboardLayout>
-                <div className="flex flex-col h-full items-center justify-center">
-                    <div className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-700/60 p-8 rounded-2xl flex flex-col items-center text-center max-w-sm">
-                        <ExclamationTriangleIcon className="w-12 h-12 text-neutral-400 mb-4" />
-                        <h2 className="text-xl font-bold text-neutral-900 dark:text-white">Facebook Ads Not Connected</h2>
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2 mb-5">Please go to Integrations to connect your Meta/Facebook Ads account.</p>
-                        <button onClick={() => navigate('/connect-accounts')} className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-colors">Go to Integrations</button>
-                    </div>
-                </div>
-            </DashboardLayout>
-        );
-    }
+                <div className="h-full flex flex-col items-center justify-center p-4 min-h-[60vh] animate-in fade-in zoom-in-95 duration-700">
+                    <div className="relative w-full max-w-xl bg-white dark:bg-[#0d0d0d] rounded-[2.5rem] border border-neutral-200/60 dark:border-neutral-800 shadow-2xl shadow-brand-500/5 overflow-hidden group">
+                        
+                        {/* Animated Gradient Background Glow */}
+                        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-brand-500/5 dark:bg-brand-500/10 rounded-full blur-[120px] -mr-32 -mt-32 transition-colors group-hover:bg-brand-500/15 duration-1000"></div>
+                        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-amber-500/5 dark:bg-amber-500/10 rounded-full blur-[120px] -ml-32 -mb-32 transition-colors group-hover:bg-amber-500/15 duration-1000"></div>
 
-    if (!hasAccount) {
-        return (
-            <DashboardLayout>
-                <div className="flex flex-col h-full items-center justify-center">
-                    <div className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-700/60 p-8 rounded-2xl flex flex-col items-center text-center max-w-sm">
-                        <ExclamationTriangleIcon className="w-12 h-12 text-amber-400 mb-4" />
-                        <h2 className="text-xl font-bold text-neutral-900 dark:text-white">No Ad Account Selected</h2>
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2 mb-5">Your Facebook Ads account is connected, but you haven't picked an ad account yet. Go to Integrations to select one.</p>
-                        <button onClick={() => navigate('/connect-accounts')} className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-colors">Select Ad Account</button>
+                        <div className="relative z-10 px-6 py-12 flex flex-col items-center text-center">
+                            
+                            {/* Icon Logic */}
+                            <div className="relative mb-8">
+                                <div className="w-24 h-24 bg-white dark:bg-neutral-800/80 rounded-[2rem] flex items-center justify-center shadow-xl border border-neutral-100 dark:border-neutral-700 relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                                    <FacebookAdsLogo className="w-14 h-14 grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700" />
+                                    
+                                    {/* Disconnected Pulse */}
+                                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full border-4 border-white dark:border-[#0d0d0d] flex items-center justify-center">
+                                        <div className="w-2 h-2 bg-white rounded-full animate-pulse shadow-[0_0_8px_white]"></div>
+                                    </div>
+                                </div>
+                                <div className="absolute inset-0 bg-brand-500/10 blur-3xl rounded-full scale-150 rotate-45 -z-10 animate-pulse"></div>
+                            </div>
+
+                            <div className="space-y-3 max-w-md">
+                                <h1 className="text-3xl font-black text-neutral-900 dark:text-white tracking-tighter leading-tight">
+                                    {isMissingConn ? 'Channel Connection Offline' : 'Ad Account Required'}
+                                </h1>
+                                <p className="text-sm font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed italic">
+                                    {isMissingConn 
+                                        ? "Your Facebook Ads account is currently disconnected. RankPilot's AI requires a live ad pipeline to track expenditure, conversions, and target ROI."
+                                        : "Meta account connected, but no Facebook Ad Account has been selected yet. Map your ad account to activate premium analytics."
+                                    }
+                                </p>
+                            </div>
+
+                            <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center">
+                                <button 
+                                    onClick={() => navigate('/connect-accounts')} 
+                                    className="px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-[.2em] shadow-xl shadow-brand-500/30 active:scale-95 transition-all flex items-center gap-3"
+                                >
+                                    {isMissingConn ? 'Connect Data Stream' : 'Select Ad Account'}
+                                    <ArrowPathIcon className="w-4 h-4" />
+                                </button>
+                                
+                                <button 
+                                    onClick={() => window.open('https://rankpilot.ai/docs', '_blank')}
+                                    className="px-8 py-4 text-neutral-400 hover:text-neutral-900 dark:hover:text-white text-[10px] font-black uppercase tracking-[.2em] border border-neutral-200 dark:border-neutral-800 rounded-2xl hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all"
+                                >
+                                    View Guide
+                                </button>
+                            </div>
+
+                            {/* Decorative Feature List */}
+                            <div className="mt-16 grid grid-cols-3 gap-6 w-full opacity-30 group-hover:opacity-60 transition-opacity duration-1000 border-t border-neutral-100 dark:border-neutral-800/50 pt-10">
+                                {[
+                                    { label: 'Budget Resonance', icon: GlobeAltIcon },
+                                    { label: 'Conversion Lift', icon: ChartBarIcon },
+                                    { label: 'ROI Optimization', icon: SparklesIcon }
+                                ].map((f, i) => (
+                                    <div key={i} className="flex flex-col items-center gap-2">
+                                        <f.icon className="w-5 h-5 text-neutral-400" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500">{f.label}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
+                                
                 </div>
             </DashboardLayout>
         );
@@ -332,11 +384,8 @@ const FacebookAdsPage = () => {
                         </div>
                     </div>
                     <div className="relative z-10 flex flex-col gap-2">
-                        <AiSectionChat
-                            label="Get AI Summary"
-                            sectionTitle="Facebook Ads Summary"
-                            activeSources={['facebook-ads']}
-                            contextPrompt={`Analyze this Facebook Ads dashboard for ${startDate} to ${endDate}. 
+                        <button
+                            onClick={() => openWithQuestion(`Analyze this Facebook Ads dashboard for ${startDate} to ${endDate}. 
                             - Total Spend: ${formatCurrency(overview?.spend || 0)}
                             - Reach: ${formatNumber(overview?.reach || 0)}
                             - Conversions: ${formatNumber(overview?.conversions || 0)}
@@ -347,8 +396,12 @@ const FacebookAdsPage = () => {
                             Please provide: 
                             1. Social Marketing Score (1-100)
                             2. Fastest growing campaign
-                            3. One advice on creative optimization to improve ROAS.`}
-                        />
+                            3. One advice on creative optimization to improve ROAS.`)}
+                            className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-2xl text-[11px] font-black flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-sm active:scale-95 w-full uppercase"
+                        >
+                            <SparklesIcon className="w-4 h-4" />
+                            Get AI Summary
+                        </button>
                         <button
                             onClick={handlePdfExport}
                             disabled={isExportingPdf}
@@ -487,11 +540,13 @@ const FacebookAdsPage = () => {
                             <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mt-1">Daily expenditure and click liquidity analysis</p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <AiSectionChat
-                                sectionTitle="Facebook Ads - Social Engagement Resonance"
-                                contextPrompt={`My Facebook Ads: Spend $${overview?.spend?.toFixed(2) || 0}, Reach ${formatNumber(overview?.reach)}, Impressions ${formatNumber(overview?.impressions)}, CTR ${ctr}%, ROAS ${roas}x. What's my overall social ad performance and how can I improve efficiency?`}
-                                activeSources={['facebook-ads']}
-                            />
+                            <button
+                                onClick={() => openWithQuestion(`My Facebook Ads: Spend $${overview?.spend?.toFixed(2) || 0}, Reach ${formatNumber(overview?.reach)}, Impressions ${formatNumber(overview?.impressions)}, CTR ${ctr}%, ROAS ${roas}x. What's my overall social ad performance and how can I improve efficiency?`)}
+                                className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                            >
+                                <SparklesIcon className="w-3.5 h-3.5" />
+                                ASK AI
+                            </button>
                             <div className="p-2 bg-blue-500/10 rounded-2xl border border-blue-500/20">
                                 <ChartBarIcon className="w-5 h-5 text-blue-500" />
                             </div>
@@ -560,11 +615,13 @@ const FacebookAdsPage = () => {
                     <div className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 shadow-sm">
                         <div className="flex items-center justify-between mb-1">
                             <h3 className="text-sm font-black text-neutral-900 dark:text-white">Reach Trend</h3>
-                            <AiSectionChat
-                                sectionTitle="Facebook Ads - Reach Trend"
-                                contextPrompt={`My Facebook Ads reach: ${formatNumber(overview?.reach)} unique people reached, frequency: ${frequency}x per person. Is my reach growing? ${highFrequency ? 'I have high frequency which may cause ad fatigue. What should I do?' : 'My frequency looks healthy.'}`}
-                                activeSources={['facebook-ads']}
-                            />
+                            <button
+                                onClick={() => openWithQuestion(`My Facebook Ads reach: ${formatNumber(overview?.reach)} unique people reached, frequency: ${frequency}x per person. Is my reach growing? ${highFrequency ? 'I have high frequency which may cause ad fatigue. What should I do?' : 'My frequency looks healthy.'}`)}
+                                className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                            >
+                                <SparklesIcon className="w-3.5 h-3.5" />
+                                ASK AI
+                            </button>
                         </div>
                         <p className="text-xs text-neutral-400 mb-4">Unique people reached per day</p>
                         {loading ? (
@@ -600,11 +657,13 @@ const FacebookAdsPage = () => {
                     <div className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 shadow-sm">
                         <div className="flex items-center justify-between mb-1">
                             <h3 className="text-sm font-black text-neutral-900 dark:text-white">Campaign Spend</h3>
-                            <AiSectionChat
-                                sectionTitle="Facebook Ads - Campaign Spend"
-                                contextPrompt={`My Facebook Ads spend by campaign: ${campaigns.slice(0, 5).map(c => `${c.name}: $${c.spend?.toFixed(2)} (${c.conversions} conv, ${formatNumber(c.reach)} reach)`).join(' | ')}. Which campaigns should I scale and which should I pause?`}
-                                activeSources={['facebook-ads']}
-                            />
+                            <button
+                                onClick={() => openWithQuestion(`My Facebook Ads spend by campaign: ${campaigns.slice(0, 5).map(c => `${c.name}: $${c.spend?.toFixed(2)} (${c.conversions} conv, ${formatNumber(c.reach)} reach)`).join(' | ')}. Which campaigns should I scale and which should I pause?`)}
+                                className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                            >
+                                <SparklesIcon className="w-3.5 h-3.5" />
+                                ASK AI
+                            </button>
                         </div>
                         <p className="text-xs text-neutral-400 mb-4">Spend comparison across top campaigns</p>
                         {loading ? (
@@ -709,11 +768,13 @@ const FacebookAdsPage = () => {
                                 <p className="text-xs text-neutral-400 mt-0.5">Performance breakdown by campaign</p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <AiSectionChat
-                                    sectionTitle="Facebook Ads - Top Campaigns"
-                                    contextPrompt={`My Facebook Ads top campaigns: ${campaigns.slice(0, 5).map(c => `${c.name}: $${c.spend?.toFixed(2)} spend, ${c.conversions} conv, ${formatNumber(c.reach)} reach`).join(' | ')}. Which campaign has the best ROAS? What creative or audience changes do you recommend?`}
-                                    activeSources={['facebook-ads']}
-                                />
+                                <button
+                                    onClick={() => openWithQuestion(`My Facebook Ads top campaigns: ${campaigns.slice(0, 5).map(c => `${c.name}: $${c.spend?.toFixed(2)} spend, ${c.conversions} conv, ${formatNumber(c.reach)} reach`).join(' | ')}. Which campaign has the best ROAS? What creative or audience changes do you recommend?`)}
+                                    className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                                >
+                                    <SparklesIcon className="w-3.5 h-3.5" />
+                                    ASK AI
+                                </button>
                                 <span className="text-xs font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full">{campaigns.length} campaigns</span>
                             </div>
                         </div>
@@ -739,11 +800,13 @@ const FacebookAdsPage = () => {
                             <h3 className="text-lg font-black text-neutral-900 dark:text-white">Social Apparatus Mix</h3>
                             <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Ad spend distribution by hardware category</p>
                         </div>
-                        <AiSectionChat
-                            sectionTitle="Facebook Ads - Device Mix"
-                            contextPrompt={`My Facebook Ads device breakdown: ${devices.map(d => `${d.name}: $${d.value?.toFixed(2)}`).join(', ')}. Should I adjust my mobile vs desktop bids? What device-specific strategies do you recommend for Meta ads?`}
-                            activeSources={['facebook-ads']}
-                        />
+                        <button
+                            onClick={() => openWithQuestion(`My Facebook Ads device breakdown: ${devices.map(d => `${d.name}: $${d.value?.toFixed(2)}`).join(', ')}. Should I adjust my mobile vs desktop bids? What device-specific strategies do you recommend for Meta ads?`)}
+                            className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                        >
+                            <SparklesIcon className="w-3.5 h-3.5" />
+                            ASK AI
+                        </button>
                     </div>
                     <div className="flex flex-col md:flex-row items-center gap-12">
                         <div className="w-[250px] h-[250px]">
@@ -798,11 +861,13 @@ const FacebookAdsPage = () => {
                             <p className="text-xs text-neutral-400 mt-0.5">This period vs last period — all key metrics</p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <AiSectionChat
-                                sectionTitle="Facebook Ads - Period Comparison"
-                                contextPrompt={`My Facebook Ads trends: Spend $${overview?.spend?.toFixed(2)}, Reach ${formatNumber(overview?.reach)}, CTR ${ctr}%, ROAS ${roas}x, Frequency ${frequency}x. ${highFrequency ? 'Frequency is high' : 'Frequency is healthy'}. What are my biggest wins and concerns this period?`}
-                                activeSources={['facebook-ads']}
-                            />
+                            <button
+                                onClick={() => openWithQuestion(`My Facebook Ads trends: Spend $${overview?.spend?.toFixed(2)}, Reach ${formatNumber(overview?.reach)}, CTR ${ctr}%, ROAS ${roas}x, Frequency ${frequency}x. ${highFrequency ? 'Frequency is high' : 'Frequency is healthy'}. What are my biggest wins and concerns this period?`)}
+                                className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                            >
+                                <SparklesIcon className="w-3.5 h-3.5" />
+                                ASK AI
+                            </button>
                             <span className="text-xs font-bold bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 px-3 py-1 rounded-full border border-purple-100 dark:border-purple-800">vs Last Period</span>
                         </div>
                     </div>
