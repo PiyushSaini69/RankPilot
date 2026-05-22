@@ -420,19 +420,20 @@ const DashboardPage = () => {
               <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-accent-500/5 rounded-full blur-[100px] -ml-32 -mb-32 transition-colors group-hover/empty:bg-accent-500/10"></div>
               
               <div className="relative z-10 max-w-2xl w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-5 duration-1000">
-                <div className="w-12 h-12 rounded-[1.25rem] bg-brand-500 flex items-center justify-center mb-6 shadow-xl shadow-brand-500/40 rotate-12 group-hover/empty:rotate-0 transition-transform duration-500">
-                  <SparklesIcon className="w-6 h-6 text-white" />
+                <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-brand-600 to-accent-500 flex items-center justify-center mb-6 shadow-2xl shadow-brand-500/30 group-hover/empty:scale-110 group-hover/empty:rotate-6 transition-all duration-500 relative">
+                  <div className="absolute inset-0 rounded-3xl bg-brand-500/20 blur-lg -z-10"></div>
+                  <GlobeAltIcon className="w-8 h-8 text-white stroke-[1.5]" />
                 </div>
 
                 <h2 className="text-3xl md:text-4xl font-black text-neutral-900 dark:text-white mb-3 tracking-tighter leading-tight">
-                  Performance Dashboard <br />
+                  No Website Connected <br />
                   <span className="inline-block pr-3 pb-1 bg-gradient-to-r from-brand-600 to-accent-500 bg-clip-text text-transparent italic text-xl md:text-3xl whitespace-nowrap">
-                    is currently unlinked
+                    Link your site to unlock AI insights
                   </span>
                 </h2>
                 
                 <p className="text-neutral-500 dark:text-neutral-400 font-bold leading-normal mb-8 max-w-sm mx-auto text-xs md:text-sm">
-                  Activate RankPilot's AI intelligence by connecting your marketing platforms for multi-channel mapping.
+                  Connect your search, analytics, and advertising channels to track multi-channel marketing performance and unlock real-time AI-powered insights.
                 </p>
 
                 {/* Integration Grid Placeholder */}
@@ -457,15 +458,8 @@ const DashboardPage = () => {
                     onClick={() => navigate('/connect-accounts')} 
                     className="w-full sm:w-auto px-8 py-3.5 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-[.2em] shadow-lg shadow-brand-500/20 hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2"
                   >
-                    <span>Activate</span>
+                    <span>Connect Website</span>
                     <ArrowRightIcon className="w-3.5 h-3.5" />
-                  </button>
-                  
-                  <button 
-                    onClick={() => window.open('https://rankpilot.ai/docs', '_blank')}
-                    className="w-full sm:w-auto px-6 py-3.5 bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 rounded-2xl text-[10px] font-black uppercase tracking-[.2em] hover:bg-neutral-50 transition-all"
-                  >
-                    Guide
                   </button>
                 </div>
               </div>
