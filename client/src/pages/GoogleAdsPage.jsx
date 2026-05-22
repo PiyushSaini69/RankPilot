@@ -19,7 +19,8 @@ import {
   UserCircleIcon,
   ArrowPathIcon,
   SparklesIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  CursorArrowRaysIcon
 } from '@heroicons/react/24/outline';
 import { exportToServerPdf } from '../utils/reportExport';
 import {
@@ -290,39 +291,32 @@ const GoogleAdsPage = () => {
 
               <div className="space-y-3 max-w-md">
                 <h1 className="text-3xl font-black text-neutral-900 dark:text-white tracking-tighter leading-tight">
-                  {isMissingConn ? 'Channel Connection Offline' : 'Ad Account Required'}
+                  {isMissingConn ? 'Google Ads Disconnected' : 'Select Google Ads Account'}
                 </h1>
                 <p className="text-sm font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed italic">
                   {isMissingConn 
-                    ? "Your Google Ads account is currently disconnected. RankPilot's AI requires a live ad pipeline to track expenditure, conversions, and target ROI."
-                    : "Google account connected, but no Google Ads customer account has been selected yet. Map your ad account to activate premium analytics."
+                    ? "Connect Google Ads to track your campaign spend, impressions, conversions, and unlock ROI intelligence in real-time."
+                    : "Select your active Google Ads client account below to link campaigns and analyze advertising return."
                   }
                 </p>
               </div>
 
-              <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center">
+              <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center justify-center">
                 <button 
                   onClick={() => navigate('/connect-accounts')} 
                   className="px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-[.2em] shadow-xl shadow-brand-500/30 active:scale-95 transition-all flex items-center gap-3"
                 >
-                  {isMissingConn ? 'Connect Data Stream' : 'Select Ad Account'}
+                  {isMissingConn ? 'Connect Google Ads' : 'Select Account'}
                   <ArrowPathIcon className="w-4 h-4" />
-                </button>
-                
-                <button 
-                  onClick={() => window.open('https://rankpilot.ai/docs', '_blank')}
-                  className="px-8 py-4 text-neutral-400 hover:text-neutral-900 dark:hover:text-white text-[10px] font-black uppercase tracking-[.2em] border border-neutral-200 dark:border-neutral-800 rounded-2xl hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all"
-                >
-                  View Guide
                 </button>
               </div>
 
               {/* Decorative Feature List */}
               <div className="mt-16 grid grid-cols-3 gap-6 w-full opacity-30 group-hover:opacity-60 transition-opacity duration-1000 border-t border-neutral-100 dark:border-neutral-800/50 pt-10">
                 {[
-                  { label: 'Budget Resonance', icon: GlobeAltIcon },
-                  { label: 'Conversion Lift', icon: ChartBarIcon },
-                  { label: 'ROI Optimization', icon: SparklesIcon }
+                  { label: 'Ad Capital', icon: BanknotesIcon },
+                  { label: 'Ad Resonance', icon: CursorArrowRaysIcon },
+                  { label: 'Conversion Node', icon: CheckCircleIcon }
                 ].map((f, i) => (
                   <div key={i} className="flex flex-col items-center gap-2">
                     <f.icon className="w-5 h-5 text-neutral-400" />

@@ -18,7 +18,8 @@ import {
     CurrencyDollarIcon,
     UserCircleIcon,
     ArrowPathIcon,
-    SparklesIcon
+    SparklesIcon,
+    CursorArrowRaysIcon
 } from '@heroicons/react/24/outline';
 import { exportToServerPdf } from '../utils/reportExport';
 import {
@@ -275,39 +276,32 @@ const FacebookAdsPage = () => {
 
                             <div className="space-y-3 max-w-md">
                                 <h1 className="text-3xl font-black text-neutral-900 dark:text-white tracking-tighter leading-tight">
-                                    {isMissingConn ? 'Channel Connection Offline' : 'Ad Account Required'}
+                                    {isMissingConn ? 'Meta Ads Disconnected' : 'Select Meta Ad Account'}
                                 </h1>
                                 <p className="text-sm font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed italic">
                                     {isMissingConn 
-                                        ? "Your Facebook Ads account is currently disconnected. RankPilot's AI requires a live ad pipeline to track expenditure, conversions, and target ROI."
-                                        : "Meta account connected, but no Facebook Ad Account has been selected yet. Map your ad account to activate premium analytics."
+                                        ? "Connect Facebook Ads to monitor social campaign expenditure, clicks, reach, and calculate unit efficiency."
+                                        : "Select your active Meta ad account below to link campaign objectives and analyze social marketing ROI."
                                     }
                                 </p>
                             </div>
 
-                            <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center">
+                            <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center justify-center">
                                 <button 
                                     onClick={() => navigate('/connect-accounts')} 
                                     className="px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-[.2em] shadow-xl shadow-brand-500/30 active:scale-95 transition-all flex items-center gap-3"
                                 >
-                                    {isMissingConn ? 'Connect Data Stream' : 'Select Ad Account'}
+                                    {isMissingConn ? 'Connect Meta Ads' : 'Select Ad Account'}
                                     <ArrowPathIcon className="w-4 h-4" />
-                                </button>
-                                
-                                <button 
-                                    onClick={() => window.open('https://rankpilot.ai/docs', '_blank')}
-                                    className="px-8 py-4 text-neutral-400 hover:text-neutral-900 dark:hover:text-white text-[10px] font-black uppercase tracking-[.2em] border border-neutral-200 dark:border-neutral-800 rounded-2xl hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all"
-                                >
-                                    View Guide
                                 </button>
                             </div>
 
                             {/* Decorative Feature List */}
                             <div className="mt-16 grid grid-cols-3 gap-6 w-full opacity-30 group-hover:opacity-60 transition-opacity duration-1000 border-t border-neutral-100 dark:border-neutral-800/50 pt-10">
                                 {[
-                                    { label: 'Budget Resonance', icon: GlobeAltIcon },
-                                    { label: 'Conversion Lift', icon: ChartBarIcon },
-                                    { label: 'ROI Optimization', icon: SparklesIcon }
+                                    {label: 'Meta Capital', icon: BanknotesIcon},
+                                    {label: 'Social Resonance', icon: CursorArrowRaysIcon},
+                                    {label: 'Click Resonance', icon: ChartBarIcon}
                                 ].map((f, i) => (
                                     <div key={i} className="flex flex-col items-center gap-2">
                                         <f.icon className="w-5 h-5 text-neutral-400" />
