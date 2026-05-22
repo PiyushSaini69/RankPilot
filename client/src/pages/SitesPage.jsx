@@ -84,8 +84,8 @@ const SitesPage = () => {
     };
 
     return (
-        <DashboardLayout>
-            <div className="space-y-6 pb-20 px-6 pt-2">
+        <DashboardLayout title="My Sites" noScroll={userSites.length === 0}>
+            <div className={userSites.length === 0 ? "h-full flex flex-col justify-center px-6 py-2" : "space-y-6 pb-20 px-6 pt-2"}>
                 
                 {/* ─── PAGE HEADER ─── */}
                 {userSites.length > 0 && (
@@ -130,29 +130,29 @@ const SitesPage = () => {
 
                 {/* ─── EMPTY STATE ─── */}
                 {userSites.length === 0 && !loading && (
-                    <div className="bg-white dark:bg-dark-surface border border-neutral-200 dark:border-neutral-800 rounded-[3rem] py-12 sm:py-16 md:py-20 px-8 sm:px-12 flex flex-col items-center text-center shadow-sm w-full relative overflow-hidden">
+                    <div className="bg-white dark:bg-dark-surface border border-neutral-200 dark:border-neutral-800 rounded-[3rem] p-8 sm:p-12 md:p-16 flex-1 flex flex-col items-center justify-center text-center shadow-sm w-full relative overflow-hidden max-h-[620px] my-auto">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-[100px] -mr-32 -mt-32"></div>
                         <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent-500/5 rounded-full blur-[100px] -ml-32 -mb-32"></div>
                         
-                        <div className="relative z-10 flex flex-col items-center">
-                            <div className="w-24 h-24 rounded-[2rem] bg-neutral-50 dark:bg-neutral-800 flex items-center justify-center mb-10 border border-neutral-100 dark:border-neutral-700 shadow-inner">
-                                <GlobeAltIcon className="w-12 h-12 text-neutral-400 dark:text-neutral-500" />
+                        <div className="relative z-10 flex flex-col items-center justify-center h-full">
+                            <div className="w-20 h-20 rounded-[2rem] bg-neutral-50 dark:bg-neutral-800 flex items-center justify-center mb-6 border border-neutral-100 dark:border-neutral-700 shadow-inner">
+                                <GlobeAltIcon className="w-10 h-10 text-neutral-400 dark:text-neutral-500" />
                             </div>
-                            <h2 className="text-3xl md:text-4xl font-black text-neutral-900 dark:text-white mb-5 tracking-tight leading-tight">
+                            <h2 className="text-2xl md:text-3xl font-black text-neutral-900 dark:text-white mb-4 tracking-tight leading-tight">
                                 Add your first website <br className="hidden sm:block" /> to get started
                             </h2>
-                            <p className="text-neutral-500 dark:text-neutral-400 font-bold text-lg max-w-xl mb-12 leading-relaxed">
+                            <p className="text-neutral-500 dark:text-neutral-400 font-bold text-base max-w-xl mb-8 leading-relaxed">
                                 Connect a website to start tracking Google Analytics, Search Console, and Ad performance all in one place.
                             </p>
-                            <div className="space-y-6">
+                            <div className="space-y-4">
                                 <button
                                     onClick={() => navigate('/connect-accounts?new=true')}
-                                    className="inline-flex items-center gap-4 px-12 py-5 bg-brand-600 hover:bg-brand-700 text-white text-lg font-black rounded-2xl transition-all shadow-2xl shadow-brand-600/30 hover:-translate-y-1 active:scale-95"
+                                    className="inline-flex items-center gap-3 px-10 py-4 bg-brand-600 hover:bg-brand-700 text-white text-base font-black rounded-2xl transition-all shadow-2xl shadow-brand-600/30 hover:-translate-y-1 active:scale-95"
                                 >
-                                    <PlusIcon className="w-6 h-6" strokeWidth={3} />
+                                    <PlusIcon className="w-5 h-5" strokeWidth={3} />
                                     Connect Your First Website
                                 </button>
-                                <p className="text-xs font-black text-neutral-400 dark:text-neutral-500 tracking-[0.2em] uppercase">Takes less than 2 minutes to set up</p>
+                                <p className="text-[10px] font-black text-neutral-400 dark:text-neutral-500 tracking-[0.2em] uppercase">Takes less than 2 minutes to set up</p>
                             </div>
                         </div>
                     </div>
