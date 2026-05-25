@@ -129,7 +129,7 @@ const SettingsPage = () => {
 
     return (
         <DashboardLayout title="Settings">
-            <div className="max-w-6xl mx-auto space-y-10 pb-20">
+            <div className="max-w-6xl mx-auto space-y-10 pb-6">
                 
                 {/* PAGE HEADER */}
                 <div className="space-y-1">

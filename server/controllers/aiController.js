@@ -795,7 +795,7 @@ export const generateWeeklyInsightInternal = async (userId, siteId) => {
 
 export const refreshWeeklyInsight = async (req, res) => {
     try {
-        const siteId = req.body.siteId || req.query.siteId;
+        const siteId = req.body?.siteId || req.query?.siteId;
         const insight = await generateWeeklyInsightInternal(req.user._id, siteId);
         res.status(200).json(insight);
     } catch (err) {
@@ -906,7 +906,7 @@ export const generateSuggestedQuestionsInternal = async (userId, siteId) => {
 };
 
 export const getSuggestedQuestions = async (req, res) => {
-    const siteId = req.query.siteId || req.body.siteId;
+    const siteId = req.query?.siteId || req.body?.siteId;
     const userId = req.user._id;
 
     try {
