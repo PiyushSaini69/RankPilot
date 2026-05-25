@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 
 import { useNavigate } from 'react-router-dom';
@@ -306,6 +306,16 @@ const DashboardPage = () => {
     (activeSite.facebookAdAccountId && !activeSite.facebookAdsHistoricalComplete)
   ));
 
+  const wasSyncingRef = useRef(false);
+  useEffect(() => {
+    if (isSyncingHistorical) {
+      wasSyncingRef.current = true;
+    } else if (wasSyncingRef.current && !isSyncingHistorical) {
+      wasSyncingRef.current = false;
+      loadDashboardData();
+    }
+  }, [isSyncingHistorical, loadDashboardData]);
+
   useEffect(() => {
     let interval;
     if (isSyncingHistorical) {
@@ -314,7 +324,7 @@ const DashboardPage = () => {
           const res = await api.get('/accounts/sites');
           if (res.data && Array.isArray(res.data)) setUserSites(res.data);
         } catch (e) { console.error("Polling error", e); }
-      }, 60000);
+      }, 3000); // Poll every 3 seconds for live progress updates
     }
     return () => clearInterval(interval);
   }, [isSyncingHistorical, setUserSites]);
