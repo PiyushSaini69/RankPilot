@@ -2,8 +2,8 @@ import { callGemini } from './geminiService.js';
 
 export const getPlaceholderIntelligence = (platform, type = 'syncing') => {
     const messages = {
-        syncing: "Historical data synchronization is currently in progress. AI-powered insights and intelligence will be available once the initial data sync is complete. Please check back in a few minutes.",
-        no_data: "No significant data found for this period. AI-powered insights will be available once your website starts receiving traffic or your ad campaigns become active."
+        syncing: "Syncing your data. AI insights will be available shortly.",
+        no_data: "No data found for this period. AI insights will be available once traffic starts."
     };
 
     const message = messages[type] || messages.syncing;
