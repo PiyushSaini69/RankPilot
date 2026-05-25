@@ -262,7 +262,8 @@ const ConnectAccountsPage = () => {
                     gscSyncStatus: updatedAccount.gscSyncStatus || 'idle',
                     gscSyncProgress: updatedAccount.gscSyncProgress || 0,
                     gscLastSyncedAt: updatedAccount.gscLastSyncedAt || null,
-                    gscHistoricalChunkIndex: updatedAccount.gscHistoricalChunkIndex || 0
+                    gscHistoricalChunkIndex: updatedAccount.gscHistoricalChunkIndex || 0,
+                    gscTokenEmail: updatedAccount.gscTokenId?.email || null
                 },
                 ga4: {
                     ga4PropertyId: updatedAccount.ga4PropertyId || null,
@@ -272,7 +273,8 @@ const ConnectAccountsPage = () => {
                     ga4SyncStatus: updatedAccount.ga4SyncStatus || 'idle',
                     ga4SyncProgress: updatedAccount.ga4SyncProgress || 0,
                     ga4LastSyncedAt: updatedAccount.ga4LastSyncedAt || null,
-                    ga4HistoricalChunkIndex: updatedAccount.ga4HistoricalChunkIndex || 0
+                    ga4HistoricalChunkIndex: updatedAccount.ga4HistoricalChunkIndex || 0,
+                    ga4TokenEmail: updatedAccount.ga4TokenId?.email || null
                 },
                 googleAds: {
                     googleAdsCustomerId: updatedAccount.googleAdsCustomerId || null,
@@ -282,7 +284,8 @@ const ConnectAccountsPage = () => {
                     googleAdsSyncStatus: updatedAccount.googleAdsSyncStatus || 'idle',
                     googleAdsSyncProgress: updatedAccount.googleAdsSyncProgress || 0,
                     googleAdsLastSyncedAt: updatedAccount.googleAdsLastSyncedAt || null,
-                    googleAdsHistoricalChunkIndex: updatedAccount.googleAdsHistoricalChunkIndex || 0
+                    googleAdsHistoricalChunkIndex: updatedAccount.googleAdsHistoricalChunkIndex || 0,
+                    googleAdsTokenEmail: updatedAccount.googleAdsTokenId?.email || null
                 },
                 facebook: {
                     facebookAdAccountId: updatedAccount.facebookAdAccountId || null,
@@ -292,7 +295,8 @@ const ConnectAccountsPage = () => {
                     facebookAdsSyncStatus: updatedAccount.facebookAdsSyncStatus || 'idle',
                     facebookAdsSyncProgress: updatedAccount.facebookAdsSyncProgress || 0,
                     facebookAdsLastSyncedAt: updatedAccount.facebookAdsLastSyncedAt || null,
-                    facebookAdsHistoricalChunkIndex: updatedAccount.facebookAdsHistoricalChunkIndex || 0
+                    facebookAdsHistoricalChunkIndex: updatedAccount.facebookAdsHistoricalChunkIndex || 0,
+                    facebookTokenName: updatedAccount.facebookTokenId?.name || null
                 }
             });
 
