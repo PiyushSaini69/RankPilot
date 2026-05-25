@@ -212,7 +212,12 @@ const SitesPage = () => {
                                         </div>
                                         <div className="overflow-hidden space-y-0.5">
                                             <h3 className="text-base font-black text-neutral-900 dark:text-white truncate tracking-tight">{site.siteName}</h3>
-                                            <div className="flex items-center gap-2">
+                                            {site.siteUrl && (
+                                                <p className="text-xs text-neutral-400 dark:text-neutral-500 truncate font-semibold">
+                                                    {site.siteUrl}
+                                                </p>
+                                            )}
+                                            <div className="flex items-center gap-2 pt-0.5">
                                                 {isActive ? (
                                                     <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Active Now</span>
                                                 ) : (

@@ -25,7 +25,9 @@ const ConnectAccountsPage = () => {
     const [saving, setSaving] = useState(false);
     const [resumingSource, setResumingSource] = useState(null);
     const [showNameError, setShowNameError] = useState(false);
+    const [showUrlError, setShowUrlError] = useState(false);
     const websiteNameRef = useRef(null);
+    const websiteUrlRef = useRef(null);
 
     const { connectedSources, activeSiteId, setAccounts } = useAccountsStore();
     const { token } = useAuthStore();
@@ -55,6 +57,7 @@ const ConnectAccountsPage = () => {
     const [selectedGAds, setSelectedGAds] = useState('');
     const [selectedFbAds, setSelectedFbAds] = useState('');
     const [siteName, setSiteName] = useState('');
+    const [siteUrl, setSiteUrl] = useState('');
     const [initialValues, setInitialValues] = useState({});
 
     // Modification state (to unlock fields in 'view' mode)
@@ -89,6 +92,7 @@ const ConnectAccountsPage = () => {
                         const vals = {
                             siteId: active.data._id,
                             siteName: active.data.siteName || '',
+                            siteUrl: active.data.siteUrl || '',
                             ga4: active.data.ga4PropertyId || '',
                             ga4TokenId: active.data.ga4TokenId?._id || active.data.ga4TokenId || '',
                             ga4SyncStatus: active.data.ga4SyncStatus || 'idle',
@@ -112,6 +116,7 @@ const ConnectAccountsPage = () => {
                         };
                         setInitialValues(vals);
                         if (vals.siteName) setSiteName(vals.siteName);
+                        if (vals.siteUrl) setSiteUrl(vals.siteUrl);
                         if (vals.ga4) setSelectedGa4(vals.ga4);
                         if (vals.ga4TokenId) setGa4TokenId(vals.ga4TokenId);
                         if (vals.gsc) setSelectedGsc(vals.gsc);
@@ -124,10 +129,12 @@ const ConnectAccountsPage = () => {
                         if (activeSiteId) setAccounts({ activeSiteId: null });
                         setInitialValues({});
                         setSiteName('');
+                        setSiteUrl('');
                     }
                 } else {
                     setInitialValues({});
                     setSiteName('');
+                    setSiteUrl('');
                     setSelectedGa4('');
                     setSelectedGsc('');
                     setSelectedGAds('');
@@ -210,6 +217,14 @@ const ConnectAccountsPage = () => {
             return;
         }
 
+        if (!siteUrl.trim()) {
+            setShowUrlError(true);
+            toast.error('Please enter a website URL');
+            websiteUrlRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            websiteUrlRef.current?.focus();
+            return;
+        }
+
         setSaving(true);
         try {
             const selectedGa4Obj = ga4Props.find(p => p.id === selectedGa4);
@@ -219,6 +234,7 @@ const ConnectAccountsPage = () => {
             const data = {
                 siteId: (isNew || !activeSiteId) ? undefined : activeSiteId,
                 siteName: siteName,
+                siteUrl: siteUrl,
                 ga4PropertyId: selectedGa4,
                 ga4PropertyName: selectedGa4Obj?.name || '',
                 ga4AccountId: selectedGa4Obj?.accountId || '',
@@ -314,40 +330,78 @@ const ConnectAccountsPage = () => {
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        {/* 3. Website Name Card */}
+                        {/* 3. Website Details Card */}
                         <div className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 shadow-sm">
-                            <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <label className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-wider">Website Name <span className="text-red-500">*</span></label>
-                                        <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/30 uppercase tracking-wider">Required</span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Website Name */}
+                                <div className="space-y-3">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <label className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-wider">Website Name <span className="text-red-500">*</span></label>
+                                            <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/30 uppercase tracking-wider">Required</span>
+                                        </div>
+                                        <p className="text-xs text-neutral-400 dark:text-neutral-500 font-bold">Give this website a name so you can identify it easily</p>
                                     </div>
-                                    <p className="text-xs text-neutral-400 dark:text-neutral-500 font-bold">Give this website a name so you can identify it easily</p>
+                                    <div className="relative">
+                                        <input
+                                            ref={websiteNameRef}
+                                            type="text"
+                                            value={siteName}
+                                            onChange={e => {
+                                                setSiteName(e.target.value);
+                                                if (e.target.value.trim()) setShowNameError(false);
+                                            }}
+                                            required
+                                            placeholder="e.g. My Portfolio, Client XYZ"
+                                            className={`w-full text-base font-bold rounded-xl border bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:border-transparent py-3 px-4 outline-none transition-all placeholder:text-neutral-300 dark:placeholder:text-neutral-600 ${
+                                                showNameError 
+                                                    ? 'border-red-500 focus:ring-red-500 dark:border-red-500/50' 
+                                                    : 'border-neutral-200 dark:border-neutral-700 focus:ring-brand-500'
+                                            }`}
+                                        />
+                                        {showNameError && (
+                                            <p className="text-xs text-red-500 font-bold mt-1.5 flex items-center gap-1.5 pl-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                                                Website name is required
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="relative max-w-md">
-                                <input
-                                    ref={websiteNameRef}
-                                    type="text"
-                                    value={siteName}
-                                    onChange={e => {
-                                        setSiteName(e.target.value);
-                                        if (e.target.value.trim()) setShowNameError(false);
-                                    }}
-                                    required
-                                    placeholder="e.g. My Portfolio, Client XYZ"
-                                    className={`w-full text-base font-bold rounded-xl border bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:border-transparent py-3 px-4 outline-none transition-all placeholder:text-neutral-300 dark:placeholder:text-neutral-600 ${
-                                        showNameError 
-                                            ? 'border-red-500 focus:ring-red-500 dark:border-red-500/50' 
-                                            : 'border-neutral-200 dark:border-neutral-700 focus:ring-brand-500'
-                                    }`}
-                                />
-                                {showNameError && (
-                                    <p className="text-xs text-red-500 font-bold mt-1.5 flex items-center gap-1.5 pl-1">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                                        Website name is required
-                                    </p>
-                                )}
+
+                                {/* Website URL */}
+                                <div className="space-y-3">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <label className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-wider">Website URL <span className="text-red-500">*</span></label>
+                                            <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/30 uppercase tracking-wider">Required</span>
+                                        </div>
+                                        <p className="text-xs text-neutral-400 dark:text-neutral-500 font-bold">Enter your website's main domain or full URL</p>
+                                    </div>
+                                    <div className="relative">
+                                        <input
+                                            ref={websiteUrlRef}
+                                            type="text"
+                                            value={siteUrl}
+                                            onChange={e => {
+                                                setSiteUrl(e.target.value);
+                                                if (e.target.value.trim()) setShowUrlError(false);
+                                            }}
+                                            required
+                                            placeholder="e.g. https://myportfolio.com"
+                                            className={`w-full text-base font-bold rounded-xl border bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:border-transparent py-3 px-4 outline-none transition-all placeholder:text-neutral-300 dark:placeholder:text-neutral-600 ${
+                                                showUrlError 
+                                                    ? 'border-red-500 focus:ring-red-500 dark:border-red-500/50' 
+                                                    : 'border-neutral-200 dark:border-neutral-700 focus:ring-brand-500'
+                                            }`}
+                                        />
+                                        {showUrlError && (
+                                            <p className="text-xs text-red-500 font-bold mt-1.5 flex items-center gap-1.5 pl-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                                                Website URL is required
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

@@ -4,6 +4,7 @@ export const selectAccountsSchema = z.object({
   body: z.object({
     siteId: z.string().nullable().optional(),
     siteName: z.string().min(1, "Site name is required"),
+    siteUrl: z.string().nullable().optional(),
     // GA4
     ga4PropertyId: z.string().nullable().optional(),
     ga4PropertyName: z.string().nullable().optional(),

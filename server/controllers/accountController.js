@@ -172,7 +172,7 @@ export const selectAccounts = async (req, res) => {
             'gscSiteUrl', 'gscPermission', 'gscTokenId',
             'googleAdsCustomerId', 'googleAdsAccountName', 'googleAdsCurrencyCode', 'googleAdsTokenId',
             'facebookAdAccountId', 'facebookAdAccountName', 'facebookAdCurrencyCode', 'facebookTokenId',
-            'siteName'
+            'siteName', 'siteUrl'
         ];
 
         // Clean up empty strings to null for consistent DB state

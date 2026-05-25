@@ -4,6 +4,7 @@ const userAccountsSchema = new mongoose.Schema({
     // Core Identity
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     siteName: { type: String, required: true },
+    siteUrl: { type: String },
     syncStatus: { type: String, enum: ['idle', 'syncing', 'error', 'pending'], default: 'idle' },
 
     // GA4 Integration
