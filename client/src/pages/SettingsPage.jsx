@@ -4,25 +4,39 @@ import Button from '../components/ui/Button';
 import { useAuthStore } from '../store/authStore';
 import { useAccountsStore } from '../store/accountsStore';
 import { disconnectFacebook, disconnectGoogle, listGoogleAccounts, listFacebookAccounts } from '../api/accountApi';
+import { getMe } from '../api/authApi';
 import api, { getApiUrl } from '../api';
 import toast from 'react-hot-toast';
 
 const SettingsPage = () => {
     const { user, clearAuth, token } = useAuthStore();
-    const { connectedSources, setAccounts } = useAccountsStore();
+    const { setAccounts } = useAccountsStore();
 
+    const [userConnectedSources, setUserConnectedSources] = React.useState([]);
     const [googleAccounts, setGoogleAccounts] = React.useState([]);
     const [facebookAccounts, setFacebookAccounts] = React.useState([]);
     const [loadingAccounts, setLoadingAccounts] = React.useState(false);
 
     React.useEffect(() => {
-        if (connectedSources?.includes('google')) {
+        const fetchUserSources = async () => {
+            try {
+                const res = await getMe();
+                setUserConnectedSources(res.data.connectedSources || []);
+            } catch (err) {
+                console.error('Error fetching user connected sources:', err);
+            }
+        };
+        fetchUserSources();
+    }, []);
+
+    React.useEffect(() => {
+        if (userConnectedSources.includes('google')) {
             loadGoogleAccounts();
         }
-        if (connectedSources?.includes('facebook')) {
+        if (userConnectedSources.includes('facebook')) {
             loadFacebookAccounts();
         }
-    }, [connectedSources]);
+    }, [userConnectedSources]);
 
     const loadGoogleAccounts = async () => {
         setLoadingAccounts(true);
@@ -54,12 +68,12 @@ const SettingsPage = () => {
                 const remaining = googleAccounts.filter(a => a._id !== tokenId);
                 setGoogleAccounts(remaining);
                 if (remaining.length === 0) {
-                    setAccounts({ connectedSources: connectedSources.filter(s => s !== 'google') });
+                    setUserConnectedSources(prev => prev.filter(s => s !== 'google'));
                 }
                 toast.success("Account disconnected");
             } else {
+                setUserConnectedSources(prev => prev.filter(s => !['ga4', 'gsc', 'google-ads', 'google'].includes(s)));
                 setAccounts({
-                    connectedSources: connectedSources.filter(s => !['ga4', 'gsc', 'google-ads', 'google'].includes(s)),
                     ga4: {},
                     gsc: {},
                     googleAds: {},
@@ -87,12 +101,12 @@ const SettingsPage = () => {
                 const remaining = facebookAccounts.filter(a => a._id !== tokenId);
                 setFacebookAccounts(remaining);
                 if (remaining.length === 0) {
-                    setAccounts({ connectedSources: connectedSources.filter(s => s !== 'facebook') });
+                    setUserConnectedSources(prev => prev.filter(s => s !== 'facebook'));
                 }
                 toast.success("Profile disconnected");
             } else {
+                setUserConnectedSources(prev => prev.filter(s => !['facebook', 'facebook-ads'].includes(s)));
                 setAccounts({
-                    connectedSources: connectedSources.filter(s => !['facebook', 'facebook-ads'].includes(s)),
                     facebook: {}
                 });
                 toast.success("Facebook disconnected");
@@ -153,7 +167,7 @@ const SettingsPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         
                         {/* GOOGLE CARD */}
-                        <div className={`bg-white dark:bg-neutral-900 border ${connectedSources?.includes('google') ? 'border-neutral-200 dark:border-neutral-800' : 'border-dashed border-neutral-300 dark:border-neutral-700'} rounded-2xl p-6 shadow-sm flex flex-col`}>
+                        <div className={`bg-white dark:bg-neutral-900 border ${userConnectedSources.includes('google') ? 'border-neutral-200 dark:border-neutral-800' : 'border-dashed border-neutral-300 dark:border-neutral-700'} rounded-2xl p-6 shadow-sm flex flex-col`}>
                             <div className="flex items-center justify-between mb-6">
                                 <div className="w-12 h-12 rounded-xl bg-neutral-50 dark:bg-neutral-800 flex items-center justify-center border border-neutral-100 dark:border-neutral-700 shadow-sm">
                                     <svg viewBox="0 0 24 24" className="w-6 h-6">
@@ -163,7 +177,7 @@ const SettingsPage = () => {
                                         <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                                     </svg>
                                 </div>
-                                {connectedSources?.includes('google') && (
+                                {userConnectedSources.includes('google') && (
                                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-100 dark:border-green-800 text-[10px] font-black uppercase tracking-widest">
                                         <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Connected
                                     </span>
@@ -172,7 +186,7 @@ const SettingsPage = () => {
 
                             <div className="flex-1">
                                 <h3 className="text-lg font-black text-neutral-900 dark:text-white">Google</h3>
-                                {!connectedSources?.includes('google') ? (
+                                {!userConnectedSources.includes('google') ? (
                                     <div className="mt-2 text-center">
                                         <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed mb-6">
                                             Connect to access Google Analytics, Search Console, and Google Ads
@@ -225,14 +239,14 @@ const SettingsPage = () => {
                         </div>
 
                         {/* META/FACEBOOK CARD */}
-                        <div className={`bg-white dark:bg-neutral-900 border ${connectedSources?.includes('facebook') ? 'border-neutral-200 dark:border-neutral-800' : 'border-dashed border-neutral-300 dark:border-neutral-700'} rounded-2xl p-6 shadow-sm flex flex-col`}>
+                        <div className={`bg-white dark:bg-neutral-900 border ${userConnectedSources.includes('facebook') ? 'border-neutral-200 dark:border-neutral-800' : 'border-dashed border-neutral-300 dark:border-neutral-700'} rounded-2xl p-6 shadow-sm flex flex-col`}>
                             <div className="flex items-center justify-between mb-6">
                                 <div className="w-12 h-12 rounded-xl bg-[#1877F2] flex items-center justify-center border border-[#1877F2]/10 shadow-sm">
                                     <svg fill="white" viewBox="0 0 24 24" className="w-6 h-6">
                                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                                     </svg>
                                 </div>
-                                {connectedSources?.includes('facebook') && (
+                                {userConnectedSources.includes('facebook') && (
                                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-100 dark:border-green-800 text-[10px] font-black uppercase tracking-widest">
                                         <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Connected
                                     </span>
@@ -241,7 +255,7 @@ const SettingsPage = () => {
 
                             <div className="flex-1">
                                 <h3 className="text-lg font-black text-neutral-900 dark:text-white">Meta Business</h3>
-                                {!connectedSources?.includes('facebook') ? (
+                                {!userConnectedSources.includes('facebook') ? (
                                     <div className="mt-2 text-center">
                                         <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed mb-6">
                                             Connect to track Facebook ad performance
