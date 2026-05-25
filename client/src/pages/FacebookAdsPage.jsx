@@ -51,8 +51,9 @@ const FacebookAdsLogo = ({ className = "w-6 h-6" }) => (
 const FacebookAdsPage = () => {
     const { startDate, endDate } = useDateRangeStore();
     const { device, campaign, searchQuery } = useFilterStore();
-    const { connectedSources, activeFacebookAdAccountId, activeSiteId, userSites, syncMetadata, setAccounts } = useAccountsStore();
-    const isConnected = connectedSources.includes('facebook-ads');
+    const { facebook, activeSiteId, userSites, setAccounts } = useAccountsStore();
+    const activeFacebookAdAccountId = facebook?.facebookAdAccountId;
+    const isConnected = !!activeFacebookAdAccountId;
     const hasAccount = !!activeFacebookAdAccountId;
     const navigate = useNavigate();
     const openWithQuestion = useAiChatStore(s => s.openWithQuestion);
@@ -89,10 +90,11 @@ const FacebookAdsPage = () => {
 
             if (data.syncMetadata) {
                 setAccounts({
-                    syncMetadata: {
-                        syncStatus: data.syncMetadata.syncStatus,
+                    syncStatus: data.syncMetadata.syncStatus,
+                    facebook: {
                         facebookAdsLastSyncedAt: data.syncMetadata.lastSyncedAt,
-                        facebookAdsHistoricalComplete: data.syncMetadata.facebookAdsHistoricalComplete
+                        facebookAdsHistoricalComplete: data.syncMetadata.facebookAdsHistoricalComplete,
+                        facebookAdsSyncStatus: data.syncMetadata.syncStatus
                     }
                 });
             }
@@ -108,9 +110,9 @@ const FacebookAdsPage = () => {
         setLoading(true);
         // 1. Set status to syncing in store
         setAccounts({ 
-            syncMetadata: {
-                ...syncMetadata,
-                syncStatus: 'syncing' 
+            syncStatus: 'syncing',
+            facebook: {
+                facebookAdsSyncStatus: 'syncing'
             }
         });
 
@@ -122,10 +124,11 @@ const FacebookAdsPage = () => {
             const res = await getActiveAccounts(activeSiteId);
             const data = res.data || {};
             setAccounts({
-                syncMetadata: {
+                syncStatus: data.syncStatus || 'idle',
+                facebook: {
                     facebookAdsHistoricalComplete: data.facebookAdsHistoricalComplete || false,
                     facebookAdsLastSyncedAt: data.facebookAdsLastSyncedAt || null,
-                    syncStatus: data.syncStatus || 'idle'
+                    facebookAdsSyncStatus: data.syncStatus || 'idle'
                 }
             });
 
@@ -137,10 +140,11 @@ const FacebookAdsPage = () => {
             const res = await getActiveAccounts(activeSiteId).catch(() => ({ data: {} }));
             const data = res.data || {};
             setAccounts({
-                syncMetadata: {
+                syncStatus: data.syncStatus || 'error',
+                facebook: {
                     facebookAdsHistoricalComplete: data.facebookAdsHistoricalComplete || false,
                     facebookAdsLastSyncedAt: data.facebookAdsLastSyncedAt || null,
-                    syncStatus: data.syncStatus || 'error'
+                    facebookAdsSyncStatus: data.syncStatus || 'error'
                 }
             });
             await loadData();
@@ -178,11 +182,11 @@ const FacebookAdsPage = () => {
 
     // Refresh data when sync completes
     useEffect(() => {
-        if (syncMetadata?.syncStatus !== 'syncing' && activeSiteId) {
+        if (facebook?.facebookAdsSyncStatus !== 'syncing' && activeSiteId) {
             console.log('Facebook Ads Sync completed or idle, refreshing data...');
             loadData();
         }
-    }, [syncMetadata?.syncStatus, activeSiteId, loadData]);
+    }, [facebook?.facebookAdsSyncStatus, activeSiteId, loadData]);
 
 
     // Derived Values
@@ -370,7 +374,7 @@ const FacebookAdsPage = () => {
                             <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 ml-1">Social media advertising metrics</p>
                             <div className="flex items-center gap-2 mt-2 ml-1 text-[11px] text-neutral-400 font-bold hide-in-pdf">
                                 <span className="uppercase text-[10px] tracking-tight opacity-60">Synced:</span>
-                                <span className="text-neutral-700 dark:text-neutral-300 font-black tabular-nums">{syncMetadata?.facebookAdsLastSyncedAt ? formatDistanceToNow(new Date(syncMetadata.facebookAdsLastSyncedAt), { addSuffix: true }) : 'Never'}</span>
+                                <span className="text-neutral-700 dark:text-neutral-300 font-black tabular-nums">{facebook?.facebookAdsLastSyncedAt ? formatDistanceToNow(new Date(facebook.facebookAdsLastSyncedAt), { addSuffix: true }) : 'Never'}</span>
                                 <button onClick={handleManualRefresh} className="p-1 hover:text-brand-500 transition-all hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg active:rotate-180 duration-500">
                                     <ArrowPathIcon className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                                 </button>

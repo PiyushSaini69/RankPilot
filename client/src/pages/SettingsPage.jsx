@@ -74,11 +74,15 @@ const SettingsPage = () => {
             } else {
                 setUserConnectedSources(prev => prev.filter(s => !['ga4', 'gsc', 'google-ads', 'google'].includes(s)));
                 setAccounts({
-                    ga4: {},
-                    gsc: {},
-                    googleAds: {},
-                    gscSites: [],
-                    activeGscSite: null
+                    gsc: {
+                        gscSiteUrl: null,
+                        gscPermission: null,
+                        gscHistoricalComplete: false,
+                        gscSyncStatus: 'idle',
+                        gscSyncProgress: 0,
+                        gscLastSyncedAt: null,
+                        gscHistoricalChunkIndex: 0
+                    }
                 });
                 if (res.data?.oauthOnly) {
                     toast.success("Google disconnected. Since you used Google to sign in, we've sent a password-setup email to your inbox so you can still log in.", { duration: 8000 });
@@ -106,9 +110,6 @@ const SettingsPage = () => {
                 toast.success("Profile disconnected");
             } else {
                 setUserConnectedSources(prev => prev.filter(s => !['facebook', 'facebook-ads'].includes(s)));
-                setAccounts({
-                    facebook: {}
-                });
                 toast.success("Facebook disconnected");
             }
         } catch { toast.error("Error disconnecting Facebook"); }

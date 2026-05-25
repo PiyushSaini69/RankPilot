@@ -93,17 +93,23 @@ const DashboardPage = () => {
   const { preset, startDate, endDate, setPreset } = useDateRangeStore();
   const { device, campaign, channel, searchQuery, setFilters } = useFilterStore();
   const {
-    connectedSources,
-    activeGscSite,
-    activeGa4PropertyId,
-    activeGoogleAdsCustomerId,
-    activeFacebookAdAccountId,
+    gsc,
+    ga4,
+    googleAds,
+    facebook,
     activeSiteId,
-    syncMetadata,
+    activeSiteName,
+    activeSiteUrl,
+    syncStatus,
     userSites,
     setAccounts,
     setUserSites
   } = useAccountsStore();
+
+  const activeGscSite = gsc?.gscSiteUrl;
+  const activeGa4PropertyId = ga4?.ga4PropertyId;
+  const activeGoogleAdsCustomerId = googleAds?.googleAdsCustomerId;
+  const activeFacebookAdAccountId = facebook?.facebookAdAccountId;
 
   const [loading, setLoading] = useState(true);
   const [overviewData, setOverviewData] = useState({ ga4: null, gsc: null, googleAds: null, facebookAds: null, intelligence: null });
@@ -177,16 +183,26 @@ const DashboardPage = () => {
 
       if (data.syncMetadata) {
         setAccounts({
-          syncMetadata: {
-            syncStatus: data.syncStatus,
-            ga4LastSyncedAt: data.ga4LastSyncedAt,
-            gscLastSyncedAt: data.gscLastSyncedAt,
-            googleAdsLastSyncedAt: data.googleAdsLastSyncedAt,
-            facebookAdsLastSyncedAt: data.facebookAdsLastSyncedAt,
+          syncStatus: data.syncStatus,
+          ga4: {
             ga4HistoricalComplete: data.ga4HistoricalComplete || false,
+            ga4LastSyncedAt: data.ga4LastSyncedAt || null,
+            ga4SyncStatus: data.syncStatus || 'idle'
+          },
+          gsc: {
             gscHistoricalComplete: data.gscHistoricalComplete || false,
+            gscLastSyncedAt: data.gscLastSyncedAt || null,
+            gscSyncStatus: data.syncStatus || 'idle'
+          },
+          googleAds: {
             googleAdsHistoricalComplete: data.googleAdsHistoricalComplete || false,
-            facebookAdsHistoricalComplete: data.facebookAdsHistoricalComplete || false
+            googleAdsLastSyncedAt: data.googleAdsLastSyncedAt || null,
+            googleAdsSyncStatus: data.syncStatus || 'idle'
+          },
+          facebook: {
+            facebookAdsHistoricalComplete: data.facebookAdsHistoricalComplete || false,
+            facebookAdsLastSyncedAt: data.facebookAdsLastSyncedAt || null,
+            facebookAdsSyncStatus: data.syncStatus || 'idle'
           }
         });
       }
@@ -201,10 +217,11 @@ const DashboardPage = () => {
     if (!activeSiteId) return;
     setLoading(true);
     setAccounts({
-      syncMetadata: {
-        ...syncMetadata,
-        syncStatus: 'syncing'
-      }
+      syncStatus: 'syncing',
+      ga4: { ga4SyncStatus: 'syncing' },
+      gsc: { gscSyncStatus: 'syncing' },
+      googleAds: { googleAdsSyncStatus: 'syncing' },
+      facebook: { facebookAdsSyncStatus: 'syncing' }
     });
 
     try {
@@ -212,16 +229,26 @@ const DashboardPage = () => {
       const res = await getActiveAccounts(activeSiteId);
       const resData = res.data || {};
       setAccounts({
-        syncMetadata: {
-          ga4LastSyncedAt: resData.ga4LastSyncedAt || null,
-          gscLastSyncedAt: resData.gscLastSyncedAt || null,
-          googleAdsLastSyncedAt: resData.googleAdsLastSyncedAt || null,
-          facebookAdsLastSyncedAt: resData.facebookAdsLastSyncedAt || null,
+        syncStatus: resData.syncStatus || 'idle',
+        ga4: {
           ga4HistoricalComplete: resData.ga4HistoricalComplete || false,
+          ga4LastSyncedAt: resData.ga4LastSyncedAt || null,
+          ga4SyncStatus: resData.syncStatus || 'idle'
+        },
+        gsc: {
           gscHistoricalComplete: resData.gscHistoricalComplete || false,
+          gscLastSyncedAt: resData.gscLastSyncedAt || null,
+          gscSyncStatus: resData.syncStatus || 'idle'
+        },
+        googleAds: {
           googleAdsHistoricalComplete: resData.googleAdsHistoricalComplete || false,
+          googleAdsLastSyncedAt: resData.googleAdsLastSyncedAt || null,
+          googleAdsSyncStatus: resData.syncStatus || 'idle'
+        },
+        facebook: {
           facebookAdsHistoricalComplete: resData.facebookAdsHistoricalComplete || false,
-          syncStatus: resData.syncStatus || 'idle'
+          facebookAdsLastSyncedAt: resData.facebookAdsLastSyncedAt || null,
+          facebookAdsSyncStatus: resData.syncStatus || 'idle'
         }
       });
       await loadDashboardData();
@@ -230,16 +257,26 @@ const DashboardPage = () => {
       const res = await getActiveAccounts(activeSiteId).catch(() => ({ data: {} }));
       const resData = res.data || {};
       setAccounts({
-        syncMetadata: {
-          ga4LastSyncedAt: resData.ga4LastSyncedAt || null,
-          gscLastSyncedAt: resData.gscLastSyncedAt || null,
-          googleAdsLastSyncedAt: resData.googleAdsLastSyncedAt || null,
-          facebookAdsLastSyncedAt: resData.facebookAdsLastSyncedAt || null,
+        syncStatus: resData.syncStatus || 'error',
+        ga4: {
           ga4HistoricalComplete: resData.ga4HistoricalComplete || false,
+          ga4LastSyncedAt: resData.ga4LastSyncedAt || null,
+          ga4SyncStatus: resData.syncStatus || 'error'
+        },
+        gsc: {
           gscHistoricalComplete: resData.gscHistoricalComplete || false,
+          gscLastSyncedAt: resData.gscLastSyncedAt || null,
+          gscSyncStatus: resData.syncStatus || 'error'
+        },
+        googleAds: {
           googleAdsHistoricalComplete: resData.googleAdsHistoricalComplete || false,
+          googleAdsLastSyncedAt: resData.googleAdsLastSyncedAt || null,
+          googleAdsSyncStatus: resData.syncStatus || 'error'
+        },
+        facebook: {
           facebookAdsHistoricalComplete: resData.facebookAdsHistoricalComplete || false,
-          syncStatus: resData.syncStatus || 'error'
+          facebookAdsLastSyncedAt: resData.facebookAdsLastSyncedAt || null,
+          facebookAdsSyncStatus: resData.syncStatus || 'error'
         }
       });
       await loadDashboardData();
@@ -283,7 +320,7 @@ const DashboardPage = () => {
 
   useEffect(() => {
     loadDashboardData();
-  }, [loadDashboardData, connectedSources]);
+  }, [loadDashboardData]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -293,10 +330,10 @@ const DashboardPage = () => {
   }, [loadDashboardData]);
 
   useEffect(() => {
-    if (syncMetadata?.syncStatus !== 'syncing' && activeSiteId) {
+    if (syncStatus !== 'syncing' && activeSiteId) {
       loadDashboardData();
     }
-  }, [syncMetadata?.syncStatus, activeSiteId, loadDashboardData]);
+  }, [syncStatus, activeSiteId, loadDashboardData]);
 
   const activeSite = userSites?.find?.(s => s._id === activeSiteId);
   const isSyncingHistorical = !!(activeSite && (
@@ -488,7 +525,7 @@ const DashboardPage = () => {
                         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white leading-none">
                           Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'},
                           <span className="block sm:inline ml-0 sm:ml-2 bg-gradient-to-r from-brand-600 to-accent-500 bg-clip-text text-transparent capitalize">
-                            {overviewData.userName || user?.name || 'Pilot'}
+                            {user?.name || 'Pilot'}
                           </span>
                         </h1>
                       </div>
@@ -496,19 +533,29 @@ const DashboardPage = () => {
                         <div className="space-y-1 border-l-2 border-brand-500/20 pl-4">
                           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 shrink-0">Overview</p>
                           <div className="flex flex-wrap items-center gap-3">
-                            <h2 className="text-lg lg:text-2xl font-black text-neutral-900 dark:text-white tracking-tight leading-none">{overviewData.siteName || activeSite?.siteName || 'RankPilot'}</h2>
+                            <h2 className="text-lg lg:text-2xl font-black text-neutral-900 dark:text-white tracking-tight leading-none">{activeSiteName || 'RankPilot'}</h2>
+                            {activeSiteUrl && (
+                              <a 
+                                href={activeSiteUrl.startsWith('http') ? activeSiteUrl : `https://${activeSiteUrl}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-xs font-bold text-neutral-400 hover:text-brand-500 transition-colors underline decoration-dotted underline-offset-4"
+                              >
+                                {activeSiteUrl.replace(/https?:\/\//, '')}
+                              </a>
+                            )}
                           </div>
                           <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-sm mt-1 line-clamp-2">
-                            {overviewData.intelligence?.websiteSummary || `Monitoring ${overviewData.siteName || activeSite?.siteName} performance across your marketing channels.`}
+                            {overviewData.intelligence?.websiteSummary || `Monitoring ${activeSiteName || 'your website'} performance across your marketing channels.`}
                           </p>
                         </div>
 
                       <div className="flex flex-wrap items-center gap-3 pt-2">
                         <div className="flex items-center gap-3">
-                          <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full border hide-in-pdf ${syncMetadata?.syncStatus === 'syncing' ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-100/50 dark:border-blue-500/20' : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100/50 dark:border-emerald-500/20'}`}>
-                            <div className={`w-1 h-1 rounded-full ${syncMetadata?.syncStatus === 'syncing' ? 'bg-blue-500 animate-spin' : 'bg-emerald-500 animate-pulse'}`}></div>
-                            <span className={`text-[8px] font-black uppercase tracking-widest ${syncMetadata?.syncStatus === 'syncing' ? 'text-blue-600 dark:text-blue-500' : 'text-emerald-600 dark:text-emerald-500'}`}>
-                              {syncMetadata?.syncStatus === 'syncing' ? 'Syncing...' : 'Active'}
+                          <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full border hide-in-pdf ${syncStatus === 'syncing' ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-100/50 dark:border-blue-500/20' : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100/50 dark:border-emerald-500/20'}`}>
+                            <div className={`w-1 h-1 rounded-full ${syncStatus === 'syncing' ? 'bg-blue-500 animate-spin' : 'bg-emerald-500 animate-pulse'}`}></div>
+                            <span className={`text-[8px] font-black uppercase tracking-widest ${syncStatus === 'syncing' ? 'text-blue-600 dark:text-blue-500' : 'text-emerald-600 dark:text-emerald-500'}`}>
+                              {syncStatus === 'syncing' ? 'Syncing...' : 'Active'}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 border-l border-neutral-200 dark:border-neutral-800 pl-3 hide-in-pdf">
@@ -516,10 +563,10 @@ const DashboardPage = () => {
                             <span className="text-[9px] font-black text-neutral-600 dark:text-neutral-300 uppercase">
                               {(() => {
                                 const dates = [
-                                  syncMetadata?.ga4LastSyncedAt,
-                                  syncMetadata?.gscLastSyncedAt,
-                                  syncMetadata?.googleAdsLastSyncedAt,
-                                  syncMetadata?.facebookAdsLastSyncedAt
+                                  ga4?.ga4LastSyncedAt,
+                                  gsc?.gscLastSyncedAt,
+                                  googleAds?.googleAdsLastSyncedAt,
+                                  facebook?.facebookAdsLastSyncedAt
                                 ].filter(Boolean).map(d => new Date(d));
                                 if (dates.length === 0) return 'Never';
                                 const latest = new Date(Math.max(...dates));
@@ -528,10 +575,10 @@ const DashboardPage = () => {
                             </span>
                             <button
                               onClick={handleManualRefresh}
-                              disabled={loading || syncMetadata?.syncStatus === 'syncing'}
-                              className={`hover:rotate-180 transition-all duration-700 bg-neutral-100 dark:bg-neutral-800 p-1 rounded-lg ${loading || syncMetadata?.syncStatus === 'syncing' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              disabled={loading || syncStatus === 'syncing'}
+                              className={`hover:rotate-180 transition-all duration-700 bg-neutral-100 dark:bg-neutral-800 p-1 rounded-lg ${loading || syncStatus === 'syncing' ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                              <ArrowPathIcon className={`w-3 h-3 text-neutral-500 ${(loading || syncMetadata?.syncStatus === 'syncing') ? 'animate-spin' : ''}`} />
+                              <ArrowPathIcon className={`w-3 h-3 text-neutral-500 ${(loading || syncStatus === 'syncing') ? 'animate-spin' : ''}`} />
                             </button>
                           </div>
                         </div>

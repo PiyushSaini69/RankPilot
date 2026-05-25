@@ -4,74 +4,166 @@ import { persist } from 'zustand/middleware';
 export const useAccountsStore = create(
     persist(
         (set) => ({
-            ga4: {},
-            gsc: {},
-            googleAds: {},
-            facebook: {},
-            connectedSources: [],
-            gscSites: [],
             userSites: [], // All sites from DB
             activeSiteId: null, // Currently selected site ID
-            activeGscSite: null,
-            activeGa4PropertyId: null,
-            activeGoogleAdsCustomerId: null,
-            activeFacebookAdAccountId: null,
-            syncMetadata: {
+            activeSiteName: null, // Active selected site name
+            activeSiteUrl: null, // Active selected site URL
+
+            // Flat Global Sync Status
+            syncStatus: 'idle',
+
+            // --- Separate Modular Connected Source Objects ---
+            ga4: {
+                ga4PropertyId: null,
+                ga4PropertyName: null,
+                ga4AccountId: null,
                 ga4HistoricalComplete: false,
-                gscHistoricalComplete: false,
-                googleAdsHistoricalComplete: false,
-                facebookAdsHistoricalComplete: false,
-                syncStatus: 'idle',
+                ga4SyncStatus: 'idle',
+                ga4SyncProgress: 0,
                 ga4LastSyncedAt: null,
-                gscLastSyncedAt: null,
-                googleAdsLastSyncedAt: null,
-                facebookAdsLastSyncedAt: null
+                ga4HistoricalChunkIndex: 0,
+                ga4TokenEmail: null
             },
+
+            gsc: {
+                gscSiteUrl: null,
+                gscPermission: null,
+                gscHistoricalComplete: false,
+                gscSyncStatus: 'idle',
+                gscSyncProgress: 0,
+                gscLastSyncedAt: null,
+                gscHistoricalChunkIndex: 0,
+                gscTokenEmail: null
+            },
+
+            googleAds: {
+                googleAdsCustomerId: null,
+                googleAdsAccountName: null,
+                googleAdsCurrencyCode: null,
+                googleAdsHistoricalComplete: false,
+                googleAdsSyncStatus: 'idle',
+                googleAdsSyncProgress: 0,
+                googleAdsLastSyncedAt: null,
+                googleAdsHistoricalChunkIndex: 0,
+                googleAdsTokenEmail: null
+            },
+
+            facebook: {
+                facebookAdAccountId: null,
+                facebookAdAccountName: null,
+                facebookAdCurrencyCode: null,
+                facebookAdsHistoricalComplete: false,
+                facebookAdsSyncStatus: 'idle',
+                facebookAdsSyncProgress: 0,
+                facebookAdsLastSyncedAt: null,
+                facebookAdsHistoricalChunkIndex: 0,
+                facebookTokenName: null
+            },
+
+
 
             setAccounts: (updates) => set((state) => {
                 const newState = { ...state, ...updates };
-                
-                // Only merge syncMetadata if it's actually provided in updates
-                if (updates.syncStatus || updates.ga4HistoricalComplete !== undefined || updates.gscHistoricalComplete !== undefined || updates.ga4LastSyncedAt || updates.gscLastSyncedAt || updates.googleAdsLastSyncedAt || updates.facebookAdsLastSyncedAt) {
-                    newState.syncMetadata = {
-                        ...state.syncMetadata,
-                        ...(updates.ga4HistoricalComplete !== undefined && { ga4HistoricalComplete: updates.ga4HistoricalComplete }),
-                        ...(updates.gscHistoricalComplete !== undefined && { gscHistoricalComplete: updates.gscHistoricalComplete }),
-                        ...(updates.googleAdsHistoricalComplete !== undefined && { googleAdsHistoricalComplete: updates.googleAdsHistoricalComplete }),
-                        ...(updates.facebookAdsHistoricalComplete !== undefined && { facebookAdsHistoricalComplete: updates.facebookAdsHistoricalComplete }),
-                        ...(updates.syncStatus !== undefined && { syncStatus: updates.syncStatus }),
-                        ...(updates.ga4LastSyncedAt !== undefined && { ga4LastSyncedAt: updates.ga4LastSyncedAt }),
-                        ...(updates.gscLastSyncedAt !== undefined && { gscLastSyncedAt: updates.gscLastSyncedAt }),
-                        ...(updates.googleAdsLastSyncedAt !== undefined && { googleAdsLastSyncedAt: updates.googleAdsLastSyncedAt }),
-                        ...(updates.facebookAdsLastSyncedAt !== undefined && { facebookAdsLastSyncedAt: updates.facebookAdsLastSyncedAt })
+
+                // 1. If modular objects are passed, merge them
+                if (updates.ga4) {
+                    newState.ga4 = {
+                        ...state.ga4,
+                        ...updates.ga4
                     };
                 }
+                if (updates.gsc) {
+                    newState.gsc = {
+                        ...state.gsc,
+                        ...updates.gsc
+                    };
+                }
+                if (updates.googleAds) {
+                    newState.googleAds = {
+                        ...state.googleAds,
+                        ...updates.googleAds
+                    };
+                }
+                if (updates.facebook) {
+                    newState.facebook = {
+                        ...state.facebook,
+                        ...updates.facebook
+                    };
+                }
+
+                // Automatically keep activeSiteName & activeSiteUrl in sync with activeSiteId
+                if (updates.activeSiteId !== undefined || updates.userSites !== undefined) {
+                    const activeId = updates.activeSiteId !== undefined ? updates.activeSiteId : newState.activeSiteId;
+                    const sitesList = updates.userSites !== undefined ? updates.userSites : newState.userSites;
+                    const activeSite = sitesList?.find(s => s._id === activeId);
+
+                    if (updates.activeSiteName === undefined && activeSite) {
+                        newState.activeSiteName = activeSite.siteName;
+                    }
+                    if (updates.activeSiteUrl === undefined && activeSite) {
+                        newState.activeSiteUrl = activeSite.siteUrl;
+                    }
+                }
+
                 return newState;
             }),
             setUserSites: (sites) => set({ userSites: sites }),
-            clearAccounts: () => set({ 
-                ga4: {}, 
-                gsc: {}, 
-                googleAds: {}, 
-                facebook: {}, 
-                connectedSources: [], 
-                gscSites: [], 
-                userSites: [], 
-                activeSiteId: null, 
-                activeGscSite: null, 
-                activeGa4PropertyId: null, 
-                activeGoogleAdsCustomerId: null, 
-                activeFacebookAdAccountId: null, 
-                syncMetadata: { 
+            clearAccounts: () => set({
+                userSites: [],
+                activeSiteId: null,
+                activeSiteName: null,
+                activeSiteUrl: null,
+
+                // Flat Global Sync Status
+                syncStatus: 'idle',
+
+                // Modular Connected Source Objects
+                ga4: {
+                    ga4PropertyId: null,
+                    ga4PropertyName: null,
+                    ga4AccountId: null,
                     ga4HistoricalComplete: false,
-                    gscHistoricalComplete: false,
-                    googleAdsHistoricalComplete: false,
-                    facebookAdsHistoricalComplete: false,
+                    ga4SyncStatus: 'idle',
+                    ga4SyncProgress: 0,
                     ga4LastSyncedAt: null,
+                    ga4HistoricalChunkIndex: 0,
+                    ga4TokenEmail: null
+                },
+
+                gsc: {
+                    gscSiteUrl: null,
+                    gscPermission: null,
+                    gscHistoricalComplete: false,
+                    gscSyncStatus: 'idle',
+                    gscSyncProgress: 0,
                     gscLastSyncedAt: null,
+                    gscHistoricalChunkIndex: 0,
+                    gscTokenEmail: null
+                },
+
+                googleAds: {
+                    googleAdsCustomerId: null,
+                    googleAdsAccountName: null,
+                    googleAdsCurrencyCode: null,
+                    googleAdsHistoricalComplete: false,
+                    googleAdsSyncStatus: 'idle',
+                    googleAdsSyncProgress: 0,
                     googleAdsLastSyncedAt: null,
-                    facebookAdsLastSyncedAt: null
-                } 
+                    googleAdsHistoricalChunkIndex: 0,
+                    googleAdsTokenEmail: null
+                },
+
+                facebook: {
+                    facebookAdAccountId: null,
+                    facebookAdAccountName: null,
+                    facebookAdCurrencyCode: null,
+                    facebookAdsHistoricalComplete: false,
+                    facebookAdsSyncStatus: 'idle',
+                    facebookAdsSyncProgress: 0,
+                    facebookAdsLastSyncedAt: null,
+                    facebookAdsHistoricalChunkIndex: 0,
+                    facebookTokenName: null
+                }
             }),
         }),
         {

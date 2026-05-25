@@ -1,9 +1,7 @@
-import { ArrowUpIcon, ArrowDownIcon, PlusIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
-import { useAiChatStore } from '../../store/aiChatStore';
 
 const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Icon, loading = false, chartData = [], disconnected = false, onClick, insight, contextPrompt }) => {
-  const { openWithQuestion } = useAiChatStore();
 
   // Loading state matching the updated dimensions
   if (loading) return (
@@ -72,18 +70,6 @@ const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Ic
         </div>
 
         <div className="flex items-center gap-2">
-          {contextPrompt && !disconnected && (
-            <div 
-              onClick={(e) => {
-                e.stopPropagation();
-                openWithQuestion(contextPrompt);
-              }}
-              className="w-7 h-7 bg-brand-50 dark:bg-brand-500/10 rounded-full flex items-center justify-center cursor-pointer hover:bg-brand-100 dark:hover:bg-brand-500/20 transition-all border border-brand-100/50 dark:border-brand-500/20 text-brand-600 dark:text-brand-400 group/ai hide-in-pdf"
-            >
-              <SparklesIcon className="w-3.5 h-3.5 group-hover/ai:rotate-12 transition-transform" />
-            </div>
-          )}
-
           {Icon && (
             <div className={`w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm ${disconnected ? 'bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-700/50' : (
                 isPositive

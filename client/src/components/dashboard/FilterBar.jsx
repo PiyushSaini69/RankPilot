@@ -20,13 +20,7 @@ const FilterBar = ({ showDevice = true, showCampaign = false, showChannel = fals
     const [showPicker, setShowPicker] = React.useState(false);
     const [tempDates, setTempDates] = React.useState({ start: startDate, end: endDate });
 
-    const { 
-        syncMetadata, 
-        activeGa4PropertyId,
-        activeGscSite,
-        activeGoogleAdsCustomerId,
-        activeFacebookAdAccountId
-    } = useAccountsStore();
+
 
     // Sync temp dates when store changes or picker opens
     React.useEffect(() => {

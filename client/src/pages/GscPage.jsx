@@ -85,10 +85,10 @@ import { formatDistanceToNow } from 'date-fns';
         const device = useFilterStore(s => s.device);
         const setFilters = useFilterStore(s => s.setFilters);
 
-        const activeGscSite = useAccountsStore(s => s.activeGscSite);
-        const connectedSources = useAccountsStore(s => s.connectedSources);
+        const activeGscSite = useAccountsStore(s => s.gsc?.gscSiteUrl);
+        const ga4 = useAccountsStore(s => s.ga4);
         const activeSiteId = useAccountsStore(s => s.activeSiteId);
-        const syncMetadata = useAccountsStore(s => s.syncMetadata);
+        const gsc = useAccountsStore(s => s.gsc);
         const setAccounts = useAccountsStore(s => s.setAccounts);
         const userSites = useAccountsStore(s => s.userSites);
         
@@ -161,8 +161,11 @@ import { formatDistanceToNow } from 'date-fns';
                 if (data.syncMetadata) {
                     setAccounts({
                         syncStatus: data.syncMetadata.syncStatus,
-                        gscLastSyncedAt: data.syncMetadata.lastSyncedAt,
-                        gscHistoricalComplete: data.syncMetadata.gscHistoricalComplete
+                        gsc: {
+                            gscLastSyncedAt: data.syncMetadata.lastSyncedAt,
+                            gscHistoricalComplete: data.syncMetadata.gscHistoricalComplete,
+                            gscSyncStatus: data.syncMetadata.syncStatus
+                        }
                     });
                 }
                 
@@ -210,7 +213,12 @@ import { formatDistanceToNow } from 'date-fns';
             if (!activeSiteId) return;
             setLoading(true);
             // 1. Set status to syncing in store
-            setAccounts({ syncStatus: 'syncing' });
+            setAccounts({ 
+                syncStatus: 'syncing',
+                gsc: {
+                    gscSyncStatus: 'syncing'
+                }
+            });
 
             try {
                 // 2. Perform sync
@@ -220,10 +228,11 @@ import { formatDistanceToNow } from 'date-fns';
                 const res = await getActiveAccounts(activeSiteId);
                 const data = res.data || {};
                 setAccounts({
-                    syncMetadata: {
+                    syncStatus: data.syncStatus || 'idle',
+                    gsc: {
                         gscHistoricalComplete: data.gscHistoricalComplete || false,
                         gscLastSyncedAt: data.gscLastSyncedAt || null,
-                        syncStatus: data.syncStatus || 'idle'
+                        gscSyncStatus: data.syncStatus || 'idle'
                     }
                 });
 
@@ -235,10 +244,11 @@ import { formatDistanceToNow } from 'date-fns';
                 const res = await getActiveAccounts(activeSiteId).catch(() => ({ data: {} }));
                 const data = res.data || {};
                 setAccounts({
-                    syncMetadata: {
+                    syncStatus: data.syncStatus || 'error',
+                    gsc: {
                         gscHistoricalComplete: data.gscHistoricalComplete || false,
                         gscLastSyncedAt: data.gscLastSyncedAt || null,
-                        syncStatus: data.syncStatus || 'error'
+                        gscSyncStatus: data.syncStatus || 'error'
                     }
                 });
                 await loadData();
@@ -262,14 +272,14 @@ import { formatDistanceToNow } from 'date-fns';
         
         // Refresh data when sync completes
         useEffect(() => {
-            if (syncMetadata?.syncStatus !== 'syncing' && activeSiteId) {
+            if (gsc?.gscSyncStatus !== 'syncing' && activeSiteId) {
                 console.log('GSC Sync completed or idle, refreshing data...');
                 loadData();
             }
-        }, [syncMetadata?.syncStatus, activeSiteId, loadData]);
+        }, [gsc?.gscSyncStatus, activeSiteId, loadData]);
 
 
-        const isConnected = connectedSources.includes('ga4') || connectedSources.includes('gsc');
+        const isConnected = !!ga4?.ga4PropertyId || !!activeGscSite;
         const hasSite = !!activeGscSite;
 
         if (!isConnected || !hasSite) {
@@ -430,7 +440,7 @@ import { formatDistanceToNow } from 'date-fns';
                                         </div>
                                         <div className="flex flex-wrap items-center gap-3">
                                             <div className="flex items-center gap-1.5 text-[9px] text-neutral-400 font-bold uppercase tracking-widest whitespace-nowrap hide-in-pdf">
-                                                Synced: <span className="text-neutral-700 dark:text-neutral-300 tabular-nums font-black">{syncMetadata?.gscLastSyncedAt ? formatDistanceToNow(new Date(syncMetadata.gscLastSyncedAt), { addSuffix: true }) : 'Never'}</span>
+                                                Synced: <span className="text-neutral-700 dark:text-neutral-300 tabular-nums font-black">{gsc?.gscLastSyncedAt ? formatDistanceToNow(new Date(gsc.gscLastSyncedAt), { addSuffix: true }) : 'Never'}</span>
                                                 <button onClick={handleManualRefresh} className="hover:text-brand-500 transition-all active:rotate-180 ml-1">
                                                     <ArrowPathIcon className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
                                                 </button>

@@ -420,11 +420,11 @@ const ChatMessage = React.memo(({ msg, userName, userAvatar, onEdit, onRetry }) 
 });
 
 const AIChatPage = () => {
-    const { connectedSources = [], activeSiteId } = useAccountsStore();
+    const { gsc, ga4, googleAds, facebook, activeSiteId } = useAccountsStore();
     const { user } = useAuthStore();
     const navigate = useNavigate();
 
-    const hasConnections = connectedSources.some(src => ['gsc', 'ga4', 'google-ads', 'facebook-ads'].includes(src));
+    const hasConnections = !!(gsc?.gscSiteUrl || ga4?.ga4PropertyId || googleAds?.googleAdsCustomerId || facebook?.facebookAdAccountId);
     const [searchParams, setSearchParams] = useSearchParams();
     const urlConversationId = searchParams.get('conversationId');
 

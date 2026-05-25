@@ -241,11 +241,7 @@ const AuthCallback = () => {
           // 2. Set full auth state after success
           setAuth(code, res.data.user);
           
-          // 3. Sync connection status to accounts store
-          const { setAccounts } = useAccountsStore.getState();
-          setAccounts({ connectedSources: res.data.connectedSources });
-          
-          // 4. Client-side navigation (No page reload)
+          // 3. Client-side navigation (No page reload)
           if (res.data.connectedSources.length === 0) {
             navigate('/connect-accounts', { replace: true });
           } else {

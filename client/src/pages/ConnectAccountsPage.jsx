@@ -29,7 +29,8 @@ const ConnectAccountsPage = () => {
     const websiteNameRef = useRef(null);
     const websiteUrlRef = useRef(null);
 
-    const { connectedSources, activeSiteId, setAccounts } = useAccountsStore();
+    const { activeSiteId, setAccounts } = useAccountsStore();
+    const [userConnectedSources, setUserConnectedSources] = useState([]);
     const { token } = useAuthStore();
     const navigate = useNavigate();
     const queryParams = new URLSearchParams(window.location.search);
@@ -77,7 +78,7 @@ const ConnectAccountsPage = () => {
             setLoading(true);
             try {
                 const me = await getMe();
-                setAccounts({ connectedSources: me.data.connectedSources });
+                setUserConnectedSources(me.data.connectedSources || []);
 
                 if (me.data.connectedSources.includes('google')) {
                     const accs = await listGoogleAccounts();
@@ -254,20 +255,44 @@ const ConnectAccountsPage = () => {
 
             setAccounts({
                 activeSiteId: updatedAccount._id,
-                activeGscSite: updatedAccount.gscSiteUrl || '',
-                activeGa4PropertyId: updatedAccount.ga4PropertyId || '',
-                activeGoogleAdsCustomerId: updatedAccount.googleAdsCustomerId || '',
-                activeFacebookAdAccountId: updatedAccount.facebookAdAccountId || '',
-                syncMetadata: {
-                    ga4HistoricalComplete: updatedAccount.ga4HistoricalComplete || false,
+                gsc: {
+                    gscSiteUrl: updatedAccount.gscSiteUrl || null,
+                    gscPermission: updatedAccount.gscPermission || null,
                     gscHistoricalComplete: updatedAccount.gscHistoricalComplete || false,
-                    googleAdsHistoricalComplete: updatedAccount.googleAdsHistoricalComplete || false,
-                    facebookAdsHistoricalComplete: updatedAccount.facebookAdsHistoricalComplete || false,
-                    syncStatus: updatedAccount.syncStatus || 'idle',
-                    ga4LastSyncedAt: updatedAccount.ga4LastSyncedAt || null,
+                    gscSyncStatus: updatedAccount.gscSyncStatus || 'idle',
+                    gscSyncProgress: updatedAccount.gscSyncProgress || 0,
                     gscLastSyncedAt: updatedAccount.gscLastSyncedAt || null,
+                    gscHistoricalChunkIndex: updatedAccount.gscHistoricalChunkIndex || 0
+                },
+                ga4: {
+                    ga4PropertyId: updatedAccount.ga4PropertyId || null,
+                    ga4PropertyName: updatedAccount.ga4PropertyName || null,
+                    ga4AccountId: updatedAccount.ga4AccountId || null,
+                    ga4HistoricalComplete: updatedAccount.ga4HistoricalComplete || false,
+                    ga4SyncStatus: updatedAccount.ga4SyncStatus || 'idle',
+                    ga4SyncProgress: updatedAccount.ga4SyncProgress || 0,
+                    ga4LastSyncedAt: updatedAccount.ga4LastSyncedAt || null,
+                    ga4HistoricalChunkIndex: updatedAccount.ga4HistoricalChunkIndex || 0
+                },
+                googleAds: {
+                    googleAdsCustomerId: updatedAccount.googleAdsCustomerId || null,
+                    googleAdsAccountName: updatedAccount.googleAdsAccountName || null,
+                    googleAdsCurrencyCode: updatedAccount.googleAdsCurrencyCode || null,
+                    googleAdsHistoricalComplete: updatedAccount.googleAdsHistoricalComplete || false,
+                    googleAdsSyncStatus: updatedAccount.googleAdsSyncStatus || 'idle',
+                    googleAdsSyncProgress: updatedAccount.googleAdsSyncProgress || 0,
                     googleAdsLastSyncedAt: updatedAccount.googleAdsLastSyncedAt || null,
-                    facebookAdsLastSyncedAt: updatedAccount.facebookAdsLastSyncedAt || null
+                    googleAdsHistoricalChunkIndex: updatedAccount.googleAdsHistoricalChunkIndex || 0
+                },
+                facebook: {
+                    facebookAdAccountId: updatedAccount.facebookAdAccountId || null,
+                    facebookAdAccountName: updatedAccount.facebookAdAccountName || null,
+                    facebookAdCurrencyCode: updatedAccount.facebookAdCurrencyCode || null,
+                    facebookAdsHistoricalComplete: updatedAccount.facebookAdsHistoricalComplete || false,
+                    facebookAdsSyncStatus: updatedAccount.facebookAdsSyncStatus || 'idle',
+                    facebookAdsSyncProgress: updatedAccount.facebookAdsSyncProgress || 0,
+                    facebookAdsLastSyncedAt: updatedAccount.facebookAdsLastSyncedAt || null,
+                    facebookAdsHistoricalChunkIndex: updatedAccount.facebookAdsHistoricalChunkIndex || 0
                 }
             });
 
@@ -407,7 +432,7 @@ const ConnectAccountsPage = () => {
 
                         {/* 4. Google Integration Card */}
                         <div className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-sm overflow-hidden border-t-4 border-t-[#4285F4]">
-                            {!connectedSources.includes('google') ? (
+                            {!userConnectedSources.includes('google') ? (
                                 <div className="p-8 flex flex-col items-center text-center">
                                     <div className="w-16 h-16 rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 flex items-center justify-center p-3.5 shadow-sm mb-6">
                                         <svg viewBox="0 0 24 24" className="w-full h-full">
@@ -652,7 +677,7 @@ const ConnectAccountsPage = () => {
 
                         {/* 5. Facebook Ads Card */}
                         <div className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-sm overflow-hidden border-t-4 border-t-[#1877F2]">
-                            {!connectedSources.includes('facebook') ? (
+                            {!userConnectedSources.includes('facebook') ? (
                                 <div className="p-8 flex flex-col items-center text-center">
                                     <div className="w-16 h-16 rounded-2xl bg-[#1877F2] flex items-center justify-center p-3.5 shadow-sm mb-6">
                                         <svg fill="white" viewBox="0 0 24 24" className="w-full h-full">

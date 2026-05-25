@@ -35,9 +35,19 @@ const DashboardLayout = ({ children, noScroll = false, title }) => {
         userSites = [],
         activeSiteId,
         setAccounts,
-        syncMetadata,
-        connectedSources = []
+        syncStatus,
+        gsc,
+        ga4,
+        googleAds,
+        facebook
     } = useAccountsStore();
+
+    const connectedSources = [
+        gsc?.gscSiteUrl && 'gsc',
+        ga4?.ga4PropertyId && 'ga4',
+        googleAds?.googleAdsCustomerId && 'google-ads',
+        facebook?.facebookAdAccountId && 'facebook-ads'
+    ].filter(Boolean);
     const {
         notifications,
         unreadCount,
@@ -65,23 +75,33 @@ const DashboardLayout = ({ children, noScroll = false, title }) => {
     // Polling for syncStatus
     useEffect(() => {
         let interval;
-        if (user && activeSiteId && syncMetadata?.syncStatus === 'syncing') {
+        if (user && activeSiteId && syncStatus === 'syncing') {
             interval = setInterval(() => {
                 getActiveAccounts(activeSiteId)
                     .then(res => {
                         const data = res.data || {};
                         if (data.syncStatus !== 'syncing') {
                             setAccounts({
-                                syncMetadata: {
+                                syncStatus: data.syncStatus || 'idle',
+                                ga4: {
                                     ga4HistoricalComplete: data.ga4HistoricalComplete || false,
-                                    gscHistoricalComplete: data.gscHistoricalComplete || false,
-                                    googleAdsHistoricalComplete: data.googleAdsHistoricalComplete || false,
-                                    facebookAdsHistoricalComplete: data.facebookAdsHistoricalComplete || false,
                                     ga4LastSyncedAt: data.ga4LastSyncedAt || null,
+                                    ga4SyncStatus: data.syncStatus || 'idle'
+                                },
+                                gsc: {
+                                    gscHistoricalComplete: data.gscHistoricalComplete || false,
                                     gscLastSyncedAt: data.gscLastSyncedAt || null,
+                                    gscSyncStatus: data.syncStatus || 'idle'
+                                },
+                                googleAds: {
+                                    googleAdsHistoricalComplete: data.googleAdsHistoricalComplete || false,
                                     googleAdsLastSyncedAt: data.googleAdsLastSyncedAt || null,
+                                    googleAdsSyncStatus: data.syncStatus || 'idle'
+                                },
+                                facebook: {
+                                    facebookAdsHistoricalComplete: data.facebookAdsHistoricalComplete || false,
                                     facebookAdsLastSyncedAt: data.facebookAdsLastSyncedAt || null,
-                                    syncStatus: data.syncStatus || 'idle'
+                                    facebookAdsSyncStatus: data.syncStatus || 'idle'
                                 }
                             });
                         }
@@ -90,7 +110,7 @@ const DashboardLayout = ({ children, noScroll = false, title }) => {
             }, 60000);
         }
         return () => clearInterval(interval);
-    }, [user, activeSiteId, syncMetadata?.syncStatus, setAccounts]);
+    }, [user, activeSiteId, syncStatus, setAccounts]);
 
     useEffect(() => {
         if (user) {
@@ -127,22 +147,50 @@ const DashboardLayout = ({ children, noScroll = false, title }) => {
                     if (data.facebookTokenId) connected.push('facebook');
 
                     setAccounts({
-                        activeGscSite: data.gscSiteUrl || '',
-                        activeGa4PropertyId: data.ga4PropertyId || '',
-                        activeGoogleAdsCustomerId: data.googleAdsCustomerId || '',
-                        activeFacebookAdAccountId: data.facebookAdAccountId || '',
-                        connectedSources: connected,
-                        syncMetadata: {
-                            ga4HistoricalComplete: data.ga4HistoricalComplete || false,
+                        gsc: {
+                            gscSiteUrl: data.gscSiteUrl || null,
+                            gscPermission: data.gscPermission || null,
                             gscHistoricalComplete: data.gscHistoricalComplete || false,
-                            googleAdsHistoricalComplete: data.googleAdsHistoricalComplete || false,
-                            facebookAdsHistoricalComplete: data.facebookAdsHistoricalComplete || false,
-                            ga4LastSyncedAt: data.ga4LastSyncedAt || null,
+                            gscSyncStatus: data.gscSyncStatus || 'idle',
+                            gscSyncProgress: data.gscSyncProgress || 0,
                             gscLastSyncedAt: data.gscLastSyncedAt || null,
+                            gscHistoricalChunkIndex: data.gscHistoricalChunkIndex || 0,
+                            gscTokenEmail: data.gscTokenId?.email || null
+                        },
+                        ga4: {
+                            ga4PropertyId: data.ga4PropertyId || null,
+                            ga4PropertyName: data.ga4PropertyName || null,
+                            ga4AccountId: data.ga4AccountId || null,
+                            ga4HistoricalComplete: data.ga4HistoricalComplete || false,
+                            ga4SyncStatus: data.ga4SyncStatus || 'idle',
+                            ga4SyncProgress: data.ga4SyncProgress || 0,
+                            ga4LastSyncedAt: data.ga4LastSyncedAt || null,
+                            ga4HistoricalChunkIndex: data.ga4HistoricalChunkIndex || 0,
+                            ga4TokenEmail: data.ga4TokenId?.email || null
+                        },
+                        googleAds: {
+                            googleAdsCustomerId: data.googleAdsCustomerId || null,
+                            googleAdsAccountName: data.googleAdsAccountName || null,
+                            googleAdsCurrencyCode: data.googleAdsCurrencyCode || null,
+                            googleAdsHistoricalComplete: data.googleAdsHistoricalComplete || false,
+                            googleAdsSyncStatus: data.googleAdsSyncStatus || 'idle',
+                            googleAdsSyncProgress: data.googleAdsSyncProgress || 0,
                             googleAdsLastSyncedAt: data.googleAdsLastSyncedAt || null,
+                            googleAdsHistoricalChunkIndex: data.googleAdsHistoricalChunkIndex || 0,
+                            googleAdsTokenEmail: data.googleAdsTokenId?.email || null
+                        },
+                        facebook: {
+                            facebookAdAccountId: data.facebookAdAccountId || null,
+                            facebookAdAccountName: data.facebookAdAccountName || null,
+                            facebookAdCurrencyCode: data.facebookAdCurrencyCode || null,
+                            facebookAdsHistoricalComplete: data.facebookAdsHistoricalComplete || false,
+                            facebookAdsSyncStatus: data.facebookAdsSyncStatus || 'idle',
+                            facebookAdsSyncProgress: data.facebookAdsSyncProgress || 0,
                             facebookAdsLastSyncedAt: data.facebookAdsLastSyncedAt || null,
-                            syncStatus: data.syncStatus || 'idle'
-                        }
+                            facebookAdsHistoricalChunkIndex: data.facebookAdsHistoricalChunkIndex || 0,
+                            facebookTokenName: data.facebookTokenId?.name || null
+                        },
+                        syncStatus: data.syncStatus || 'idle'
                     });
                 })
                 .catch(() => { });

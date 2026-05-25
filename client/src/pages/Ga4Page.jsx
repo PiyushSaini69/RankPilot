@@ -78,17 +78,17 @@ const Ga4Page = () => {
     const device = useFilterStore(s => s.device);
     const campaign = useFilterStore(s => s.campaign);
     const channel = useFilterStore(s => s.channel);
-    const connectedSources = useAccountsStore(s => s.connectedSources);
-    const activeGa4PropertyId = useAccountsStore(s => s.activeGa4PropertyId);
+
+    const activeGa4PropertyId = useAccountsStore(s => s.ga4?.ga4PropertyId);
     const activeSiteId = useAccountsStore(s => s.activeSiteId);
     const userSites = useAccountsStore(s => s.userSites);
-    const syncMetadata = useAccountsStore(s => s.syncMetadata);
+    const ga4 = useAccountsStore(s => s.ga4);
     const setAccounts = useAccountsStore(s => s.setAccounts);
     
     const activeSite = userSites?.find(s => s._id === activeSiteId);
     const siteName = activeSite?.name || 'this website';
 
-    const isConnected = connectedSources.includes('ga4');
+    const isConnected = !!activeGa4PropertyId;
     const hasProperty = !!activeGa4PropertyId;
     const navigate = useNavigate();
     const openWithQuestion = useAiChatStore(s => s.openWithQuestion);
@@ -158,8 +158,11 @@ const Ga4Page = () => {
             if (data.syncMetadata) {
                 setAccounts({
                     syncStatus: data.syncMetadata.syncStatus,
-                    ga4LastSyncedAt: data.syncMetadata.lastSyncedAt,
-                    ga4HistoricalComplete: data.syncMetadata.ga4HistoricalComplete
+                    ga4: {
+                        ga4LastSyncedAt: data.syncMetadata.lastSyncedAt,
+                        ga4HistoricalComplete: data.syncMetadata.ga4HistoricalComplete,
+                        ga4SyncStatus: data.syncMetadata.syncStatus
+                    }
                 });
             }
         } catch (err) {
@@ -173,7 +176,12 @@ const Ga4Page = () => {
         if (!activeSiteId) return;
         setLoading(true);
         // 1. Set status to syncing in store
-        setAccounts({ syncStatus: 'syncing' });
+        setAccounts({ 
+            syncStatus: 'syncing',
+            ga4: {
+                ga4SyncStatus: 'syncing'
+            }
+        });
 
         try {
             // 2. Perform sync
@@ -183,10 +191,11 @@ const Ga4Page = () => {
             const res = await getActiveAccounts(activeSiteId);
             const data = res.data || {};
             setAccounts({
-                syncMetadata: {
+                syncStatus: data.syncStatus || 'idle',
+                ga4: {
                     ga4HistoricalComplete: data.ga4HistoricalComplete || false,
                     ga4LastSyncedAt: data.ga4LastSyncedAt || null,
-                    syncStatus: data.syncStatus || 'idle'
+                    ga4SyncStatus: data.syncStatus || 'idle'
                 }
             });
 
@@ -198,10 +207,11 @@ const Ga4Page = () => {
             const res = await getActiveAccounts(activeSiteId).catch(() => ({ data: {} }));
             const data = res.data || {};
             setAccounts({
-                syncMetadata: {
+                syncStatus: data.syncStatus || 'error',
+                ga4: {
                     ga4HistoricalComplete: data.ga4HistoricalComplete || false,
                     ga4LastSyncedAt: data.ga4LastSyncedAt || null,
-                    syncStatus: data.syncStatus || 'error'
+                    ga4SyncStatus: data.syncStatus || 'error'
                 }
             });
             await loadData();
@@ -269,11 +279,11 @@ const Ga4Page = () => {
 
     // Refresh data when sync completes
     useEffect(() => {
-        if (syncMetadata?.syncStatus !== 'syncing' && activeSiteId) {
+        if (ga4?.ga4SyncStatus !== 'syncing' && activeSiteId) {
             console.log('GA4 Sync completed or idle, refreshing data...');
             loadData();
         }
-    }, [syncMetadata?.syncStatus, activeSiteId, loadData]);
+    }, [ga4?.ga4SyncStatus, activeSiteId, loadData]);
 
 
     if (!isConnected || !hasProperty) {
@@ -422,7 +432,7 @@ const Ga4Page = () => {
                                     <h1 className="text-lg md:text-xl font-black text-neutral-900 dark:text-white tracking-tight leading-none">Google Analytics 4</h1>
                                     {activeSiteId && (
                                         <div className="px-2 py-0.5 bg-neutral-900 dark:bg-neutral-800 text-white rounded text-[7px] font-black uppercase tracking-widest">
-                                            {userSites?.find(s => s._id === activeSiteId)?.siteName || 'CARWEEK'}
+                                            {userSites?.find(s => s._id === activeSiteId)?.siteName || 'RANK PILOT'}
                                         </div>
                                     )}
                                 </div>
@@ -437,7 +447,7 @@ const Ga4Page = () => {
                                     </div>
                                     <div className="flex items-center gap-3 hide-in-pdf">
                                         <div className="flex items-center gap-1.5 text-[9px] text-neutral-400 font-bold uppercase tracking-widest">
-                                            Synced: <span className="text-neutral-700 dark:text-neutral-300 tabular-nums font-black">{syncMetadata?.ga4LastSyncedAt ? formatDistanceToNow(new Date(syncMetadata.ga4LastSyncedAt), { addSuffix: true }) : 'Never'}</span>
+                                            Synced: <span className="text-neutral-700 dark:text-neutral-300 tabular-nums font-black">{ga4?.ga4LastSyncedAt ? formatDistanceToNow(new Date(ga4.ga4LastSyncedAt), { addSuffix: true }) : 'Never'}</span>
                                             <button onClick={handleManualRefresh} className="hover:text-brand-500 transition-all active:rotate-180 ml-1">
                                                 <ArrowPathIcon className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
                                             </button>
@@ -576,9 +586,9 @@ const Ga4Page = () => {
                         {/* 3. Information Row - Improved Responsiveness */}
                         <div className="flex-1 flex flex-wrap items-center gap-x-8 gap-y-3">
                             {[
-                                { label: 'WEBSITE', value: (userSites?.find(s => s._id === activeSiteId)?.siteName?.toLowerCase().replace(/\s+/g, '') || 'carweek') + '.com', icon: GlobeAltIcon },
-                                { label: 'PROPERTY ID', value: '#' + (activeGa4PropertyId?.replace('properties/', '') || '297612575'), icon: ChartBarIcon },
-                                { label: 'SYNC ACCOUNT', value: userSites?.find(s => s._id === activeSiteId)?.ga4TokenId?.email || 'seo@slt.work', icon: EnvelopeIcon }
+                                { label: 'PROPERTY NAME', value: ga4?.ga4PropertyName || 'Unknown', icon: GlobeAltIcon },
+                                { label: 'PROPERTY ID', value: '#' + (ga4?.ga4PropertyId?.replace('properties/', '') || 'Unknown'), icon: ChartBarIcon },
+                                { label: 'SYNC ACCOUNT', value: ga4?.ga4TokenEmail || 'Unknown', icon: EnvelopeIcon }
                             ].map((item, idx) => (
                                 <div key={idx} className="flex items-center gap-2.5 min-w-max">
                                     <div className="w-8 h-8 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 flex items-center justify-center border border-neutral-100 dark:border-neutral-700/30 shrink-0">
