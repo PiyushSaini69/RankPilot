@@ -333,16 +333,20 @@ export const getGa4Summary = async (req, res) => {
     if (cachedData) return res.status(200).json(cachedData);
 
     try {
-        const acc = await UserAccounts.findOne({ _id: siteId, userId }).select('siteName ga4LastSyncedAt syncStatus ga4HistoricalComplete');
+        const acc = await UserAccounts.findOne({ _id: siteId, userId }).select('siteName ga4LastSyncedAt ga4HistoricalComplete');
         if (!acc) {
             return res.status(404).json({ success: false, message: 'Account not found' });
         }
 
-        const syncMetadata = {
-            siteName: acc.siteName,
-            lastSyncedAt: acc.ga4LastSyncedAt,
-            syncStatus: acc.syncStatus,
-            ga4HistoricalComplete: acc.ga4HistoricalComplete
+        const siteName = acc.siteName || 'your website';
+        const ga4LastSyncedAt = acc.ga4LastSyncedAt;
+        const ga4HistoricalComplete = acc.ga4HistoricalComplete;
+
+        const formatTime = (secs) => {
+            const s = Math.floor(secs || 0);
+            const min = Math.floor(s / 60);
+            const remainingSecs = s % 60;
+            return `${min}m ${remainingSecs}s`;
         };
 
         const filter = await buildMatchFilter(userId, req.query);
@@ -366,6 +370,7 @@ export const getGa4Summary = async (req, res) => {
                         users: { $sum: "$metrics.users" },
                         newUsers: { $sum: "$metrics.newUsers" },
                         sessions: { $sum: "$metrics.sessions" },
+                        engagedSessions: { $sum: "$metrics.engagedSessions" },
                         bounceRate: { $avg: "$metrics.bounceRate" },
                         avgSessionDuration: { $avg: "$metrics.avgSessionDuration" },
                         pageViews: { $sum: "$metrics.pageViews" }
@@ -380,6 +385,7 @@ export const getGa4Summary = async (req, res) => {
                         users: { $sum: "$metrics.users" },
                         newUsers: { $sum: "$metrics.newUsers" },
                         sessions: { $sum: "$metrics.sessions" },
+                        engagedSessions: { $sum: "$metrics.engagedSessions" },
                         bounceRate: { $avg: "$metrics.bounceRate" },
                         avgSessionDuration: { $avg: "$metrics.avgSessionDuration" },
                         pageViews: { $sum: "$metrics.pageViews" }
@@ -394,7 +400,9 @@ export const getGa4Summary = async (req, res) => {
                         sessions: { $sum: "$metrics.sessions" },
                         pageViews: { $sum: "$metrics.pageViews" },
                         users: { $sum: "$metrics.users" },
-                        bounceRate: { $avg: "$metrics.bounceRate" }
+                        bounceRate: { $avg: "$metrics.bounceRate" },
+                        engagedSessions: { $sum: "$metrics.engagedSessions" },
+                        avgSessionDuration: { $avg: "$metrics.avgSessionDuration" }
                     }
                 },
                 { $sort: { _id: 1 } }
@@ -447,27 +455,73 @@ export const getGa4Summary = async (req, res) => {
             ])
         ]);
 
-
         const result = {
-            overview: overview[0] || { users: 0, newUsers: 0, sessions: 0, bounceRate: 0, avgSessionDuration: 0, pageViews: 0 },
-            priorOverview: priorOverview[0] || { users: 0, newUsers: 0, sessions: 0, bounceRate: 0, avgSessionDuration: 0, pageViews: 0 },
-            timeseries: timeseries.map(d => ({
+            activeUsers: { value: overview[0].users || 0, change: parseFloat((((overview[0].users - priorOverview[0].users) / priorOverview[0].users) * 100 || 0).toFixed(1)), isPositive: (overview[0].users || 0) >= (priorOverview[0].users || 0), timeseries: timeseries.map(d => ({ users: d.users })) },
+            totalSessions: { value: overview[0].sessions || 0, change: parseFloat((((overview[0].sessions - priorOverview[0].sessions) / priorOverview[0].sessions) * 100 || 0).toFixed(1)), isPositive: (overview[0].sessions || 0) >= (priorOverview[0].sessions || 0), timeseries: timeseries.map(d => ({ sessions: d.sessions })) },
+            engagementRate: { value: parseFloat(((overview[0].engagedSessions / overview[0].sessions) * 100 || 0).toFixed(1)), change: parseFloat((((overview[0].engagedSessions / overview[0].sessions) - (priorOverview[0].engagedSessions / priorOverview[0].sessions)) / (priorOverview[0].engagedSessions / priorOverview[0].sessions) * 100 || 0).toFixed(1)), isPositive: ((overview[0].engagedSessions / overview[0].sessions) || 0) >= ((priorOverview[0].engagedSessions / priorOverview[0].sessions) || 0), timeseries: timeseries.map(d => ({ engagementRate: parseFloat(((d.engagedSessions / (d.sessions || 1)) * 100 || 0).toFixed(1)) })) },
+            avgSessionDuration: { value: formatTime(overview[0].avgSessionDuration), change: parseFloat((((overview[0].avgSessionDuration - priorOverview[0].avgSessionDuration) / priorOverview[0].avgSessionDuration) * 100 || 0).toFixed(1)), isPositive: (overview[0].avgSessionDuration || 0) >= (priorOverview[0].avgSessionDuration || 0), timeseries: timeseries.map(d => ({ avgSessionDuration: d.avgSessionDuration || 0 })) },
+            pageViews: overview[0].pageViews || 0,
+            newUsers: overview[0].newUsers || 0,
+            pagesPerSession: parseFloat(((overview[0].pageViews / overview[0].sessions) || 0).toFixed(2)),
+
+            sessionsOverTime: timeseries.map(d => ({
                 date: d._id,
-                sessions: d.sessions,
-                pageViews: d.pageViews || 0,
-                users: d.users || 0,
+                sessions: d.sessions
+            })),
+            newVsReturningUsers: {
+                totalUsers: overview[0].users || 0,
+                totalNewUsers: overview[0].newUsers || 0,
+                newUsersPercentage: parseFloat(((overview[0].newUsers / overview[0].users) * 100 || 0).toFixed(1)),
+                totalReturningUsers: overview[0].users - overview[0].newUsers || 0,
+                returningUsersPercentage: parseFloat(((overview[0].users - overview[0].newUsers) / overview[0].users * 100 || 0).toFixed(1)),
+            },
+            engagementRates: {
+                engagementRate: parseFloat(((overview[0].engagedSessions / overview[0].sessions) * 100 || 0).toFixed(1)),
+                engagedSessions: overview[0].engagedSessions || 0,
+                avgEngagedTime: formatTime(overview[0].avgSessionDuration),
+            },
+            bounceRateOverTime: timeseries.map(d => ({
+                date: d._id,
                 bounceRate: parseFloat((d.bounceRate || 0).toFixed(1))
             })),
-            traffic: traffic.map(d => ({ channel: d._id.channel, source: d._id.source, sessions: d.sessions, users: d.users })),
-            pages: pages.map(d => ({ path: d._id.path, title: d._id.title, views: d.views, users: d.users, bounceRate: d.bounceRate })),
-            breakdowns: {
-                devices: (ga4BreakdownsDevices || []).map(d => ({ name: d._id || 'unknown', value: d.value })),
-                locations: (ga4BreakdownsLocations || []).map(d => ({ name: d._id || 'unknown', value: d.value }))
+            pageViewsOverTime: timeseries.map(d => ({
+                date: d._id,
+                pageViews: d.pageViews || 0,
+            })),
+            topTrafficSources: traffic.map(d => ({ channel: d._id.channel, source: d._id.source, sessions: d.sessions, users: d.users })),
+            topPages: pages.map(d => ({ title: d._id.title, path: d._id.path, views: d.views, users: d.users, bounceRate: parseFloat((d.bounceRate || 0).toFixed(1)) })),
+            deviceBreakdown: {
+                totalSessions: overview[0].sessions || 0,
+                devices: (ga4BreakdownsDevices || []).map(d => ({ name: d._id || 'unknown', value: d.value, percentage: parseFloat((d.value / overview[0].sessions * 100 || 0).toFixed(1)) }))
             },
-            syncMetadata
+            topLocations: (ga4BreakdownsLocations || []).map(d => ({ name: d._id || 'unknown', value: d.value, percentage: parseFloat((d.value / overview[0].sessions * 100 || 0).toFixed(1)) })),
+            thisPeriodVsLastPeriod: {
+                thisPeriod: {
+                    users: overview[0].users || 0,
+                    sessions: overview[0].sessions || 0,
+                    pageViews: overview[0].pageViews || 0,
+                    bounceRate: parseFloat(((overview[0].bounceRate || 0)).toFixed(1)),
+                    avgSessionDuration: formatTime(overview[0].avgSessionDuration),
+                    newUsers: overview[0].newUsers || 0,
+                },
+                lastPeriod: {
+                    users: priorOverview[0].users || 0,
+                    sessions: priorOverview[0].sessions || 0,
+                    pageViews: priorOverview[0].pageViews || 0,
+                    bounceRate: parseFloat(((priorOverview[0].bounceRate || 0)).toFixed(1)),
+                    avgSessionDuration: formatTime(priorOverview[0].avgSessionDuration),
+                    newUsers: priorOverview[0].newUsers || 0,
+                },
+                change: {
+                    users: parseFloat((((overview[0].users - priorOverview[0].users) / priorOverview[0].users) * 100 || 0).toFixed(1)),
+                    sessions: parseFloat((((overview[0].sessions - priorOverview[0].sessions) / priorOverview[0].sessions) * 100 || 0).toFixed(1)),
+                    pageViews: parseFloat((((overview[0].pageViews - priorOverview[0].pageViews) / priorOverview[0].pageViews) * 100 || 0).toFixed(1)),
+                    bounceRate: parseFloat((((overview[0].bounceRate - priorOverview[0].bounceRate) / priorOverview[0].bounceRate) * 100 || 0).toFixed(1)),
+                    avgSessionDuration: parseFloat((((overview[0].avgSessionDuration - priorOverview[0].avgSessionDuration) / priorOverview[0].avgSessionDuration) * 100 || 0).toFixed(1)),
+                    newUsers: parseFloat((((overview[0].newUsers - priorOverview[0].newUsers) / priorOverview[0].newUsers) * 100 || 0).toFixed(1)),
+                }
+            },
         };
-        const siteName = syncMetadata?.siteName || "your website";
-
 
         const existingAi = await AiIntelligence.findOne({
             siteId,
@@ -478,15 +532,15 @@ export const getGa4Summary = async (req, res) => {
         });
 
         const isAiValid = existingAi &&
-            existingAi.lastSyncedAtOnGeneration >= (syncMetadata?.lastSyncedAt || 0);
+            existingAi.lastSyncedAtOnGeneration >= (ga4LastSyncedAt || 0);
 
         if (isAiValid) {
             result.intelligence = existingAi.content;
         } else {
-            if (!syncMetadata.ga4HistoricalComplete) {
+            if (!ga4HistoricalComplete) {
                 result.intelligence = getPlaceholderIntelligence('ga4', 'syncing');
             } else {
-                if (!(result.overview?.sessions > 0)) {
+                if (!(result.totalSessions?.value > 0)) {
                     result.intelligence = getPlaceholderIntelligence('ga4', 'no_data');
                 } else {
                     result.intelligence = await generateGa4Intelligence(result, siteName);
@@ -497,7 +551,7 @@ export const getGa4Summary = async (req, res) => {
                             {
                                 userId,
                                 content: result.intelligence,
-                                lastSyncedAtOnGeneration: syncMetadata?.lastSyncedAt || new Date(),
+                                lastSyncedAtOnGeneration: ga4LastSyncedAt || new Date(),
                                 createdAt: new Date()
                             },
                             { upsert: true }
