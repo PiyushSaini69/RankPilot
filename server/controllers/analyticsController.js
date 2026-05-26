@@ -103,12 +103,12 @@ export const getDashboardSummary = async (req, res) => {
                 });
                 return Object.values(map).sort((a, b) => a._id.localeCompare(b._id));
             }),
-         
+
             Ga4Metric.aggregate([{ $match: filters[1] }, { $group: { _id: null, sessions: { $sum: "$metrics.sessions" }, users: { $sum: "$metrics.users" } } }]),
             GscMetric.aggregate([{ $match: gscFilters[1] }, { $group: { _id: null, clicks: { $sum: "$metrics.clicks" }, impressions: { $sum: "$metrics.impressions" } } }]),
             GoogleAdsMetric.aggregate([{ $match: filters[1] }, { $group: { _id: null, spend: { $sum: "$metrics.spend" }, conversions: { $sum: "$metrics.conversions" } } }]),
             FacebookAdsMetric.aggregate([{ $match: filters[1] }, { $group: { _id: null, spend: { $sum: "$metrics.spend" }, reach: { $sum: "$metrics.reach" } } }]),
-           
+
             Ga4Metric.aggregate([{ $match: filters[0] }, { $group: { _id: "$metadata.dimensions.pagePath", views: { $sum: "$metrics.pageViews" }, users: { $sum: "$metrics.users" }, bounceRate: { $avg: "$metrics.bounceRate" } } }, { $sort: { views: -1 } }, { $limit: 10 }])
         ]);
 
@@ -276,7 +276,7 @@ export const getDashboardSummary = async (req, res) => {
         if (isAiValid) {
             result.intelligence = existingAi.content;
         } else {
-            const isHistoricalSyncInProgress = 
+            const isHistoricalSyncInProgress =
                 (acc.ga4PropertyId && !acc.ga4HistoricalComplete) ||
                 (acc.gscSiteUrl && !acc.gscHistoricalComplete) ||
                 (acc.googleAdsCustomerId && !acc.googleAdsHistoricalComplete) ||
@@ -285,10 +285,10 @@ export const getDashboardSummary = async (req, res) => {
             if (isHistoricalSyncInProgress) {
                 result.intelligence = getPlaceholderIntelligence('dash', 'syncing');
             } else {
-                const hasActualData = 
-                    (result.ga4?.sessions > 0) || 
-                    (result.gsc?.clicks > 0) || 
-                    (result.googleAds?.spend > 0) || 
+                const hasActualData =
+                    (result.ga4?.sessions > 0) ||
+                    (result.gsc?.clicks > 0) ||
+                    (result.googleAds?.spend > 0) ||
                     (result.facebookAds?.spend > 0);
 
                 if (!hasActualData) {
@@ -582,24 +582,20 @@ export const getGscSummary = async (req, res) => {
     }
     const userId = req.user._id;
 
-    const cacheKey = getAnalyticsCacheKey(userId, 'gsc', req.query);
+    const cacheKey = getAnalyticsCacheKey(userId, 'gsc', { ...req.query, startDate, endDate, device });
     const cachedData = analyticsCache.get(cacheKey);
     if (cachedData) return res.status(200).json(cachedData);
 
     try {
-        const acc = await UserAccounts.findOne({ _id: siteId, userId }).select('siteName gscLastSyncedAt syncStatus gscHistoricalComplete');
+        const acc = await UserAccounts.findOne({ _id: siteId, userId }).select('siteName gscLastSyncedAt gscHistoricalComplete');
         if (!acc) {
             return res.status(404).json({ success: false, message: 'Account not found' });
         }
+        const siteName = acc.siteName;
+        const gscLastSyncedAt = acc.gscLastSyncedAt;
+        const gscHistoricalComplete = acc.gscHistoricalComplete;
 
-        const syncMetadata = {
-            siteName: acc.siteName,
-            lastSyncedAt: acc.gscLastSyncedAt,
-            syncStatus: acc.syncStatus,
-            gscHistoricalComplete: acc.gscHistoricalComplete
-        };
-
-        const filter = await buildMatchFilter(userId, { ...req.query, device: 'all' });
+        const filter = await buildMatchFilter(userId, { ...req.query, device: 'all', startDate, endDate });
 
         const start = new Date(startDate);
         const end = new Date(endDate);
@@ -685,46 +681,104 @@ export const getGscSummary = async (req, res) => {
             ])
         ]);
 
-
-        const ov = overview[0] || { clicks: 0, impressions: 0, position: 0 };
-        const pov = priorOverview[0] || { clicks: 0, impressions: 0, position: 0 };
-        const totalPages = pagesCount[0]?.count || 0;
-        const totalQueries = queriesCount[0]?.count || 0;
-        const topPosition = topPosData[0]?.minPos || 0;
-
-        const calculateChange = (curr, prior) => {
-            if (!prior || prior === 0) return 0;
-            return parseFloat(((curr - prior) / prior * 100).toFixed(1));
-        };
-
-        const ov_ctr = ov.impressions > 0 ? ov.clicks / ov.impressions : 0;
-        const pov_ctr = pov.impressions > 0 ? pov.clicks / pov.impressions : 0;
-
         const result = {
-            overview: { ...ov, ctr: ov_ctr },
-            priorOverview: { ...pov, ctr: pov_ctr },
-            growth: {
-                clicks: calculateChange(ov.clicks, pov.clicks),
-                impressions: calculateChange(ov.impressions, pov.impressions),
-                ctr: calculateChange(ov_ctr, pov_ctr),
-                position: calculateChange(pov.position, ov.position)
+            searchClicks: {
+                value: overview[0]?.clicks || 0,
+                change: priorOverview[0]?.clicks ? parseFloat((((overview[0]?.clicks - priorOverview[0]?.clicks) / priorOverview[0]?.clicks) * 100 || 0).toFixed(1)) : 0,
+                isPositive: (overview[0]?.clicks || 0) >= (priorOverview[0]?.clicks || 0),
+                timeseries: timeseries.map(d => ({ clicks: d.clicks || 0 }))
             },
-            timeseries: timeseries.map(d => ({
+            impressions: {
+                value: overview[0]?.impressions || 0,
+                change: priorOverview[0]?.impressions ? parseFloat((((overview[0]?.impressions - priorOverview[0]?.impressions) / priorOverview[0]?.impressions) * 100 || 0).toFixed(1)) : 0,
+                isPositive: (overview[0]?.impressions || 0) >= (priorOverview[0]?.impressions || 0),
+                timeseries: timeseries.map(d => ({ impressions: d.impressions || 0 }))
+            },
+            avgCTR: {
+                value: parseFloat(((overview[0]?.impressions > 0 ? overview[0]?.clicks / overview[0]?.impressions : 0) * 100).toFixed(2)),
+                change: (priorOverview[0]?.impressions > 0 ? priorOverview[0]?.clicks / priorOverview[0]?.impressions : 0) > 0
+                    ? parseFloat(((((overview[0]?.impressions > 0 ? overview[0]?.clicks / overview[0]?.impressions : 0) - (priorOverview[0]?.impressions > 0 ? priorOverview[0]?.clicks / priorOverview[0]?.impressions : 0)) / (priorOverview[0]?.impressions > 0 ? priorOverview[0]?.clicks / priorOverview[0]?.impressions : 0)) * 100 || 0).toFixed(1))
+                    : 0,
+                isPositive: (overview[0]?.impressions > 0 ? overview[0]?.clicks / overview[0]?.impressions : 0) >= (priorOverview[0]?.impressions > 0 ? priorOverview[0]?.clicks / priorOverview[0]?.impressions : 0),
+                timeseries: timeseries.map(d => ({ ctr: parseFloat(((d.impressions > 0 ? d.clicks / d.impressions : 0) * 100).toFixed(2)) }))
+            },
+            avgPosition: {
+                value: parseFloat((overview[0]?.position || 0).toFixed(1)),
+                change: overview[0]?.position ? parseFloat((((priorOverview[0]?.position - overview[0]?.position) / overview[0]?.position) * 100 || 0).toFixed(1)) : 0,
+                isPositive: (overview[0]?.position || 0) <= (priorOverview[0]?.position || 0),
+                timeseries: timeseries.map(d => ({ position: parseFloat((d.position || 0).toFixed(1)) }))
+            },
+            totalQueries: queriesCount[0]?.count || 0,
+            totalPages: pagesCount[0]?.count || 0,
+            topPosition: parseFloat((topPosData[0]?.minPos || 0).toFixed(1)),
+            searchPerformanceOverview: timeseries.map(d => ({
                 date: d._id,
+                clicks: d.clicks || 0,
+                impressions: d.impressions || 0,
+            })),
+            clickThroughRateTrend: timeseries.map(d => ({
+                date: d._id,
+                ctr: parseFloat(((d.impressions > 0 ? d.clicks / d.impressions : 0) * 100).toFixed(2))
+            })),
+            averageRankingPosition: timeseries.map(d => ({
+                date: d._id,
+                position: parseFloat((d.position || 0).toFixed(1)),
+            })),
+            lowCTRKeywords: queries.map(d => ({
+                query: d._id,
                 clicks: d.clicks,
                 impressions: d.impressions,
-                position: d.position || 0,
-                ctr: d.impressions > 0 ? d.clicks / d.impressions : 0
+                ctr: parseFloat(((d.impressions > 0 ? d.clicks / d.impressions : 0) * 100).toFixed(2)),
+                position: parseFloat((d.position || 0).toFixed(1))
+            })).filter(d => d.impressions > 50 && d.ctr < 5.0),
+            keywordsNearPage1: queries.map(d => ({
+                query: d._id,
+                clicks: d.clicks,
+                impressions: d.impressions,
+                ctr: parseFloat(((d.impressions > 0 ? d.clicks / d.impressions : 0) * 100).toFixed(2)),
+                position: parseFloat((d.position || 0).toFixed(1))
+            })).filter(d => d.position >= 8 && d.position <= 20),
+            topQueries: queries.map(d => ({
+                query: d._id,
+                clicks: d.clicks,
+                impressions: d.impressions,
+                ctr: parseFloat(((d.impressions > 0 ? d.clicks / d.impressions : 0) * 100).toFixed(2)),
+                position: parseFloat((d.position || 0).toFixed(1))
             })),
-            queries: queries.map(d => ({ query: d._id, clicks: d.clicks, impressions: d.impressions, ctr: d.impressions > 0 ? d.clicks / d.impressions : 0, position: d.position })),
-            pages: pages.map(d => ({ page: d._id, clicks: d.clicks, impressions: d.impressions, ctr: d.impressions > 0 ? d.clicks / d.impressions : 0, position: d.position })),
-            totalPages,
-            totalQueries,
-            topPosition,
-            syncMetadata
+            topLandingPages: pages.map(d => ({
+                page: d._id,
+                clicks: d.clicks,
+                impressions: d.impressions,
+                ctr: parseFloat(((d.impressions > 0 ? d.clicks / d.impressions : 0) * 100).toFixed(2)),
+                position: parseFloat((d.position || 0).toFixed(1))
+            })),
+            dailyImpressionVolume: timeseries.map(d => ({
+                date: d._id,
+                impressions: d.impressions || 0,
+            })),
+            periodComparison: {
+                thisPeriod: {
+                    clicks: overview[0]?.clicks || 0,
+                    impressions: overview[0]?.impressions || 0,
+                    ctr: parseFloat(((overview[0]?.impressions > 0 ? overview[0]?.clicks / overview[0]?.impressions : 0) * 100).toFixed(2)),
+                    position: parseFloat((overview[0]?.position || 0).toFixed(1))
+                },
+                lastPeriod: {
+                    clicks: priorOverview[0]?.clicks || 0,
+                    impressions: priorOverview[0]?.impressions || 0,
+                    ctr: parseFloat(((priorOverview[0]?.impressions > 0 ? priorOverview[0]?.clicks / priorOverview[0]?.impressions : 0) * 100).toFixed(2)),
+                    position: parseFloat((priorOverview[0]?.position || 0).toFixed(1))
+                },
+                change: {
+                    clicks: priorOverview[0]?.clicks ? parseFloat((((overview[0]?.clicks - priorOverview[0]?.clicks) / priorOverview[0]?.clicks) * 100 || 0).toFixed(1)) : 0,
+                    impressions: priorOverview[0]?.impressions ? parseFloat((((overview[0]?.impressions - priorOverview[0]?.impressions) / priorOverview[0]?.impressions) * 100 || 0).toFixed(1)) : 0,
+                    ctr: (priorOverview[0]?.impressions > 0 ? priorOverview[0]?.clicks / priorOverview[0]?.impressions : 0) > 0
+                        ? parseFloat(((((overview[0]?.impressions > 0 ? overview[0]?.clicks / overview[0]?.impressions : 0) - (priorOverview[0]?.impressions > 0 ? priorOverview[0]?.clicks / priorOverview[0]?.impressions : 0)) / (priorOverview[0]?.impressions > 0 ? priorOverview[0]?.clicks / priorOverview[0]?.impressions : 0)) * 100 || 0).toFixed(1))
+                        : 0,
+                    position: overview[0]?.position ? parseFloat((((priorOverview[0]?.position - overview[0]?.position) / overview[0]?.position) * 100 || 0).toFixed(1)) : 0
+                }
+            }
         };
-
-        const siteName = syncMetadata?.siteName || "your website";
 
         const existingAi = await AiIntelligence.findOne({
             siteId,
@@ -735,12 +789,12 @@ export const getGscSummary = async (req, res) => {
         });
 
         const isAiValid = existingAi &&
-            existingAi.lastSyncedAtOnGeneration >= (syncMetadata?.lastSyncedAt || 0);
+            existingAi.lastSyncedAtOnGeneration >= (gscLastSyncedAt || 0);
 
         if (isAiValid) {
             result.intelligence = existingAi.content;
         } else {
-            if (!syncMetadata.gscHistoricalComplete) {
+            if (!gscHistoricalComplete) {
                 result.intelligence = getPlaceholderIntelligence('gsc', 'syncing');
             } else {
                 if (!(result.overview?.clicks > 0)) {
@@ -754,7 +808,7 @@ export const getGscSummary = async (req, res) => {
                             {
                                 userId,
                                 content: result.intelligence,
-                                lastSyncedAtOnGeneration: syncMetadata?.lastSyncedAt || new Date(),
+                                lastSyncedAtOnGeneration: gscLastSyncedAt || new Date(),
                                 createdAt: new Date()
                             },
                             { upsert: true }
@@ -765,7 +819,7 @@ export const getGscSummary = async (req, res) => {
         }
 
         // Cache only when GSC historical sync is complete
-        if (syncMetadata.gscHistoricalComplete) analyticsCache.set(cacheKey, result);
+        if (gscHistoricalComplete) analyticsCache.set(cacheKey, result);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ message: error.message });
