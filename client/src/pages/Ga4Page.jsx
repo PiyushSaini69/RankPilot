@@ -347,10 +347,18 @@ const Ga4Page = () => {
     const searchQuery = useFilterStore(s => s.searchQuery);
     const setSearchQuery = useFilterStore(s => s.setSearchQuery);
 
+    // Sync chal raha hai to shimmer dikhao
+    const isSyncing = ga4?.ga4HistoricalComplete === false;
+    const syncedDays = ga4?.ga4HistoricalChunkIndex || 0;
+    const syncProgress = ga4?.ga4SyncProgress || 0;
+    const totalSyncDays = syncProgress > 0
+        ? Math.min(90, Math.round(syncedDays / (syncProgress / 100) / 10) * 10)
+        : 90;
+
     return (
         <DashboardLayout>
             <div id="ga4-report" className="flex flex-col space-y-8">
-                {ga4?.ga4HistoricalComplete === false && (
+                {isSyncing && (
                     <div className="relative overflow-hidden w-full bg-white dark:bg-[#0d0d0d] border border-amber-500/30 dark:border-amber-500/20 rounded-[2rem] p-6 shadow-xl shadow-amber-500/5 animate-in fade-in slide-in-from-top-4 duration-1000 group">
                         {/* Decorative background glows */}
                         <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/5 rounded-full blur-[100px] pointer-events-none transition-transform duration-1000 group-hover:scale-110"></div>
@@ -384,22 +392,22 @@ const Ga4Page = () => {
                                 <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-neutral-400">
                                     <span>Sync Progress</span>
                                     <span className="tabular-nums font-black text-amber-500">
-                                        {ga4?.ga4SyncProgress ? `${ga4.ga4SyncProgress}%` : 'Pulsing...'}
+                                        {syncProgress ? `${syncProgress}%` : 'Starting...'}
                                     </span>
                                 </div>
                                 <div className="relative h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden border border-neutral-200/20">
                                     <div 
                                         className="h-full bg-gradient-to-r from-amber-500 to-brand-500 rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(245,158,11,0.5)]" 
-                                        style={{ width: `${ga4?.ga4SyncProgress || 45}%` }}
+                                        style={{ width: `${syncProgress || 5}%` }}
                                     ></div>
                                 </div>
                                 <div className="flex justify-between items-center text-[9px] font-bold text-neutral-400">
                                     <span>
-                                        Days Synced: <span className="text-amber-500 font-black tabular-nums">{ga4?.ga4HistoricalChunkIndex || 0}</span> / {(ga4?.ga4SyncProgress && ga4.ga4SyncProgress > 0) ? Math.max(ga4.ga4HistoricalChunkIndex || 0, Math.round(((ga4.ga4HistoricalChunkIndex || 0) / ga4.ga4SyncProgress) * 100)) : 90} Days
+                                        Days Synced: <span className="text-amber-500 font-black tabular-nums">{syncedDays}</span> / {totalSyncDays} Days
                                     </span>
                                     <span className="flex items-center gap-1.5">
                                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
-                                        Status: Active Connection
+                                        Live Sync Active
                                     </span>
                                 </div>
                             </div>
@@ -437,9 +445,11 @@ const Ga4Page = () => {
                                     </div>
                                     <div className="flex items-center gap-3 hide-in-pdf">
                                         <div className="flex items-center gap-1.5 text-[9px] text-neutral-400 font-bold uppercase tracking-widest">
-                                            Synced: <span className="text-neutral-700 dark:text-neutral-300 tabular-nums font-black">{ga4?.ga4LastSyncedAt ? formatDistanceToNow(new Date(ga4.ga4LastSyncedAt), { addSuffix: true }) : 'Never'}</span>
+                                            Synced: <span className={`tabular-nums font-black ${isSyncing ? 'text-amber-500' : 'text-neutral-700 dark:text-neutral-300'}`}>
+                                                {isSyncing ? 'Syncing...' : ga4?.ga4LastSyncedAt ? formatDistanceToNow(new Date(ga4.ga4LastSyncedAt), { addSuffix: true }) : 'Never'}
+                                            </span>
                                             <button onClick={handleManualRefresh} className="hover:text-brand-500 transition-all active:rotate-180 ml-1">
-                                                <ArrowPathIcon className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+                                                <ArrowPathIcon className={`w-3 h-3 ${(loading || isSyncing) ? 'animate-spin' : ''}`} />
                                             </button>
                                         </div>
 
@@ -661,7 +671,7 @@ const Ga4Page = () => {
                     <KpiCard
                         title="Active Users"
                         value={formatNumber(data?.activeUsers.value)}
-                        loading={loading}
+                        loading={loading || isSyncing}
                         Icon={UsersIcon}
                         change={data?.activeUsers.change}
                         isPositive={data?.activeUsers.isPositive}
@@ -673,7 +683,7 @@ const Ga4Page = () => {
                     <KpiCard
                         title="Total Sessions"
                         value={formatNumber(data?.totalSessions.value)}
-                        loading={loading}
+                        loading={loading || isSyncing}
                         Icon={ChartBarIcon}
                         change={data?.totalSessions.change}
                         isPositive={data?.totalSessions.isPositive}
@@ -685,7 +695,7 @@ const Ga4Page = () => {
                     <KpiCard
                         title="Engagement Rate"
                         value={(data?.engagementRate.value) + "%"}
-                        loading={loading}
+                        loading={loading || isSyncing}
                         Icon={CursorArrowRaysIcon}
                         change={data?.engagementRate.change}
                         isPositive={data?.engagementRate.isPositive}
@@ -697,7 +707,7 @@ const Ga4Page = () => {
                     <KpiCard
                         title="Avg. Session Duration"
                         value={data?.avgSessionDuration.value}
-                        loading={loading}
+                        loading={loading || isSyncing}
                         Icon={ClockIcon}
                         change={data?.avgSessionDuration.change}
                         isPositive={data?.avgSessionDuration.isPositive}
@@ -722,12 +732,12 @@ const Ga4Page = () => {
                                 </div>
                                 <div>
                                     <div className="text-xl font-black text-neutral-900 dark:text-white tabular-nums">
-                                        {loading ? <div className="h-6 w-20 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /> : card.value}
+                                        {(loading || isSyncing) ? <div className="h-6 w-20 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /> : card.value}
                                     </div>
                                     <div className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">{card.label}</div>
                                 </div>
                             </div>
-                            {card.insight && !loading && (
+                            {card.insight && !(loading || isSyncing) && (
                                 <p className="text-[9px] font-bold text-neutral-400 dark:text-neutral-500 leading-relaxed italic border-t border-neutral-50 dark:border-neutral-800 pt-2 mt-auto">
                                     "{card.insight}"
                                 </p>
@@ -758,7 +768,7 @@ const Ga4Page = () => {
                         </div>
 
                         <div className="flex-1 p-8 min-h-[350px] relative">
-                            {loading ? (
+                            {(loading || isSyncing) ? (
                                 <div className="w-full h-full animate-pulse bg-gradient-to-r from-neutral-100 to-neutral-50 dark:from-neutral-800 dark:to-neutral-800/50 rounded-xl"></div>
                             ) : data?.sessionsOverTime.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-full text-neutral-400">
@@ -822,7 +832,7 @@ const Ga4Page = () => {
                         <div className="px-8 pb-8">
                             <SectionAiSummary
                                 insight={data?.intelligence.sessionsOverTime}
-                                loading={loading}
+                                loading={loading || isSyncing}
                             />
                         </div>
                     </div>
@@ -842,7 +852,7 @@ const Ga4Page = () => {
                         <p className="text-xs text-neutral-400 font-semibold mb-4">Based on selected date range</p>
 
                         <div className="flex-1 flex items-center justify-center relative" style={{ minHeight: 220 }}>
-                            {loading ? (
+                            {(loading || isSyncing) ? (
                                 <div className="w-32 h-32 rounded-full border-8 border-neutral-100 dark:border-neutral-800 border-t-brand-500 animate-spin"></div>
                             ) : (
                                 <ResponsiveContainer width="100%" height="100%">
@@ -880,23 +890,27 @@ const Ga4Page = () => {
                         <div className="grid grid-cols-2 gap-3 mt-4">
                             <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl">
                                 <div className="text-xl font-black text-blue-600 dark:text-blue-400 tabular-nums">
-                                    {loading ? '...' : formatNumber(data?.newVsReturningUsers.totalNewUsers)}
+                                    {(loading || isSyncing) ? '...' : formatNumber(data?.newVsReturningUsers.totalNewUsers)}
                                 </div>
                                 <div className="text-xs text-neutral-500 mt-0.5">New Users</div>
-                                <div className="text-xs font-black text-blue-500 mt-1">{data?.newVsReturningUsers.newUsersPercentage}%</div>
+                                <div className="text-xs font-black text-blue-500 mt-1">
+                                    {(loading || isSyncing) ? <div className="h-3 w-10 bg-blue-200 dark:bg-blue-800 rounded animate-pulse mx-auto" /> : `${data?.newVsReturningUsers.newUsersPercentage}%`}
+                                </div>
                             </div>
                             <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-2xl">
                                 <div className="text-xl font-black text-green-600 dark:text-green-400 tabular-nums">
-                                    {loading ? '...' : formatNumber(data?.newVsReturningUsers.totalReturningUsers)}
+                                    {(loading || isSyncing) ? '...' : formatNumber(data?.newVsReturningUsers.totalReturningUsers)}
                                 </div>
                                 <div className="text-xs text-neutral-500 mt-0.5">Returning</div>
-                                <div className="text-xs font-black text-green-500 mt-1">{data?.newVsReturningUsers.returningUsersPercentage}%</div>
+                                <div className="text-xs font-black text-green-500 mt-1">
+                                    {(loading || isSyncing) ? <div className="h-3 w-10 bg-green-200 dark:bg-green-800 rounded animate-pulse mx-auto" /> : `${data?.newVsReturningUsers.returningUsersPercentage}%`}
+                                </div>
                             </div>
                         </div>
                         <div className="mt-auto">
                             <SectionAiSummary
                                 insight={data?.intelligence.newVsReturningUsers}
-                                loading={loading}
+                                loading={loading || isSyncing}
                             />
                         </div>
                     </div>
@@ -924,19 +938,19 @@ const Ga4Page = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div className="text-center p-4 bg-green-50 dark:bg-green-900/10 rounded-2xl border border-green-100 dark:border-green-800">
                             <div className="text-2xl font-black text-green-600 dark:text-green-400 tabular-nums">
-                                {loading ? '—' : (data?.engagementRates.engagementRate + '%')}
+                                {(loading || isSyncing) ? '—' : (data?.engagementRates.engagementRate + '%')}
                             </div>
                             <div className="text-xs text-neutral-500 mt-1">Engagement Rate</div>
                         </div>
                         <div className="text-center p-4 bg-brand-50 dark:bg-brand-900/10 rounded-2xl border border-brand-100 dark:border-brand-800">
                             <div className="text-2xl font-black text-brand-600 dark:text-brand-400 tabular-nums">
-                                {loading ? '—' : formatNumber(data?.engagementRates.engagedSessions)}
+                                {(loading || isSyncing) ? '—' : formatNumber(data?.engagementRates.engagedSessions)}
                             </div>
                             <div className="text-xs text-neutral-500 mt-1">Engaged Sessions</div>
                         </div>
                         <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/10 rounded-2xl border border-orange-100 dark:border-orange-800">
                             <div className="text-2xl font-black text-orange-500 tabular-nums">
-                                {loading ? '—' : (data?.engagementRates.avgEngagedTime)}
+                                {(loading || isSyncing) ? '—' : (data?.engagementRates.avgEngagedTime)}
                             </div>
                             <div className="text-xs text-neutral-500 mt-1">Avg Engaged Time</div>
                         </div>
@@ -947,7 +961,7 @@ const Ga4Page = () => {
                     </div>
                     <SectionAiSummary
                         insight={data?.intelligence.engagementRates}
-                        loading={loading}
+                        loading={loading || isSyncing}
                     />
                 </div>
 
@@ -966,7 +980,7 @@ const Ga4Page = () => {
                             </button>
                         </div>
                         <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400 mt-1">Daily bounce rate changes</p>
-                        {loading ? (
+                        {(loading || isSyncing) ? (
                             <div className="h-48 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse" />
                         ) : (
                             <ResponsiveContainer width="100%" height={190}>
@@ -1008,7 +1022,7 @@ const Ga4Page = () => {
                         )}
                         <SectionAiSummary
                             insight={data?.intelligence.bounceRateOverTime}
-                            loading={loading}
+                            loading={loading || isSyncing}
                         />
                     </div>
 
@@ -1025,7 +1039,7 @@ const Ga4Page = () => {
                             </button>
                         </div>
                         <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400 mt-1">Daily page view count</p>
-                        {loading ? (
+                        {(loading || isSyncing) ? (
                             <div className="h-48 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse" />
                         ) : (
                             <ResponsiveContainer width="100%" height={190}>
@@ -1062,7 +1076,7 @@ const Ga4Page = () => {
                         )}
                         <SectionAiSummary
                             insight={data?.intelligence.pageViewsOverTime}
-                            loading={loading}
+                            loading={loading || isSyncing}
                         />
                     </div>
                 </div>
@@ -1090,14 +1104,14 @@ const Ga4Page = () => {
                                     { header: 'Users', cell: (row) => row.users },
                                 ]}
                                 data={data?.topTrafficSources}
-                                loading={loading}
+                                loading={loading || isSyncing}
                                 initialLimit={5}
                             />
                         </div>
                         <div className="p-5 pt-0">
                             <SectionAiSummary
                                 insight={data?.intelligence.topTrafficSources}
-                                loading={loading}
+                                loading={loading || isSyncing}
                             />
                         </div>
                     </div>
@@ -1123,14 +1137,14 @@ const Ga4Page = () => {
                                     { header: 'Bounce Rate', cell: (row) => row.bounceRate },
                                 ]}
                                 data={data?.topPages}
-                                loading={loading}
+                                loading={loading || isSyncing}
                                 initialLimit={5}
                             />
                         </div>
                         <div className="p-5 pt-0">
                             <SectionAiSummary
                                 insight={data?.intelligence.topPages}
-                                loading={loading}
+                                loading={loading || isSyncing}
                             />
                         </div>
                     </div>
@@ -1155,7 +1169,7 @@ const Ga4Page = () => {
                         <div className="flex-1">
                             <div className="flex flex-col md:flex-row items-center gap-10 mb-8">
                                 <div className="w-[240px] h-[240px]">
-                                    {loading ? (
+                                    {(loading || isSyncing) ? (
                                         <div className="w-full h-full rounded-full bg-neutral-100 dark:bg-neutral-800 animate-pulse"></div>
                                     ) : (
                                         <ResponsiveContainer width="100%" height="100%">
@@ -1216,7 +1230,7 @@ const Ga4Page = () => {
                         <div className="mt-auto">
                             <SectionAiSummary
                                 insight={data?.intelligence.deviceBreakdown}
-                                loading={loading}
+                                loading={loading || isSyncing}
                             />
                         </div>
                     </div> {/* Device Breakdown card ends */}
@@ -1237,7 +1251,7 @@ const Ga4Page = () => {
                             </button>
                         </div>
                         <div className="flex-1 space-y-7">
-                            {loading ? (
+                            {(loading || isSyncing) ? (
                                 Array(5).fill(0).map((_, i) => (
                                     <div key={i} className="h-10 w-full bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse"></div>
                                 ))
@@ -1265,7 +1279,7 @@ const Ga4Page = () => {
                         <div className="mt-auto">
                             <SectionAiSummary
                                 insight={data?.intelligence.topLocations}
-                                loading={loading}
+                                loading={loading || isSyncing}
                             />
                         </div>
                     </div> {/* Geography Breakdown card ends */}
@@ -1307,7 +1321,7 @@ const Ga4Page = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {loading ? (
+                                {(loading || isSyncing) ? (
                                     Array(7).fill(0).map((_, i) => (
                                         <tr key={i} className="animate-pulse">
                                             <td colSpan={4} className="py-3"><div className="h-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg"></div></td>
@@ -1386,7 +1400,7 @@ const Ga4Page = () => {
                     </div>
                     <SectionAiSummary
                         insight={data?.intelligence.thisPeriodVsLastPeriod}
-                        loading={loading}
+                        loading={loading || isSyncing}
                     />
                 </div>
 
@@ -1396,4 +1410,5 @@ const Ga4Page = () => {
 };
 
 export default Ga4Page;
+
 
