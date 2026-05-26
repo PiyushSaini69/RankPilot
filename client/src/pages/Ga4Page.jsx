@@ -756,7 +756,7 @@ const Ga4Page = () => {
                                 </div>
                             ) : (
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={data?.sessionsOverTime} margin={{ top: 10, right: 30, left: -20, bottom: 0 }}>
+                                    <AreaChart data={data?.sessionsOverTime} margin={{ top: 10, right: 30, left: -20, bottom: 20 }}>
                                         <defs>
                                             <linearGradient id="colorSessions" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
@@ -769,7 +769,7 @@ const Ga4Page = () => {
                                             axisLine={false}
                                             tickLine={false}
                                             tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 'bold' }}
-                                            dy={15}
+                                            dy={10}
                                             interval={2}
                                             tickFormatter={(val) => {
                                                 const d = new Date(val);
@@ -964,7 +964,7 @@ const Ga4Page = () => {
                             <div className="h-48 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse" />
                         ) : (
                             <ResponsiveContainer width="100%" height={190}>
-                                <AreaChart data={data?.bounceRateOverTime} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
+                                <AreaChart data={data?.bounceRateOverTime} margin={{ top: 5, right: 10, left: -25, bottom: 15 }}>
                                     <defs>
                                         <linearGradient id="bounceGrad" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#F97316" stopOpacity={0.15} />
@@ -972,7 +972,7 @@ const Ga4Page = () => {
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" className="dark:stroke-neutral-800" opacity={0.5} />
-                                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 'bold' }} interval={6}
+                                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 'bold' }} dy={10} interval={6}
                                         tickFormatter={(val) => {
                                             const d = new Date(val);
                                             return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -1025,9 +1025,9 @@ const Ga4Page = () => {
                             <div className="h-48 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse" />
                         ) : (
                             <ResponsiveContainer width="100%" height={190}>
-                                <BarChart data={data?.pageViewsOverTime} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
+                                <BarChart data={data?.pageViewsOverTime} margin={{ top: 5, right: 10, left: -25, bottom: 15 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" className="dark:stroke-neutral-800" opacity={0.5} />
-                                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 'bold' }} interval={6}
+                                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 'bold' }} dy={10} interval={6}
                                         tickFormatter={(val) => {
                                             const d = new Date(val);
                                             return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });

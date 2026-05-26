@@ -560,7 +560,7 @@ const FacebookAdsPage = () => {
                                     <EmptyState message="No timeseries data" sub="Try selecting a wider date range" />
                                 ) : (
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={timeseries} margin={{ top: 10, right: 30, left: -20, bottom: 0 }}>
+                                        <AreaChart data={timeseries} margin={{ top: 10, right: 30, left: -20, bottom: 20 }}>
                                             <defs>
                                                 <linearGradient id="colorSpend" x1="0" y1="0" x2="0" y2="1">
                                                     <stop offset="5%" stopColor="#1877F2" stopOpacity={0.2} />
@@ -577,7 +577,7 @@ const FacebookAdsPage = () => {
                                                 axisLine={false}
                                                 tickLine={false}
                                                 tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 'bold' }}
-                                                dy={15}
+                                                dy={10}
                                             />
                                             <YAxis
                                                 axisLine={false}
@@ -626,7 +626,7 @@ const FacebookAdsPage = () => {
                             <div className="h-48 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse" />
                         ) : reachTrend.length === 0 ? <EmptyState /> : (
                             <ResponsiveContainer width="100%" height={190}>
-                                <AreaChart data={reachTrend} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                                <AreaChart data={reachTrend} margin={{ top: 5, right: 10, left: -20, bottom: 15 }}>
                                     <defs>
                                         <linearGradient id="reachGrad" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#1877F2" stopOpacity={0.2} />
@@ -634,7 +634,7 @@ const FacebookAdsPage = () => {
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" className="dark:stroke-neutral-800" />
-                                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+                                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} dy={10} />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
                                     <Tooltip
                                         contentStyle={{
@@ -670,10 +670,10 @@ const FacebookAdsPage = () => {
                             <ResponsiveContainer width="100%" height={190}>
                                 <BarChart
                                     data={campaigns.slice(0, 6).map(c => ({ name: (c.name?.length > 12 ? c.name.slice(0, 12) + '...' : c.name), spend: c.spend }))}
-                                    margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
+                                    margin={{ top: 5, right: 10, left: -20, bottom: 15 }}
                                 >
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" className="dark:stroke-neutral-800" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9CA3AF' }} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9CA3AF' }} dy={10} />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={v => `$${v}`} />
                                     <Tooltip
                                         contentStyle={{

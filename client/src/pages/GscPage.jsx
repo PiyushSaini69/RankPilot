@@ -703,7 +703,7 @@ import { formatDistanceToNow } from 'date-fns';
                             ) : (
                                 <>
                                 <ResponsiveContainer width="100%" height={280}>
-                                    <AreaChart data={timeseries} margin={{ top: 10, right: 30, left: -20, bottom: 0 }}>
+                                    <AreaChart data={timeseries} margin={{ top: 10, right: 30, left: -20, bottom: 20 }}>
                                         <defs>
                                             <linearGradient id="colorClicks" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.2} />
@@ -807,7 +807,7 @@ import { formatDistanceToNow } from 'date-fns';
                                 <EmptyState />
                             ) : (
                                 <ResponsiveContainer width="100%" height={190}>
-                                    <AreaChart data={ctrTrend} margin={{top:5, right:10, left:-20, bottom:0}}>
+                                    <AreaChart data={ctrTrend} margin={{top:5, right:10, left:-20, bottom:15}}>
                                         <defs>
                                             <linearGradient id="ctrGrad" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%"  stopColor="#8B5CF6" stopOpacity={0.15}/>
@@ -815,7 +815,7 @@ import { formatDistanceToNow } from 'date-fns';
                                             </linearGradient>
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" className="dark:stroke-neutral-800/20"/>
-                                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize:10, fill:'#9CA3AF'}}
+                                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize:10, fill:'#9CA3AF'}} dy={10}
                                         interval={ctrTrend.length > 15 ? 4 : 2}
                                         tickFormatter={(val) => {
                                             const d = new Date(val);
@@ -869,9 +869,9 @@ import { formatDistanceToNow } from 'date-fns';
                                 <EmptyState />
                             ) : (
                                 <ResponsiveContainer width="100%" height={190}>
-                                    <LineChart data={positionTrend} margin={{top:5, right:10, left:-20, bottom:0}}>
+                                    <LineChart data={positionTrend} margin={{top:5, right:10, left:-20, bottom:15}}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" className="dark:stroke-neutral-800/20"/>
-                                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize:10, fill:'#9CA3AF'}}
+                                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize:10, fill:'#9CA3AF'}} dy={10}
                                         interval={positionTrend.length > 15 ? 4 : 2}
                                         tickFormatter={(val) => {
                                             const d = new Date(val);
@@ -1066,9 +1066,9 @@ import { formatDistanceToNow } from 'date-fns';
                                 <div className="w-full h-full animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"></div>
                             ) : (
                                 <ResponsiveContainer width="100%" height={250}>
-                                    <BarChart data={timeseries}>
+                                    <BarChart data={timeseries} margin={{ top: 5, right: 30, left: -20, bottom: 15 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" className="dark:stroke-neutral-800" opacity={0.5} />
-                                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize:10, fill:'#9CA3AF', fontWeight:'bold'}} 
+                                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize:10, fill:'#9CA3AF', fontWeight:'bold'}} dy={10} 
                                         interval={timeseries.length > 15 ? 4 : 2}
                                         tickFormatter={(val) => {
                                             const d = new Date(val);

@@ -578,7 +578,7 @@ const GoogleAdsPage = () => {
                   <EmptyState message="No timeseries data" sub="Try selecting a wider date range" />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={timeseries} margin={{ top: 10, right: 30, left: -20, bottom: 0 }}>
+                    <AreaChart data={timeseries} margin={{ top: 10, right: 30, left: -20, bottom: 20 }}>
                       <defs>
                         <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.2} />
@@ -595,7 +595,7 @@ const GoogleAdsPage = () => {
                         axisLine={false}
                         tickLine={false}
                         tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 'bold' }}
-                        dy={15}
+                        dy={10}
                       />
                       <YAxis
                         yAxisId="left"
@@ -653,7 +653,7 @@ const GoogleAdsPage = () => {
               <div className="h-48 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse" />
             ) : conversionTrend.length === 0 ? <EmptyState /> : (
               <ResponsiveContainer width="100%" height={190}>
-                <AreaChart data={conversionTrend} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={conversionTrend} margin={{ top: 5, right: 10, left: -20, bottom: 15 }}>
                   <defs>
                     <linearGradient id="convGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
@@ -661,7 +661,7 @@ const GoogleAdsPage = () => {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" className="dark:stroke-neutral-800" />
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} />
                   <Tooltip
                     contentStyle={{
@@ -697,10 +697,10 @@ const GoogleAdsPage = () => {
               <ResponsiveContainer width="100%" height={190}>
                 <BarChart
                   data={campaigns.slice(0, 6).map(c => ({ name: c.name?.slice(0, 12) + '...', cost: c.cost, conversions: c.conversions }))}
-                  margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
+                  margin={{ top: 5, right: 10, left: -20, bottom: 15 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" className="dark:stroke-neutral-800" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9CA3AF' }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9CA3AF' }} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={v => `$${v}`} />
                   <Tooltip
                     contentStyle={{
