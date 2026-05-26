@@ -256,6 +256,24 @@ const Ga4Page = () => {
         return () => clearInterval(interval);
     }, [activeSiteId, ga4?.ga4SyncStatus, setAccounts]);
 
+    useEffect(() => {
+        const handleFocus = () => {
+            loadData();
+        };
+
+        const handleOnline = () => {
+            loadData();
+        };
+
+        window.addEventListener('focus', handleFocus);
+        window.addEventListener('online', handleOnline);
+
+        return () => {
+            window.removeEventListener('focus', handleFocus);
+            window.removeEventListener('online', handleOnline);
+        };
+    }, [loadData]);
+
 
     if (!isConnected || !hasProperty) {
         const isMissingConn = !isConnected;
