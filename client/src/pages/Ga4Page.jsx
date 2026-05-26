@@ -17,7 +17,6 @@ import {
     EnvelopeIcon,
     ArrowPathIcon,
     UsersIcon,
-    ExclamationTriangleIcon,
     ChartBarIcon,
     ChevronRightIcon,
     ChevronDownIcon,
@@ -26,7 +25,6 @@ import {
     FunnelIcon,
     DevicePhoneMobileIcon,
     DeviceTabletIcon,
-    XMarkIcon,
     SparklesIcon,
     ClockIcon,
     CursorArrowRaysIcon,
@@ -48,20 +46,13 @@ import { useFilterStore } from '../store/filterStore';
 const formatNumber = (num) =>
     Number(num || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
 
-const formatTime = (secs) => {
-    const s = Math.floor(secs || 0);
-    const min = Math.floor(s / 60);
-    const remainingSecs = s % 60;
-    return `${min}m ${remainingSecs}s`;
-};
-
 const Ga4Logo = ({ className = "w-6 h-6" }) => (
     <img src="https://www.vectorlogo.zone/logos/google_analytics/google_analytics-icon.svg" alt="GA4" className={`${className} object-contain`} />
 );
 
-const SectionAiSummary = ({ insight, loading, sectionTitle, title = "AI SUMMARY" }) => (
+const SectionAiSummary = ({ insight, loading, title = "AI SUMMARY" }) => (
     <div className="mt-4 p-4 bg-brand-50/10 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-[1.5rem] animate-in fade-in duration-700">
-        <h4 className="text-[10px] font-black text-neutral-900 dark:text-white uppercase tracking-[0.15em] mb-3">{sectionTitle || title}</h4>
+        <h4 className="text-[10px] font-black text-neutral-900 dark:text-white uppercase tracking-[0.15em] mb-3">{title}</h4>
         {loading ? (
             <div className="space-y-2 animate-pulse mb-4">
                 <div className="h-2 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
@@ -79,20 +70,14 @@ const Ga4Page = () => {
     const startDate = useDateRangeStore(s => s.startDate);
     const endDate = useDateRangeStore(s => s.endDate);
     const device = useFilterStore(s => s.device);
-    const campaign = useFilterStore(s => s.campaign);
-    const channel = useFilterStore(s => s.channel);
 
-    const activeGa4PropertyId = useAccountsStore(s => s.ga4?.ga4PropertyId);
     const activeSiteId = useAccountsStore(s => s.activeSiteId);
-    const userSites = useAccountsStore(s => s.userSites);
+    const activeSiteName = useAccountsStore(s => s.activeSiteName);
     const ga4 = useAccountsStore(s => s.ga4);
     const setAccounts = useAccountsStore(s => s.setAccounts);
 
-    const activeSite = userSites?.find(s => s._id === activeSiteId);
-    const siteName = activeSite?.name || 'this website';
-
-    const isConnected = !!activeGa4PropertyId;
-    const hasProperty = !!activeGa4PropertyId;
+    const isConnected = !!ga4?.ga4PropertyId;
+    const hasProperty = !!ga4?.ga4PropertyId;
     const navigate = useNavigate();
     const openWithQuestion = useAiChatStore(s => s.openWithQuestion);
     const [loading, setLoading] = useState(false);
@@ -108,13 +93,6 @@ const Ga4Page = () => {
     const [tempDateRange, setTempDateRange] = useState({ start: startDate, end: endDate });
 
     const [data, setData] = useState(null);
-    const [overview, setOverview] = useState(null);
-    const [priorOverview, setPriorOverview] = useState(null);
-    const [timeseries, setTimeseries] = useState([]);
-    const [traffic, setTraffic] = useState([]);
-    const [pages, setPages] = useState([]);
-    const [breakdowns, setBreakdowns] = useState({ devices: [], locations: [] });
-    const [intelligence, setIntelligence] = useState(null);
 
     const presetLabels = {
         'today': 'Today',
@@ -134,8 +112,6 @@ const Ga4Page = () => {
                 startDate,
                 endDate,
                 device: device || 'all',
-                ...(campaign && { campaign }),
-                ...(channel && { channel }),
                 ...(activeSiteId && { siteId: activeSiteId })
             }).toString();
 
@@ -143,57 +119,24 @@ const Ga4Page = () => {
             const data = res.data;
 
             setData(data);
-
-            setOverview({
-                activeUsers: data.overview.users,
-                newUsers: data.overview.newUsers,
-                sessions: data.overview.sessions,
-                bounceRate: data.overview.bounceRate,
-                avgSessionDuration: data.overview.avgSessionDuration,
-                pageViews: data.overview.pageViews,
-                users: data.overview.users
-            });
-
-            setPriorOverview(data.priorOverview);
-            setTimeseries(data.timeseries || []);
-            setTraffic(data.topTrafficSources || []);
-            setPages(data.topPages || []);
-            setBreakdowns(data.breakdowns || { devices: [], locations: [] });
-            setIntelligence(data.intelligence || null);
-
-            if (data.syncMetadata) {
-                setAccounts({
-                    syncStatus: data.syncMetadata.syncStatus,
-                    ga4: {
-                        ga4LastSyncedAt: data.syncMetadata.lastSyncedAt,
-                        ga4HistoricalComplete: data.syncMetadata.ga4HistoricalComplete,
-                        ga4SyncStatus: data.syncMetadata.syncStatus
-                    }
-                });
-            }
         } catch (err) {
             console.error("GA4 fetch err", err);
         } finally {
             setLoading(false);
         }
-    }, [isConnected, hasProperty, startDate, endDate, device, campaign, channel, activeSiteId]);
+    }, [isConnected, hasProperty, startDate, endDate, device, activeSiteId]);
 
     const handleManualRefresh = async () => {
         if (!activeSiteId) return;
         setLoading(true);
-        // 1. Set status to syncing in store
         setAccounts({
             syncStatus: 'syncing',
             ga4: {
                 ga4SyncStatus: 'syncing'
             }
         });
-
         try {
-            // 2. Perform sync
             await api.post('/analytics/sync', { siteId: activeSiteId });
-
-            // 3. Update store with latest metadata (time, status)
             const res = await getActiveAccounts(activeSiteId);
             const data = res.data || {};
             setAccounts({
@@ -204,12 +147,9 @@ const Ga4Page = () => {
                     ga4SyncStatus: data.syncStatus || 'idle'
                 }
             });
-
-            // 4. Load the dashboard data
             await loadData();
         } catch (err) {
             console.error('Manual sync failed:', err);
-            // Even on error, update metadata to clear syncing status
             const res = await getActiveAccounts(activeSiteId).catch(() => ({ data: {} }));
             const data = res.data || {};
             setAccounts({
@@ -283,13 +223,38 @@ const Ga4Page = () => {
         return () => clearInterval(interval);
     }, [loadData]);
 
-    // Refresh data when sync completes
     useEffect(() => {
         if (ga4?.ga4SyncStatus !== 'syncing' && activeSiteId) {
             console.log('GA4 Sync completed or idle, refreshing data...');
             loadData();
         }
     }, [ga4?.ga4SyncStatus, activeSiteId, loadData]);
+
+    useEffect(() => {
+        let interval;
+        if (activeSiteId && ga4?.ga4SyncStatus === 'syncing') {
+            interval = setInterval(async () => {
+                try {
+                    const res = await getActiveAccounts(activeSiteId);
+                    const data = res.data || {};
+                    setAccounts({
+                        syncStatus: data.syncStatus || 'idle',
+                        ga4: {
+                            ga4HistoricalComplete: data.ga4HistoricalComplete || false,
+                            ga4LastSyncedAt: data.ga4LastSyncedAt || null,
+                            ga4SyncStatus: data.ga4SyncStatus || 'idle',
+                            ga4SyncProgress: data.ga4SyncProgress || 0,
+                            ga4HistoricalChunkIndex: data.ga4HistoricalChunkIndex || 0,
+                            ga4TokenEmail: data.ga4TokenId?.email || null
+                        }
+                    });
+                } catch (e) {
+                    console.error("Polling GA4 sync status error", e);
+                }
+            }, 3000);
+        }
+        return () => clearInterval(interval);
+    }, [activeSiteId, ga4?.ga4SyncStatus, setAccounts]);
 
 
     if (!isConnected || !hasProperty) {
@@ -364,65 +329,65 @@ const Ga4Page = () => {
     const searchQuery = useFilterStore(s => s.searchQuery);
     const setSearchQuery = useFilterStore(s => s.setSearchQuery);
 
-    const filteredTraffic = traffic.filter(t =>
-        (t.channel?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-        (t.source?.toLowerCase() || '').includes(searchQuery.toLowerCase())
-    );
-
-    const filteredPages = pages.filter(p =>
-        (p.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-        (p.path?.toLowerCase() || '').includes(searchQuery.toLowerCase())
-    );
-
-    const trafficColumns = [
-        { header: 'Channel', accessor: 'channel' },
-        { header: 'Source', accessor: 'source' },
-        { header: 'Sessions', cell: (row) => row.sessions },
-        { header: 'Users', cell: (row) => row.users },
-    ];
-
-    const pageColumns = [
-        { header: 'Page Title', cell: (row) => <div className="max-w-[200px] truncate" title={row.title}>{row.title}</div> },
-        { header: 'URL Path', cell: (row) => <div className="max-w-[200px] truncate text-brand-600 dark:text-brand-400" title={row.path}>{row.path}</div> },
-        { header: 'Page Views', cell: (row) => row.views },
-        { header: 'Users', cell: (row) => row.users },
-        { header: 'Bounce Rate', cell: (row) => row.bounceRate },
-    ];
-
-    // Derived Data
-    const pagesPerSession = (overview?.sessions > 0)
-        ? (overview.pageViews / overview.sessions).toFixed(2)
-        : '0.00';
-    const newUsers = overview?.newUsers || 0;
-    const retUsers = overview ? (overview.users || 0) - newUsers : 0;
-    const newPct = overview?.users > 0 ? ((newUsers / overview.users) * 100).toFixed(1) : '0';
-    const retPct = overview?.users > 0 ? ((retUsers / overview.users) * 100).toFixed(1) : '0';
-    const engagementRate = overview ? (100 - (overview.bounceRate || 0)).toFixed(1) : '0';
-    const engagedSessions = overview ? Math.round((overview.sessions || 0) * (1 - (overview.bounceRate || 0) / 100)) : 0;
-
-    // Real trend data using actual bounceRate from timeseries
-    const bounceTrend = timeseries.map((d) => ({
-        date: d.date,
-        bounceRate: d.bounceRate ? parseFloat(d.bounceRate.toFixed(1)) : 0,
-    }));
-
-    const calculateChange = (current, prior) => {
-        if (!prior || prior === 0) return 0;
-        return parseFloat(((current - prior) / prior * 100).toFixed(1));
-    };
-
-    const comparison = (overview && priorOverview) ? [
-        { metric: '👥 Users', current: formatNumber(overview.users), prior: formatNumber(priorOverview.users), change: calculateChange(overview.users, priorOverview.users), up: overview.users >= priorOverview.users },
-        { metric: '🔁 Sessions', current: formatNumber(overview.sessions), prior: formatNumber(priorOverview.sessions), change: calculateChange(overview.sessions, priorOverview.sessions), up: overview.sessions >= priorOverview.sessions },
-        { metric: '📄 Page Views', current: formatNumber(overview.pageViews), prior: formatNumber(priorOverview.pageViews), change: calculateChange(overview.pageViews, priorOverview.pageViews), up: overview.pageViews >= priorOverview.pageViews },
-        { metric: '📉 Bounce Rate', current: `${(overview.bounceRate || 0).toFixed(1)}%`, prior: `${(priorOverview.bounceRate || 0).toFixed(1)}%`, change: calculateChange(overview.bounceRate || 0, priorOverview.bounceRate || 0), up: (overview.bounceRate || 0) <= (priorOverview.bounceRate || 0) }, // Down is good for bounce
-        { metric: '⏱ Avg Duration', current: formatTime(overview.avgSessionDuration), prior: formatTime(priorOverview.avgSessionDuration), change: calculateChange(overview.avgSessionDuration, priorOverview.avgSessionDuration), up: overview.avgSessionDuration >= priorOverview.avgSessionDuration },
-        { metric: '✨ New Users', current: formatNumber(overview.newUsers || 0), prior: formatNumber(priorOverview.newUsers || 0), change: calculateChange(overview.newUsers, priorOverview.newUsers), up: overview.newUsers >= priorOverview.newUsers },
-    ] : [];
-
     return (
         <DashboardLayout>
             <div id="ga4-report" className="flex flex-col space-y-8">
+                {ga4?.ga4HistoricalComplete === false && (
+                    <div className="relative overflow-hidden w-full bg-white dark:bg-[#0d0d0d] border border-amber-500/30 dark:border-amber-500/20 rounded-[2rem] p-6 shadow-xl shadow-amber-500/5 animate-in fade-in slide-in-from-top-4 duration-1000 group">
+                        {/* Decorative background glows */}
+                        <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/5 rounded-full blur-[100px] pointer-events-none transition-transform duration-1000 group-hover:scale-110"></div>
+                        <div className="absolute bottom-0 left-0 w-80 h-80 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none transition-transform duration-1000 group-hover:scale-110"></div>
+
+                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-5">
+                                {/* Dynamic animated sync icon */}
+                                <div className="relative shrink-0 w-14 h-14 bg-amber-500/10 rounded-[1.25rem] border border-amber-500/20 flex items-center justify-center overflow-hidden">
+                                    <ArrowPathIcon className={`w-7 h-7 text-amber-500 ${ga4?.ga4SyncStatus === 'syncing' ? 'animate-spin' : 'animate-pulse'}`} />
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/0 via-amber-500/5 to-amber-500/0 opacity-0 group-hover:opacity-100 duration-700 transition-opacity"></div>
+                                </div>
+
+                                <div className="space-y-1.5 text-left">
+                                    <div className="flex items-center gap-3">
+                                        <h3 className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-[0.15em]">
+                                            Syncing Historical Data
+                                        </h3>
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 animate-pulse">
+                                            {ga4?.ga4SyncStatus === 'syncing' ? 'Importing Data' : 'In Queue'}
+                                        </span>
+                                    </div>
+                                    <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-2xl italic">
+                                        We are importing your historical Google Analytics data. Your dashboard metrics, performance charts, and AI insights will automatically populate and update as the sync progresses.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Premium progress interface */}
+                            <div className="w-full md:w-72 space-y-2">
+                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                                    <span>Sync Progress</span>
+                                    <span className="tabular-nums font-black text-amber-500">
+                                        {ga4?.ga4SyncProgress ? `${ga4.ga4SyncProgress}%` : 'Pulsing...'}
+                                    </span>
+                                </div>
+                                <div className="relative h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden border border-neutral-200/20">
+                                    <div 
+                                        className="h-full bg-gradient-to-r from-amber-500 to-brand-500 rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(245,158,11,0.5)]" 
+                                        style={{ width: `${ga4?.ga4SyncProgress || 45}%` }}
+                                    ></div>
+                                </div>
+                                <div className="flex justify-between items-center text-[9px] font-bold text-neutral-400">
+                                    <span>
+                                        Days Synced: <span className="text-amber-500 font-black tabular-nums">{ga4?.ga4HistoricalChunkIndex || 0}</span> / {(ga4?.ga4SyncProgress && ga4.ga4SyncProgress > 0) ? Math.max(ga4.ga4HistoricalChunkIndex || 0, Math.round(((ga4.ga4HistoricalChunkIndex || 0) / ga4.ga4SyncProgress) * 100)) : 90} Days
+                                    </span>
+                                    <span className="flex items-center gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+                                        Status: Active Connection
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {/* Compact Professional Header */}
                 <div className={`bg-white dark:bg-[#0d0d0d] px-6 py-4 rounded-[1.5rem] border border-neutral-100 dark:border-neutral-800 shadow-sm relative transition-all duration-300 ${(isDateMenuOpen || isDeviceMenuOpen) ? 'z-50' : 'z-10'}`}>
 
@@ -437,9 +402,9 @@ const Ga4Page = () => {
                             <div className="flex flex-col justify-center">
                                 <div className="flex items-center gap-2.5">
                                     <h1 className="text-lg md:text-xl font-black text-neutral-900 dark:text-white tracking-tight leading-none">Google Analytics 4</h1>
-                                    {activeSiteId && (
+                                    {activeSiteName && (
                                         <div className="px-2 py-0.5 bg-neutral-900 dark:bg-neutral-800 text-white rounded text-[7px] font-black uppercase tracking-widest">
-                                            {userSites?.find(s => s._id === activeSiteId)?.siteName || 'RANK PILOT'}
+                                            {activeSiteName}
                                         </div>
                                     )}
                                 </div>
@@ -613,15 +578,44 @@ const Ga4Page = () => {
                         <div className="flex flex-col sm:flex-row gap-2 shrink-0">
                             <button
                                 onClick={() => {
-                                    const fullPrompt = `Act as my Marketing Coach. Analyze my complete GA4 dashboard for ${startDate} to ${endDate}:
-                                    - **Performance**: ${formatNumber(overview?.users)} Users (${calculateChange(overview?.users, priorOverview?.users)}% growth), ${formatNumber(overview?.sessions)} Sessions, ${formatNumber(overview?.pageViews)} Page Views.
-                                    - **Engagement**: ${engagementRate}% Rate, ${formatTime(overview?.avgSessionDuration)} Avg Duration, ${(overview?.bounceRate || 0).toFixed(1)}% Bounce.
-                                    - **Audience**: ${newPct}% New vs ${retPct}% Returning.
-                                    - **Top Channels**: ${traffic.slice(0, 3).map(t => `${t.source} (${t.sessions} sessions)`).join(', ')}.
-                                    - **Top Content**: ${pages.slice(0, 3).map(p => p.path).join(', ')}.
-                                    - **Devices**: ${breakdowns.devices.map(d => `${d.name} (${((d.value / (overview?.sessions || 1)) * 100).toFixed(0)}%)`).join(', ')}.
-
-                                    Provide a comprehensive master summary of my site's health and 3 actionable strategic recommendations for immediate growth.`;
+                                    const fullPrompt = `Act as my elite Marketing Coach and Growth Strategist. I want you to perform a deep-dive, professional marketing audit of my Google Analytics 4 (GA4) dashboard for the period ${startDate} to ${endDate}.
+ 
+                                        Here is the COMPLETE raw analytical dataset of my site's GA4 integration:
+ 
+                                        📊 [CORE PERFORMANCE METRICS]
+                                        - Active Users: ${formatNumber(data?.activeUsers?.value)} (${data?.activeUsers?.change}% vs prior period)
+                                        - Total Sessions: ${formatNumber(data?.totalSessions?.value)} (${data?.totalSessions?.change}% vs prior period)
+                                        - Total Page Views: ${formatNumber(data?.pageViews)}
+                                        - Engagement Rate: ${data?.engagementRates?.engagementRate || '0'}% (${data?.engagementRate?.change}% vs prior period)
+                                        - Average Session Duration: ${data?.avgSessionDuration?.value}
+                                        - Bounce Rate: ${(data?.thisPeriodVsLastPeriod?.thisPeriod?.bounceRate || 0).toFixed(1)}%
+ 
+                                        📈 [PERIOD VS PERIOD TRAJECTORY METRICS]
+                                        - Users: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.users)} vs Prior Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.users)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.users}%)
+                                        - Sessions: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.sessions)} vs Prior Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.sessions)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.sessions}%)
+                                        - Page Views: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.pageViews)} vs Prior Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.pageViews)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.pageViews}%)
+                                        - Bounce Rate: This Period ${(data?.thisPeriodVsLastPeriod?.thisPeriod?.bounceRate || 0).toFixed(1)}% vs Prior Period ${(data?.thisPeriodVsLastPeriod?.lastPeriod?.bounceRate || 0).toFixed(1)}% (Change: ${data?.thisPeriodVsLastPeriod?.change?.bounceRate}%)
+                                        - Avg Session Duration: This Period ${data?.thisPeriodVsLastPeriod?.thisPeriod?.avgSessionDuration} vs Prior Period ${data?.thisPeriodVsLastPeriod?.lastPeriod?.avgSessionDuration} (Change: ${data?.thisPeriodVsLastPeriod?.change?.avgSessionDuration}%)
+ 
+                                        📣 [USER ACQUISITION BY TRAFFIC CHANNEL]
+                                        ${(data?.topTrafficSources || []).map((t, idx) => `${idx + 1}. Source: ${t.source} | Sessions: ${formatNumber(t.sessions)} | Users: ${formatNumber(t.users)}`).join('\n')}
+ 
+                                        📝 [TOP RESOUNDING PAGES & CONTENT PATHS]
+                                        ${(data?.topPages || []).map((p, idx) => `${idx + 1}. Path: ${p.path} | Title: "${p.title || 'Untitled'}" | Views: ${formatNumber(p.views)} | Users: ${formatNumber(p.users)} | Bounce Rate: ${(p.bounceRate || 0).toFixed(1)}%`).join('\n')}
+ 
+                                        👥 [AUDIENCE PERSONA & DEMOGRAPHICS]
+                                        - New Visitors: ${data?.newVsReturningUsers?.newUsersPercentage || '0'}% of users
+                                        - Returning Visitors: ${data?.newVsReturningUsers?.returningUsersPercentage || '0'}% of users
+ 
+                                        📱 [DEVICE & EXPERIENCE CHANNELS]
+                                        ${(data?.deviceBreakdown?.devices || []).map(d => `- ${d.name}: ${d.percentage}% of traffic (${formatNumber(d.value)} sessions)`).join('\n')}
+ 
+                                        ---
+ 
+                                        Based on this complete, granular dataset, please deliver:
+                                        1. A **Comprehensive Executive Health Check** summarizing the overall trajectory and identifying any hidden anomalies.
+                                        2. A **Traffic-to-Content Correlation Audit** explaining which channels drive high-quality traffic (low bounce, high duration) and which pages suffer from friction.
+                                        3. A **3-Part Actionable Growth Blueprint** containing step-by-step strategies for conversion rate optimization (CRO) and organic acquisition scaling.`;
                                     openWithQuestion(fullPrompt);
                                 }}
                                 className="h-8 px-4 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
@@ -656,7 +650,7 @@ const Ga4Page = () => {
                         changeText="vs last period"
                         chartData={data?.activeUsers.timeseries.map(d => d.users).slice(-10)}
                         insight={data?.intelligence.activeUsers}
-                        contextPrompt={`Act as my Marketing Coach. My website has ${formatNumber(overview?.users)} active users with ${formatNumber(overview?.newUsers)} being new visitors. Analyze this acquisition and provide a 1-sentence summary + 1-sentence strategic insight.`}
+                        contextPrompt={`Act as my Marketing Coach. My website has ${formatNumber(data?.activeUsers?.value)} active users with ${formatNumber(data?.newUsers)} being new visitors. Daily active users trend for the last 30 days: ${(data?.activeUsers?.timeseries || []).slice(-30).map(d => d.users).join(', ')}. Analyze this acquisition and provide a 1-sentence summary + 1-sentence strategic insight.`}
                     />
                     <KpiCard
                         title="Total Sessions"
@@ -668,7 +662,7 @@ const Ga4Page = () => {
                         changeText="vs last period"
                         chartData={data?.totalSessions.timeseries.map(d => d.sessions).slice(-10)}
                         insight={data?.intelligence.totalSessions}
-                        contextPrompt={`Act as my Marketing Coach. Total sessions are ${formatNumber(overview?.sessions)}. Compare this volume to my user base and provide a 1-sentence summary + 1-sentence strategic insight.`}
+                        contextPrompt={`Act as my Marketing Coach. Total sessions are ${formatNumber(data?.totalSessions?.value)} with ${formatNumber(data?.activeUsers?.value)} active users. Daily sessions trend for the last 30 days: ${(data?.totalSessions?.timeseries || []).slice(-30).map(d => d.sessions).join(', ')}. Compare this volume to my user base and provide a 1-sentence summary + 1-sentence strategic insight.`}
                     />
                     <KpiCard
                         title="Engagement Rate"
@@ -680,7 +674,7 @@ const Ga4Page = () => {
                         changeText="vs last period"
                         chartData={data?.engagementRate.timeseries.map(d => d.engagementRate).slice(-10)}
                         insight={data?.intelligence.engagementRate}
-                        contextPrompt={`Act as my Marketing Coach. My Engagement Rate is ${engagementRate}%. Analyze this content resonance and provide a 1-sentence summary + 1-sentence strategic insight.`}
+                        contextPrompt={`Act as my Marketing Coach. My Engagement Rate is ${data?.engagementRates?.engagementRate || '0'}%. Daily engagement rate trend for the last 30 days: ${(data?.engagementRate?.timeseries || []).slice(-30).map(d => `${d.engagementRate}%`).join(', ')}. Analyze this content resonance and provide a 1-sentence summary + 1-sentence strategic insight.`}
                     />
                     <KpiCard
                         title="Avg. Session Duration"
@@ -692,7 +686,7 @@ const Ga4Page = () => {
                         changeText="vs last period"
                         chartData={data?.avgSessionDuration.timeseries.map(d => d.avgSessionDuration).slice(-10)}
                         insight={data?.intelligence.avgSessionDuration}
-                        contextPrompt={`Act as my Marketing Coach. Users spend an average of ${formatTime(overview?.avgSessionDuration)} on site. Analyze this retention and provide a 1-sentence summary + 1-sentence strategic insight.`}
+                        contextPrompt={`Act as my Marketing Coach. Users spend an average of ${data?.avgSessionDuration?.value} on site. Daily session duration trend for the last 30 days: ${(data?.avgSessionDuration?.timeseries || []).slice(-30).map(d => `${d.avgSessionDuration}s`).join(', ')}. Analyze this retention and provide a 1-sentence summary + 1-sentence strategic insight.`}
                     />
                 </div>
 
@@ -735,7 +729,7 @@ const Ga4Page = () => {
                             </div>
                             <div className="p-2 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 flex items-center gap-2">
                                 <button
-                                    onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my session trend: ${timeseries.slice(-7).map(d => `${d.date}: ${d.sessions}`).join(', ')}. Identify any patterns (like weekend surges) and provide a 1-sentence summary + 1-sentence strategic insight.`)}
+                                    onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my session trend: ${(data?.sessionsOverTime || []).slice(-30).map(d => `${d.date}: ${d.sessions}`).join(', ')}. Identify any patterns (like weekend surges) and provide a 1-sentence summary + 1-sentence strategic insight.`)}
                                     className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                 >
                                     <SparklesIcon className="w-3.5 h-3.5" />
@@ -811,8 +805,6 @@ const Ga4Page = () => {
                             <SectionAiSummary
                                 insight={data?.intelligence.sessionsOverTime}
                                 loading={loading}
-                                sectionTitle="AI SUMMARY"
-                                contextPrompt={`Act as my Marketing Coach. Analyze the sessions trend: ${timeseries.slice(-7).map(d => `${d.date}: ${d.sessions} sessions`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic insight.`}
                             />
                         </div>
                     </div>
@@ -822,7 +814,7 @@ const Ga4Page = () => {
                         <div className="flex items-center justify-between mb-1">
                             <h3 className="text-base font-black text-neutral-900 dark:text-white">New vs Returning Users</h3>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my user split: ${newPct}% New vs ${retPct}% Returning. Provide a 1-sentence summary of this loyalty and 1-sentence strategic insight to improve retention.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my user split: Total Users ${formatNumber(data?.newVsReturningUsers?.totalUsers)}, New Users ${formatNumber(data?.newVsReturningUsers?.totalNewUsers)} (${data?.newVsReturningUsers?.newUsersPercentage || '0'}%) vs Returning Users ${formatNumber(data?.newVsReturningUsers?.totalReturningUsers)} (${data?.newVsReturningUsers?.returningUsersPercentage || '0'}%). Provide a 1-sentence summary of this loyalty and 1-sentence strategic insight to improve retention.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -887,8 +879,6 @@ const Ga4Page = () => {
                             <SectionAiSummary
                                 insight={data?.intelligence.newVsReturningUsers}
                                 loading={loading}
-                                sectionTitle="AI SUMMARY"
-                                contextPrompt={`Act as my Marketing Coach. My audience split: New (${newPct}%) vs Returning (${retPct}%). Provide a 1-sentence summary + 1-sentence strategic insight.`}
                             />
                         </div>
                     </div>
@@ -903,7 +893,7 @@ const Ga4Page = () => {
                         </div>
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my engagement: ${engagementRate}% rate, ${formatNumber(engagedSessions)} engaged sessions, and ${formatTime(overview?.avgSessionDuration)} duration. Provide a 1-sentence summary + 1-sentence strategic insight.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my engagement: ${data?.engagementRates?.engagementRate || '0'}% rate, ${formatNumber(data?.engagementRates?.engagedSessions || 0)} engaged sessions, and ${data?.engagementRates?.avgEngagedTime} duration. Provide a 1-sentence summary + 1-sentence strategic insight.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -940,8 +930,6 @@ const Ga4Page = () => {
                     <SectionAiSummary
                         insight={data?.intelligence.engagementRates}
                         loading={loading}
-                        sectionTitle="AI SUMMARY"
-                        contextPrompt={`Act as my Marketing Coach. Analyze my engagement metrics: ${engagementRate}% rate and ${formatTime(overview?.avgSessionDuration)} duration. Provide a 1-sentence summary + 1-sentence strategic insight.`}
                     />
                 </div>
 
@@ -952,7 +940,7 @@ const Ga4Page = () => {
                         <div className="flex items-center justify-between mb-1">
                             <h3 className="text-sm font-black text-neutral-900 dark:text-white">Bounce Rate Over Time</h3>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my bounce trend: ${timeseries.slice(-7).map(d => `${d.date}: ${d.bounceRate}%`).join(', ')}. Provide a 1-sentence summary of stability and 1-sentence strategic insight to fix spikes.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my bounce trend: ${(data?.bounceRateOverTime || []).slice(-30).map(d => `${d.date}: ${d.bounceRate}%`).join(', ')}. Provide a 1-sentence summary of stability and 1-sentence strategic insight to fix spikes.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1003,8 +991,6 @@ const Ga4Page = () => {
                         <SectionAiSummary
                             insight={data?.intelligence.bounceRateOverTime}
                             loading={loading}
-                            sectionTitle="AI SUMMARY"
-                            contextPrompt={`Act as my Marketing Coach. Analyze the bounce trend: ${timeseries.slice(-7).map(d => `${d.date}: ${d.bounceRate}%`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic insight.`}
                         />
                     </div>
 
@@ -1013,7 +999,7 @@ const Ga4Page = () => {
                         <div className="flex items-center justify-between mb-1">
                             <h3 className="text-sm font-black text-neutral-900 dark:text-white">Page Views Over Time</h3>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my traffic patterns: ${timeseries.slice(-7).map(d => `${d.date}: ${formatNumber(d.pageViews)} views`).join(', ')}. Provide a 1-sentence summary of the pattern and 1-sentence strategic volume insight.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my traffic patterns: ${(data?.pageViewsOverTime || []).slice(-30).map(d => `${d.date}: ${formatNumber(d.pageViews)} views`).join(', ')}. Provide a 1-sentence summary of the pattern and 1-sentence strategic volume insight.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1059,8 +1045,6 @@ const Ga4Page = () => {
                         <SectionAiSummary
                             insight={data?.intelligence.pageViewsOverTime}
                             loading={loading}
-                            sectionTitle="AI SUMMARY"
-                            contextPrompt={`Act as my Marketing Coach. Analyze my page views trend: ${timeseries.slice(-7).map(d => `${d.date}: ${d.pageViews} views`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic insight.`}
                         />
                     </div>
                 </div>
@@ -1072,7 +1056,7 @@ const Ga4Page = () => {
                         <div className="p-5 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-dark-surface/50 flex items-center justify-between">
                             <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Top Traffic Sources </h3>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my top traffic sources: ${traffic.slice(0, 5).map(t => `${t.source}: ${t.sessions} sessions`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic channel insight.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my top traffic sources: ${(data?.topTrafficSources || []).slice(0, 5).map(t => `${t.source} (${t.channel}): ${formatNumber(t.sessions)} sessions, ${formatNumber(t.users)} users`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic channel insight.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1080,14 +1064,22 @@ const Ga4Page = () => {
                             </button>
                         </div>
                         <div className="p-0">
-                            <DataTable columns={trafficColumns} data={data?.topTrafficSources} loading={loading} initialLimit={5} />
+                            <DataTable
+                                columns={[
+                                    { header: 'Channel', accessor: 'channel' },
+                                    { header: 'Source', accessor: 'source' },
+                                    { header: 'Sessions', cell: (row) => row.sessions },
+                                    { header: 'Users', cell: (row) => row.users },
+                                ]}
+                                data={data?.topTrafficSources}
+                                loading={loading}
+                                initialLimit={5}
+                            />
                         </div>
                         <div className="p-5 pt-0">
                             <SectionAiSummary
                                 insight={data?.intelligence.topTrafficSources}
                                 loading={loading}
-                                sectionTitle="AI SUMMARY"
-                                contextPrompt={`Act as my Marketing Coach. Analyze top sources: ${traffic.slice(0, 5).map(t => `${t.source}: ${t.sessions} sessions`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic insight.`}
                             />
                         </div>
                     </div>
@@ -1096,7 +1088,7 @@ const Ga4Page = () => {
                         <div className="p-5 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-dark-surface/50 flex items-center justify-between">
                             <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Top Pages</h3>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my top pages: ${pages.slice(0, 5).map(p => `${p.path}: ${p.views} views`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic optimization insight.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my top pages: ${(data?.topPages || []).slice(0, 5).map(p => `"${p.title}" (${p.path}): ${formatNumber(p.views)} views, ${formatNumber(p.users)} users, ${p.bounceRate}% bounce rate`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic optimization insight.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1104,14 +1096,23 @@ const Ga4Page = () => {
                             </button>
                         </div>
                         <div className="p-0">
-                            <DataTable columns={pageColumns} data={data?.topPages} loading={loading} initialLimit={5} />
+                            <DataTable
+                                columns={[
+                                    { header: 'Page Title', cell: (row) => <div className="max-w-[200px] truncate" title={row.title}>{row.title}</div> },
+                                    { header: 'URL Path', cell: (row) => <div className="max-w-[200px] truncate text-brand-600 dark:text-brand-400" title={row.path}>{row.path}</div> },
+                                    { header: 'Page Views', cell: (row) => row.views },
+                                    { header: 'Users', cell: (row) => row.users },
+                                    { header: 'Bounce Rate', cell: (row) => row.bounceRate },
+                                ]}
+                                data={data?.topPages}
+                                loading={loading}
+                                initialLimit={5}
+                            />
                         </div>
                         <div className="p-5 pt-0">
                             <SectionAiSummary
                                 insight={data?.intelligence.topPages}
                                 loading={loading}
-                                sectionTitle="AI SUMMARY"
-                                contextPrompt={`Act as my Marketing Coach. Analyze top pages: ${pages.slice(0, 5).map(p => `${p.path}: ${p.views} views`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic insight.`}
                             />
                         </div>
                     </div>
@@ -1126,7 +1127,7 @@ const Ga4Page = () => {
                                 <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Sessions by device type</p>
                             </div>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze device breakdown: ${breakdowns.devices.map(d => `${d.name}: ${((d.value / overview.sessions) * 100).toFixed(0)}%`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic UX insight.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze device breakdown: Total Sessions ${formatNumber(data?.deviceBreakdown?.totalSessions)}, breakdown: ${(data?.deviceBreakdown?.devices || []).map(d => `${d.name}: ${formatNumber(d.value)} sessions (${d.percentage}%)`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic UX insight.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1198,8 +1199,6 @@ const Ga4Page = () => {
                             <SectionAiSummary
                                 insight={data?.intelligence.deviceBreakdown}
                                 loading={loading}
-                                sectionTitle="AI SUMMARY"
-                                contextPrompt={`Act as my Marketing Coach. Analyze device split: ${breakdowns.devices.map(d => `${d.name}: ${((d.value / overview.sessions) * 100).toFixed(0)}%`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic insight.`}
                             />
                         </div>
                     </div> {/* Device Breakdown card ends */}
@@ -1212,7 +1211,7 @@ const Ga4Page = () => {
                                 <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Top 5 countries by sessions</p>
                             </div>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze top 5 locations: ${breakdowns.locations.slice(0, 5).map(l => `${l.name}: ${((l.value / overview.sessions) * 100).toFixed(0)}%`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic geo growth insight.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze top 5 locations: ${(data?.topLocations || []).slice(0, 5).map(l => `${l.name}: ${formatNumber(l.value)} sessions (${l.percentage}%)`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic geo growth insight.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1249,8 +1248,6 @@ const Ga4Page = () => {
                             <SectionAiSummary
                                 insight={data?.intelligence.topLocations}
                                 loading={loading}
-                                sectionTitle="AI SUMMARY"
-                                contextPrompt={`Act as my Marketing Coach. Analyze top 5 locations: ${breakdowns.locations.slice(0, 5).map(l => `${l.name}: ${((l.value / overview.sessions) * 100).toFixed(0)}%`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic insight.`}
                             />
                         </div>
                     </div> {/* Geography Breakdown card ends */}
@@ -1265,7 +1262,14 @@ const Ga4Page = () => {
                         </div>
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my trajectory: Users (${calculateChange(overview?.users, priorOverview?.users)}%), Sessions (${calculateChange(overview?.sessions, priorOverview?.sessions)}%), Views (${calculateChange(overview?.pageViews, priorOverview?.pageViews)}%). Provide a 1-sentence trajectory summary + 1-sentence strategic future insight.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my period-over-period trajectory with this dataset:
+                                - Users: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.users)} vs Last Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.users)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.users}%)
+                                - Sessions: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.sessions)} vs Last Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.sessions)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.sessions}%)
+                                - Page Views: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.pageViews)} vs Last Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.pageViews)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.pageViews}%)
+                                - Bounce Rate: This Period ${data?.thisPeriodVsLastPeriod?.thisPeriod?.bounceRate}% vs Last Period ${data?.thisPeriodVsLastPeriod?.lastPeriod?.bounceRate}% (Change: ${data?.thisPeriodVsLastPeriod?.change?.bounceRate}%)
+                                - Avg Session Duration: This Period ${data?.thisPeriodVsLastPeriod?.thisPeriod?.avgSessionDuration} vs Last Period ${data?.thisPeriodVsLastPeriod?.lastPeriod?.avgSessionDuration} (Change: ${data?.thisPeriodVsLastPeriod?.change?.avgSessionDuration}%)
+                                - New Users: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.newUsers)} vs Last Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.newUsers)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.newUsers}%)
+                                Provide a 1-sentence trajectory summary + 1-sentence strategic future insight.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1309,16 +1313,16 @@ const Ga4Page = () => {
                                         }[key] || key;
 
                                         const metricConfig = {
-                                             users: { Icon: UsersIcon, colorClass: 'text-blue-500 dark:text-blue-400' },
-                                             sessions: { Icon: ArrowPathIcon, colorClass: 'text-purple-500 dark:text-purple-400' },
-                                             pageViews: { Icon: EyeIcon, colorClass: 'text-teal-500 dark:text-teal-400' },
-                                             bounceRate: { Icon: ArrowTrendingDownIcon, colorClass: 'text-amber-500 dark:text-amber-400' },
-                                             avgSessionDuration: { Icon: ClockIcon, colorClass: 'text-rose-500 dark:text-rose-400' },
-                                             newUsers: { Icon: UserPlusIcon, colorClass: 'text-sky-500 dark:text-sky-400' }
-                                         }[key] || { Icon: GlobeAltIcon, colorClass: 'text-neutral-400 dark:text-neutral-500' };
+                                            users: { Icon: UsersIcon, colorClass: 'text-blue-500 dark:text-blue-400' },
+                                            sessions: { Icon: ArrowPathIcon, colorClass: 'text-purple-500 dark:text-purple-400' },
+                                            pageViews: { Icon: EyeIcon, colorClass: 'text-teal-500 dark:text-teal-400' },
+                                            bounceRate: { Icon: ArrowTrendingDownIcon, colorClass: 'text-amber-500 dark:text-amber-400' },
+                                            avgSessionDuration: { Icon: ClockIcon, colorClass: 'text-rose-500 dark:text-rose-400' },
+                                            newUsers: { Icon: UserPlusIcon, colorClass: 'text-sky-500 dark:text-sky-400' }
+                                        }[key] || { Icon: GlobeAltIcon, colorClass: 'text-neutral-400 dark:text-neutral-500' };
 
-                                         const MetricIcon = metricConfig.Icon;
-                                         const iconColor = metricConfig.colorClass;
+                                        const MetricIcon = metricConfig.Icon;
+                                        const iconColor = metricConfig.colorClass;
 
                                         const formatVal = (val) => {
                                             if (typeof val === 'number') {
@@ -1331,11 +1335,11 @@ const Ga4Page = () => {
                                         return (
                                             <tr key={key} className="border-b border-neutral-50 dark:border-neutral-800/50 hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors">
                                                 <td className="py-3 text-xs font-bold text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
-                                                     <div className="flex items-center gap-2">
-                                                         <MetricIcon className={`w-3.5 h-3.5 ${iconColor} flex-shrink-0`} />
-                                                         <span>{metricLabel}</span>
-                                                     </div>
-                                                 </td>
+                                                    <div className="flex items-center gap-2">
+                                                        <MetricIcon className={`w-3.5 h-3.5 ${iconColor} flex-shrink-0`} />
+                                                        <span>{metricLabel}</span>
+                                                    </div>
+                                                </td>
                                                 <td className="py-3 text-xs font-black text-neutral-900 dark:text-white tabular-nums">
                                                     {formatVal(thisVal)}
                                                 </td>
@@ -1365,8 +1369,6 @@ const Ga4Page = () => {
                     <SectionAiSummary
                         insight={data?.intelligence.thisPeriodVsLastPeriod}
                         loading={loading}
-                        sectionTitle="AI SUMMARY"
-                        contextPrompt={`Act as my Marketing Coach. Analyze the period comparison: Users (${calculateChange(overview?.users, priorOverview?.users)}%), Sessions (${calculateChange(overview?.sessions, priorOverview?.sessions)}%), Views (${calculateChange(overview?.pageViews, priorOverview?.pageViews)}%). Provide a 1-sentence summary + 1-sentence strategic insight.`}
                     />
                 </div>
 
