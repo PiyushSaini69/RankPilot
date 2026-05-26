@@ -312,7 +312,13 @@ export const getDashboardSummary = async (req, res) => {
             }
         }
 
-        analyticsCache.set(cacheKey, result);
+        // Cache only when no historical sync is in progress (to avoid caching incomplete data)
+        const isDashHistoricalSyncing =
+            (acc.ga4PropertyId && !acc.ga4HistoricalComplete) ||
+            (acc.gscSiteUrl && !acc.gscHistoricalComplete) ||
+            (acc.googleAdsCustomerId && !acc.googleAdsHistoricalComplete) ||
+            (acc.facebookAdAccountId && !acc.facebookAdsHistoricalComplete);
+        if (!isDashHistoricalSyncing) analyticsCache.set(cacheKey, result);
 
         res.status(200).json(result);
     } catch (error) {
@@ -561,7 +567,8 @@ export const getGa4Summary = async (req, res) => {
             }
         }
 
-        analyticsCache.set(cacheKey, result);
+        // Cache only when GA4 historical sync is complete
+        if (ga4HistoricalComplete) analyticsCache.set(cacheKey, result);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -757,7 +764,8 @@ export const getGscSummary = async (req, res) => {
             }
         }
 
-        analyticsCache.set(cacheKey, result);
+        // Cache only when GSC historical sync is complete
+        if (syncMetadata.gscHistoricalComplete) analyticsCache.set(cacheKey, result);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -916,7 +924,8 @@ export const getGoogleAdsSummary = async (req, res) => {
             syncMetadata
         };
 
-        analyticsCache.set(cacheKey, result);
+        // Cache only when Google Ads historical sync is complete
+        if (syncMetadata.googleAdsHistoricalComplete) analyticsCache.set(cacheKey, result);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -1082,7 +1091,8 @@ export const getFacebookAdsSummary = async (req, res) => {
             syncMetadata
         };
 
-        analyticsCache.set(cacheKey, result);
+        // Cache only when Facebook Ads historical sync is complete
+        if (syncMetadata.facebookAdsHistoricalComplete) analyticsCache.set(cacheKey, result);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ message: error.message });
