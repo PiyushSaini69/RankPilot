@@ -133,7 +133,6 @@ import { formatDistanceToNow } from 'date-fns';
 
                 setData(payload);
 
-                console.log('GSC timeseries:', payload);
             } catch (err) {
                 console.error("GSC fetch err", err);
             } finally {
@@ -176,7 +175,6 @@ import { formatDistanceToNow } from 'date-fns';
         const handleManualRefresh = async () => {
             if (!activeSiteId) return;
             setLoading(true);
-            // 1. Set status to syncing in store
             setAccounts({ 
                 syncStatus: 'syncing',
                 gsc: {
@@ -242,6 +240,40 @@ import { formatDistanceToNow } from 'date-fns';
             }
         }, [gsc?.gscSyncStatus, activeSiteId, loadData]);
 
+        // Background polling for GSC sync status
+        useEffect(() => {
+            let interval;
+            if (activeSiteId && gsc?.gscSyncStatus === 'syncing') {
+                interval = setInterval(async () => {
+                    try {
+                        const res = await getActiveAccounts(activeSiteId);
+                        const data = res.data || {};
+                        setAccounts({
+                            syncStatus: data.syncStatus || 'idle',
+                            gsc: {
+                                gscHistoricalComplete: data.gscHistoricalComplete || false,
+                                gscLastSyncedAt: data.gscLastSyncedAt || null,
+                                gscSyncStatus: data.gscSyncStatus || 'idle',
+                                gscSyncProgress: data.gscSyncProgress || 0,
+                                gscHistoricalChunkIndex: data.gscHistoricalChunkIndex || 0,
+                                gscTokenEmail: data.gscTokenId?.email || null
+                            }
+                        });
+                    } catch (e) {
+                        console.error("Polling GSC sync status error", e);
+                    }
+                }, 3000);
+            }
+            return () => clearInterval(interval);
+        }, [activeSiteId, gsc?.gscSyncStatus, setAccounts]);
+
+        // Sync chal raha hai to shimmer dikhao
+        const isSyncing = gsc?.gscHistoricalComplete === false;
+        const syncedDays = gsc?.gscHistoricalChunkIndex || 0;
+        const syncProgress = gsc?.gscSyncProgress || 0;
+        const totalSyncDays = syncProgress > 0
+            ? Math.min(90, Math.round(syncedDays / (syncProgress / 100) / 10) * 10)
+            : 90;
 
         const isConnected = !!ga4?.ga4PropertyId || !!activeGscSite;
         const hasSite = !!activeGscSite;
@@ -318,6 +350,62 @@ import { formatDistanceToNow } from 'date-fns';
         return (
             <DashboardLayout>
                 <div id="gsc-report" className="flex flex-col space-y-4 md:space-y-8 p-0 md:p-2">
+                    {isSyncing && (
+                        <div className="relative overflow-hidden w-full bg-white dark:bg-[#0d0d0d] border border-amber-500/30 dark:border-amber-500/20 rounded-[2rem] p-6 shadow-xl shadow-amber-500/5 animate-in fade-in slide-in-from-top-4 duration-1000 group">
+                            {/* Decorative background glows */}
+                            <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/5 rounded-full blur-[100px] pointer-events-none transition-transform duration-1000 group-hover:scale-110"></div>
+                            <div className="absolute bottom-0 left-0 w-80 h-80 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none transition-transform duration-1000 group-hover:scale-110"></div>
+
+                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div className="flex items-center gap-5">
+                                    {/* Dynamic animated sync icon */}
+                                    <div className="relative shrink-0 w-14 h-14 bg-amber-500/10 rounded-[1.25rem] border border-amber-500/20 flex items-center justify-center overflow-hidden">
+                                        <ArrowPathIcon className={`w-7 h-7 text-amber-500 ${gsc?.gscSyncStatus === 'syncing' ? 'animate-spin' : 'animate-pulse'}`} />
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/0 via-amber-500/5 to-amber-500/0 opacity-0 group-hover:opacity-100 duration-700 transition-opacity"></div>
+                                    </div>
+
+                                    <div className="space-y-1.5 text-left">
+                                        <div className="flex items-center gap-3">
+                                            <h3 className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-[0.15em]">
+                                                Syncing Historical Data
+                                            </h3>
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 animate-pulse">
+                                                {gsc?.gscSyncStatus === 'syncing' ? 'Importing Data' : 'In Queue'}
+                                            </span>
+                                        </div>
+                                        <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-2xl italic">
+                                            We are importing your historical Google Search Console data. Your dashboard metrics, search trends, and AI insights will automatically populate and update as the sync progresses.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Premium progress interface */}
+                                <div className="w-full md:w-72 space-y-2">
+                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                                        <span>Sync Progress</span>
+                                        <span className="tabular-nums font-black text-amber-500">
+                                            {syncProgress ? `${syncProgress}%` : 'Starting...'}
+                                        </span>
+                                    </div>
+                                    <div className="relative h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden border border-neutral-200/20">
+                                        <div 
+                                            className="h-full bg-gradient-to-r from-amber-500 to-brand-500 rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(245,158,11,0.5)]" 
+                                            style={{ width: `${syncProgress || 5}%` }}
+                                        ></div>
+                                    </div>
+                                    <div className="flex justify-between items-center text-[9px] font-bold text-neutral-400">
+                                        <span>
+                                            Days Synced: <span className="text-amber-500 font-black tabular-nums">{syncedDays}</span> / {totalSyncDays} Days
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+                                            Live Sync Active
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     {/* Compact Professional Header */}
                     <div className={`bg-white dark:bg-[#0d0d0d] px-4 md:px-6 py-4 rounded-[1.5rem] border border-neutral-100 dark:border-neutral-800 shadow-sm relative transition-all duration-300 ${isDateMenuOpen ? 'z-50' : 'z-10'}`}>
                         <div className="relative z-10 flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-10">
@@ -345,9 +433,11 @@ import { formatDistanceToNow } from 'date-fns';
                                         </div>
                                         <div className="flex flex-wrap items-center gap-3">
                                             <div className="flex items-center gap-1.5 text-[9px] text-neutral-400 font-bold uppercase tracking-widest whitespace-nowrap hide-in-pdf">
-                                                Synced: <span className="text-neutral-700 dark:text-neutral-300 tabular-nums font-black">{gsc?.gscLastSyncedAt ? formatDistanceToNow(new Date(gsc.gscLastSyncedAt), { addSuffix: true }) : 'Never'}</span>
+                                                Synced: <span className={`tabular-nums font-black ${isSyncing ? 'text-amber-500' : 'text-neutral-700 dark:text-neutral-300'}`}>
+                                                    {isSyncing ? 'Syncing...' : gsc?.gscLastSyncedAt ? formatDistanceToNow(new Date(gsc.gscLastSyncedAt), { addSuffix: true }) : 'Never'}
+                                                </span>
                                                 <button onClick={handleManualRefresh} className="hover:text-brand-500 transition-all active:rotate-180 ml-1">
-                                                    <ArrowPathIcon className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+                                                    <ArrowPathIcon className={`w-3 h-3 ${(loading || isSyncing) ? 'animate-spin' : ''}`} />
                                                 </button>
                                             </div>
                                             <div className="h-4 w-px bg-neutral-200 dark:bg-neutral-800 hidden sm:block hide-in-pdf"></div>
@@ -457,7 +547,42 @@ import { formatDistanceToNow } from 'date-fns';
                             {/* 4. Action Buttons */}
                             <div className="flex flex-col sm:flex-row gap-2 shrink-0 w-full sm:w-auto">
                                 <button
-                                    onClick={() => openWithQuestion(`Analyze my GSC performance for ${startDate} to ${endDate}. Clicks: ${formatNumber(data?.searchClicks?.value || 0)}, Impressions: ${formatNumber(data?.impressions?.value || 0)}`)}
+                                    onClick={() => {
+                                        const fullPrompt = `Act as my elite Organic Search Coach and SEO Growth Strategist. I want you to perform a deep-dive, professional technical SEO audit of my Google Search Console (GSC) dashboard for the period ${startDate} to ${endDate}.
+ 
+                                            Here is the COMPLETE raw analytical SEO dataset of my site's Search Console integration:
+ 
+                                            📊 [CORE PERFORMANCE METRICS]
+                                            - Search Clicks: ${formatNumber(data?.searchClicks?.value)} (${data?.searchClicks?.change}% vs prior period)
+                                            - Search Impressions: ${formatNumber(data?.impressions?.value)} (${data?.impressions?.change}% vs prior period)
+                                            - Average CTR: ${(data?.avgCTR?.value || 0).toFixed(2)}% (${data?.avgCTR?.change}% vs prior period)
+                                            - Average Ranking Position: #${(data?.avgPosition?.value || 0).toFixed(1)} (${data?.avgPosition?.change}% vs prior period)
+ 
+                                            📈 [SUMMARY METRICS]
+                                            - Total Indexed/Ranking Queries: ${formatNumber(data?.totalQueries)}
+                                            - Total Landing Pages: ${formatNumber(data?.totalPages)}
+                                            - Best ranking position reached: #${data?.topPosition?.toFixed(1) || '0.0'}
+ 
+                                            📣 [TOP TRAFFIC SEARCH QUERIES]
+                                            ${(data?.topQueries || []).slice(0, 30).map((q, idx) => `${idx + 1}. Query: "${q.query}" | Clicks: ${formatNumber(q.clicks)} | Impressions: ${formatNumber(q.impressions)} | CTR: ${q.ctr.toFixed(2)}% | Pos: #${q.position?.toFixed(1)}`).join('\n')}
+ 
+                                            📝 [TOP ORGANIC LANDING PAGES]
+                                            ${(data?.topLandingPages || []).slice(0, 30).map((p, idx) => `${idx + 1}. Page: ${p.page} | Clicks: ${formatNumber(p.clicks)} | Impressions: ${formatNumber(p.impressions)} | CTR: ${p.ctr.toFixed(2)}% | Pos: #${p.position?.toFixed(1)}`).join('\n')}
+ 
+                                            💡 [LOW CTR KEYWORD OPPORTUNITIES]
+                                            ${(data?.lowCTRKeywords || []).slice(0, 30).map((q, idx) => `${idx + 1}. Query: "${q.query}" | Clicks: ${formatNumber(q.clicks)} | Impressions: ${formatNumber(q.impressions)} | CTR: ${q.ctr.toFixed(1)}% | Pos: #${q.position?.toFixed(1)}`).join('\n')}
+ 
+                                            🚀 [KEYWORDS NEAR PAGE 1 (RANKING #8 - #20)]
+                                            ${(data?.keywordsNearPage1 || []).slice(0, 30).map((q, idx) => `${idx + 1}. Query: "${q.query}" | Clicks: ${formatNumber(q.clicks)} | Impressions: ${formatNumber(q.impressions)} | CTR: ${q.ctr.toFixed(1)}% | Pos: #${q.position?.toFixed(1)}`).join('\n')}
+ 
+                                            ---
+ 
+                                            Based on this complete Search Console dataset, please deliver:
+                                            1. A **Comprehensive SEO Executive Audit** summarizing the organic trajectory, CTR health, and ranking shifts.
+                                            2. A **Query-to-Landing-Page Correlation Audit** identifying low-hanging opportunities where keywords rank well but pages underperform or miss metadata CTR potential.
+                                            3. A **3-Part Actionable On-Page & Off-Page Ranking Blueprint** to push Near Page 1 terms into the Top 5 results and optimize meta titles/descriptions to fix Low CTR issues.`;
+                                        openWithQuestion(fullPrompt);
+                                    }}
                                     className="h-9 md:h-8 px-4 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm w-full sm:w-auto"
                                 >
                                     <SparklesIcon className="w-3.5 h-3.5" />
@@ -486,49 +611,89 @@ import { formatDistanceToNow } from 'date-fns';
                         <KpiCard
                             title="Search Clicks"
                             value={formatNumber(data?.searchClicks?.value || 0)}
-                            loading={loading}
+                            loading={loading || isSyncing}
                             Icon={CursorArrowRaysIcon}
                             change={data?.searchClicks?.change || 0}
                             isPositive={data?.searchClicks?.isPositive}
                             changeText="vs last period"
-                            chartData={(data?.searchClicks?.timeseries || []).map(d => d.clicks).slice(-10)}
+                            chartData={(data?.searchClicks?.timeseries || []).map(d => d.clicks).slice(-30)}
                             insight={data?.intelligence?.searchClicks}
+                            onClick={() => {
+                                const clicksTrendStr = (data?.searchClicks?.timeseries || []).map(d => d.clicks).join(', ');
+                                openWithQuestion(`Act as my elite SEO Growth Strategist. Let's perform a detailed, professional analysis of my organic search clicks.
+Here is the complete dataset for this section:
+- Total Clicks this period: ${formatNumber(data?.searchClicks?.value || 0)}
+- Click shift: ${data?.searchClicks?.change || 0}% vs last period
+- Daily Click Trend values: [${clicksTrendStr}]
+
+Based on this click trend, what is your expert analysis and what strategies should we deploy to accelerate click growth?`);
+                            }}
                             contextPrompt={`Analyze my Google Search Console clicks. Current clicks: ${formatNumber(data?.searchClicks?.value || 0)} vs Prior: ${formatNumber(data?.periodComparison?.lastPeriod?.clicks || 0)}. Growth: ${data?.searchClicks?.change || 0}%. What strategies can I use to further accelerate this click growth?`}
                         />
                         <KpiCard
                             title="Impressions"
                             value={formatNumber(data?.impressions?.value || 0)}
-                            loading={loading}
+                            loading={loading || isSyncing}
                             Icon={EyeIcon}
                             change={data?.impressions?.change || 0}
                             isPositive={data?.impressions?.isPositive}
                             changeText="vs last period"
-                            chartData={(data?.impressions?.timeseries || []).map(d => d.impressions).slice(-10)}
+                            chartData={(data?.impressions?.timeseries || []).map(d => d.impressions).slice(-30)}
                             insight={data?.intelligence?.impressions}
+                            onClick={() => {
+                                const impressionsTrendStr = (data?.impressions?.timeseries || []).map(d => d.impressions).join(', ');
+                                openWithQuestion(`Act as my elite SEO Growth Strategist. Let's perform a detailed, professional analysis of my organic search visibility (Impressions).
+Here is the complete dataset for this section:
+- Total Impressions this period: ${formatNumber(data?.impressions?.value || 0)}
+- Impression shift: ${data?.impressions?.change || 0}% vs last period
+- Daily Impression Trend values: [${impressionsTrendStr}]
+
+Based on this visibility trend, what is your expert analysis and what strategies can we deploy to expand our search volume in SERPs?`);
+                            }}
                             contextPrompt={`Analyze my GSC search visibility. Current Impressions: ${formatNumber(data?.impressions?.value || 0)} vs Prior: ${formatNumber(data?.periodComparison?.lastPeriod?.impressions || 0)}. Change: ${data?.impressions?.change || 0}%. Am I appearing for the right kind of search queries?`}
                         />
                         <KpiCard
                             title="Avg. CTR"
                             value={`${(data?.avgCTR?.value || 0).toFixed(2)}%`}
-                            loading={loading}
+                            loading={loading || isSyncing}
                             Icon={ArrowTrendingUpIcon}
                             change={data?.avgCTR?.change || 0}
                             isPositive={data?.avgCTR?.isPositive}
                             changeText="vs last period"
-                            chartData={(data?.avgCTR?.timeseries || []).map(d => d.ctr).slice(-10)}
+                            chartData={(data?.avgCTR?.timeseries || []).map(d => d.ctr).slice(-30)}
                             insight={data?.intelligence?.avgCtr}
+                            onClick={() => {
+                                const ctrTrendStr = (data?.avgCTR?.timeseries || []).map(d => `${d.ctr}%`).join(', ');
+                                openWithQuestion(`Act as my elite SEO Growth Strategist. Let's perform a detailed, professional analysis of my average organic Click-Through Rate (CTR).
+Here is the complete dataset for this section:
+- Average CTR this period: ${(data?.avgCTR?.value || 0).toFixed(2)}%
+- CTR shift: ${data?.avgCTR?.change || 0}% vs last period
+- Daily CTR Trend values: [${ctrTrendStr}]
+
+Based on this CTR trend, how can we optimize our snippets to maximize click-through rates?`);
+                            }}
                             contextPrompt={`Analyze my Click-Through Rate (CTR). Current CTR: ${(data?.avgCTR?.value || 0).toFixed(2)}% vs Prior: ${(data?.periodComparison?.lastPeriod?.ctr || 0).toFixed(2)}%. Change: ${data?.avgCTR?.change || 0}%. How can I make my search snippets more attractive to users in the search results?`}
                         />
                         <KpiCard
                             title="Avg. Position"
                             value={(data?.avgPosition?.value || 0).toFixed(1)}
-                            loading={loading}
+                            loading={loading || isSyncing}
                             Icon={HashtagIcon}
                             change={data?.avgPosition?.change || 0}
                             isPositive={data?.avgPosition?.isPositive}
                             changeText="vs last period"
-                            chartData={(data?.avgPosition?.timeseries || []).map(d => d.position).slice(-10)}
+                            chartData={(data?.avgPosition?.timeseries || []).map(d => d.position).slice(-30)}
                             insight={data?.intelligence?.avgPosition}
+                            onClick={() => {
+                                const positionTrendStr = (data?.avgPosition?.timeseries || []).map(d => `#${d.position}`).join('\n');
+                                openWithQuestion(`Act as my elite SEO Ranking Coach. Let's perform a detailed, professional analysis of my Average Ranking Position.
+Here is the complete dataset for this section:
+- Average Position this period: #${(data?.avgPosition?.value || 0).toFixed(1)}
+- Position shift: ${data?.avgPosition?.change || 0}% vs last period
+- Daily Position Trend values: [${positionTrendStr}]
+
+Based on this ranking trajectory, what is your expert analysis and how can we push our average position closer to page 1?`);
+                            }}
                             contextPrompt={`Analyze my average search position. Current: #${(data?.avgPosition?.value || 0).toFixed(1)} vs Prior: #${(data?.periodComparison?.lastPeriod?.position || 0).toFixed(1)}. Change: ${data?.avgPosition?.change || 0}%. What is the best way to move my overall rankings closer to position #1?`}
                         />
                     </div>
@@ -547,12 +712,12 @@ import { formatDistanceToNow } from 'date-fns';
                                     </div>
                                     <div>
                                         <div className="text-xl font-black text-neutral-900 dark:text-white tabular-nums">
-                                            {loading ? <div className="h-6 w-20 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /> : card.value}
+                                            {(loading || isSyncing) ? <div className="h-6 w-20 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /> : card.value}
                                         </div>
                                         <div className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">{card.label}</div>
                                     </div>
                                 </div>
-                                {card.insight && !loading && (
+                                {card.insight && !(loading || isSyncing) && (
                                     <p className="text-[9px] font-bold text-neutral-400 dark:text-neutral-500 leading-relaxed italic border-t border-neutral-50 dark:border-neutral-800 pt-2 mt-auto">
                                         "{card.insight}"
                                     </p>
@@ -570,7 +735,20 @@ import { formatDistanceToNow } from 'date-fns';
                             </div>
                             <div className="p-2 bg-blue-500/10 rounded-2xl border border-blue-500/20 flex items-center gap-2">
                                 <button
-                                    onClick={() => openWithQuestion(`Analyze my GSC search performance overview. Current Period: ${data?.searchClicks?.value || 0} clicks, ${data?.impressions?.value || 0} impressions. Prior Period: ${data?.periodComparison?.lastPeriod?.clicks || 0} clicks, ${data?.periodComparison?.lastPeriod?.impressions || 0} impressions. 7-day trend data: ${JSON.stringify((data?.searchPerformanceOverview || []).slice(-7).map(d => ({date: d.date, clicks: d.clicks, impressions: d.impressions})))}. What significant patterns or anomalies do you see?`)}
+                                    onClick={() => {
+                                        const dailyDataStr = (data?.searchPerformanceOverview || []).map(d => `- Date: ${d.date} | Clicks: ${d.clicks} | Impressions: ${d.impressions}`).join('\n');
+                                        openWithQuestion(`Act as my elite SEO Growth Strategist and Analytics Expert. Please perform a detailed analysis of my Search Performance Overview.
+Here is the complete daily dataset for the selected period (${startDate} to ${endDate}) used in this chart:
+- Current Period Clicks: ${formatNumber(data?.searchClicks?.value || 0)} (${data?.searchClicks?.change || 0}% change vs prior)
+- Current Period Impressions: ${formatNumber(data?.impressions?.value || 0)} (${data?.impressions?.change || 0}% change vs prior)
+- Prior Period Clicks: ${formatNumber(data?.periodComparison?.lastPeriod?.clicks || 0)}
+- Prior Period Impressions: ${formatNumber(data?.periodComparison?.lastPeriod?.impressions || 0)}
+
+Daily Click & Impression Trend:
+${dailyDataStr}
+
+What significant trends, organic visibility spikes, seasonal patterns, or performance anomalies do you identify? Provide detailed actionable insights based on this data.`);
+                                    }}
                                     className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                 >
                                     <SparklesIcon className="w-3.5 h-3.5" />
@@ -583,7 +761,7 @@ import { formatDistanceToNow } from 'date-fns';
                         </div>
                         
                         <div className="flex-1 p-6 min-h-[280px]">
-                            {loading ? (
+                            {(loading || isSyncing) ? (
                                 <div className="w-full h-full animate-pulse bg-gradient-to-r from-neutral-100 to-neutral-50 dark:from-neutral-800 dark:to-neutral-800/50 rounded-xl"></div>
                             ) : (data?.searchPerformanceOverview || []).length === 0 ? (
                                 <EmptyState />
@@ -665,7 +843,7 @@ import { formatDistanceToNow } from 'date-fns';
                         <div className="px-8 pb-8">
                             <SectionAiSummary 
                                 insight={data?.intelligence?.searchPerformanceOverview} 
-                                loading={loading} 
+                                loading={loading || isSyncing} 
                                 sectionTitle="AI PERFORMANCE INSIGHT"
                             />
                         </div>
@@ -679,7 +857,18 @@ import { formatDistanceToNow } from 'date-fns';
                                 <h3 className="text-sm font-black text-neutral-900 dark:text-white">Click-Through Rate Trend</h3>
                                 <div className="flex items-center gap-2">
                                     <button 
-                                        onClick={() => openWithQuestion(`Analyze my GSC Click-Through Rate (CTR) trend. Current Avg CTR: ${(data?.avgCTR?.value || 0).toFixed(2)}%. Recent 7-day data: ${JSON.stringify((data?.clickThroughRateTrend || []).slice(-7).map(d => ({date: d.date, ctr: d.ctr + '%'})))}. Is the quality and engagement of my organic search traffic improving?`)}
+                                        onClick={() => {
+                                            const dailyCtrStr = (data?.clickThroughRateTrend || []).map(d => `- Date: ${d.date} | CTR: ${d.ctr}%`).join('\n');
+                                            openWithQuestion(`Act as my elite SEO Growth Strategist. Analyze my GSC Click-Through Rate (CTR) Trend.
+Here is the complete daily CTR dataset for the selected period (${startDate} to ${endDate}) used in this chart:
+- Current Average CTR: ${(data?.avgCTR?.value || 0).toFixed(2)}% (${data?.avgCTR?.change || 0}% change vs prior)
+- Prior Average CTR: ${(data?.periodComparison?.lastPeriod?.ctr || 0).toFixed(2)}%
+
+Daily CTR Trend:
+${dailyCtrStr}
+
+Please evaluate our click engagement profile. Is the clickability of our search snippets improving or declining over this range? What are the key takeaways, and how can we optimize our snippets to maximize search CTR?`);
+                                        }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
                                         <SparklesIcon className="w-3.5 h-3.5" />
@@ -688,7 +877,7 @@ import { formatDistanceToNow } from 'date-fns';
                                 </div>
                             </div>
                             <p className="text-xs text-neutral-400 mb-4">Daily CTR for selected period</p>
-                            {loading ? (
+                            {(loading || isSyncing) ? (
                                 <div className="h-48 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse"/>
                             ) : (data?.clickThroughRateTrend || []).length === 0 ? (
                                 <EmptyState />
@@ -730,7 +919,7 @@ import { formatDistanceToNow } from 'date-fns';
                                 </ResponsiveContainer>
                             )}
                             <div className="mt-4">
-                                <SectionAiSummary insight={data?.intelligence?.clickThroughRateTrend} loading={loading} sectionTitle="AI CTR INSIGHT" />
+                                <SectionAiSummary insight={data?.intelligence?.clickThroughRateTrend} loading={loading || isSyncing} sectionTitle="AI CTR INSIGHT" />
                             </div>
                         </div>
 
@@ -740,7 +929,18 @@ import { formatDistanceToNow } from 'date-fns';
                                 <h3 className="text-sm font-black text-neutral-900 dark:text-white">Average Ranking Position</h3>
                                 <div className="flex items-center gap-2">
                                     <button 
-                                        onClick={() => openWithQuestion(`Analyze my GSC average ranking position trend. Current Avg Position: #${(data?.avgPosition?.value || 0).toFixed(1)}. Recent 7-day trend: ${JSON.stringify((data?.averageRankingPosition || []).slice(-7).map(d => ({date: d.date, pos: d.position})))}. Based on this trajectory, are my SEO rankings climbing or slipping?`)}
+                                        onClick={() => {
+                                            const dailyPosStr = (data?.averageRankingPosition || []).map(d => `- Date: ${d.date} | Avg Position: #${d.position}`).join('\n');
+                                            openWithQuestion(`Act as my elite SEO Ranking Coach. Analyze my Average Ranking Position trend.
+Here is the complete daily average position dataset for the selected period (${startDate} to ${endDate}) used in this chart:
+- Current Average Position: #${(data?.avgPosition?.value || 0).toFixed(1)} (${data?.avgPosition?.change || 0}% change vs prior)
+- Prior Average Position: #${(data?.periodComparison?.lastPeriod?.position || 0).toFixed(1)}
+
+Daily Position Trend:
+${dailyPosStr}
+
+Based on this keyword ranking trajectory, are our search positions climbing, stabilizing, or slipping over time? What is the best SEO playbook to optimize our content structure to lift our overall positions in Google's index?`);
+                                        }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
                                         <SparklesIcon className="w-3.5 h-3.5" />
@@ -750,7 +950,7 @@ import { formatDistanceToNow } from 'date-fns';
                                 </div>
                             </div>
                             <p className="text-xs text-neutral-400 mb-4">Daily position for selected period</p>
-                            {loading ? (
+                            {(loading || isSyncing) ? (
                                 <div className="h-48 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse"/>
                             ) : (data?.averageRankingPosition || []).length === 0 ? (
                                 <EmptyState />
@@ -786,7 +986,7 @@ import { formatDistanceToNow } from 'date-fns';
                                 </ResponsiveContainer>
                             )}
                             <div className="mt-4">
-                                <SectionAiSummary insight={data?.intelligence?.averageRankingPosition} loading={loading} sectionTitle="AI POSITION INSIGHT" />
+                                <SectionAiSummary insight={data?.intelligence?.averageRankingPosition} loading={loading || isSyncing} sectionTitle="AI POSITION INSIGHT" />
                             </div>
                         </div>
                     </div>
@@ -799,7 +999,18 @@ import { formatDistanceToNow } from 'date-fns';
                                 <h3 className="text-sm font-black text-neutral-900 dark:text-white">💡 Low CTR Keywords</h3>
                                 <div className="flex items-center gap-2">
                                     <button 
-                                        onClick={() => openWithQuestion(`Analyze my Low CTR Keywords (High Impressions, Low Clicks). I have ${(data?.lowCTRKeywords || []).length} such keywords. Top 3 examples: ${(data?.lowCTRKeywords || []).slice(0,3).map(q => `"${q.query}" (${q.impressions} impr, ${q.ctr.toFixed(1)}% CTR)`).join(', ')}. What specific meta-tag or content changes would boost the CTR for these terms?`)}
+                                        onClick={() => {
+                                            const allLowCtrStr = (data?.lowCTRKeywords || []).map((q, idx) => `${idx + 1}. Keyword: "${q.query}" | Impressions: ${formatNumber(q.impressions)} | Clicks: ${formatNumber(q.clicks)} | CTR: ${q.ctr.toFixed(1)}% | Avg Position: #${q.position?.toFixed(1)}`).join('\n');
+                                            openWithQuestion(`Act as my elite SEO Growth Strategist. I want you to perform a thorough content and metadata optimization audit of my Low CTR Keywords (keywords with high search visibility/impressions but sub-optimal clicks).
+    
+Here is the COMPLETE dataset of Low CTR keyword opportunities from this section:
+${allLowCtrStr}
+
+Based on this complete list, please analyze:
+1. Which keywords are our highest priority based on impression volume?
+2. What are the likely causes for their low Click-Through Rates (e.g. alignment with search intent, unappealing meta titles/descriptions, ranking in position clusters where rich snippets are dominant)?
+3. A step-by-step metadata optimization blueprint and search intent audit plan to capture our missed click opportunities.`);
+                                        }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
                                         <SparklesIcon className="w-3.5 h-3.5" />
@@ -808,7 +1019,7 @@ import { formatDistanceToNow } from 'date-fns';
                                 </div>
                             </div>
                             <p className="text-xs text-neutral-400 mb-4">These keywords get views but few clicks — fix your title & description</p>
-                            {loading ? (
+                            {(loading || isSyncing) ? (
                                 <div className="space-y-3">{[...Array(4)].map((_,i)=><div key={i} className="h-10 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse"/>)}</div>
                             ) : (data?.lowCTRKeywords || []).length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-10 text-neutral-400">
@@ -817,7 +1028,7 @@ import { formatDistanceToNow } from 'date-fns';
                                 </div>
                             ) : (
                                 <div className="space-y-3">
-                                    {(data?.lowCTRKeywords || []).slice(0, 5).map((q,i) => (
+                                    {(data?.lowCTRKeywords || []).slice(0, 30).map((q,i) => (
                                         <div key={i} className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-800/30">
                                             <div className="flex-1 min-w-0">
                                                 <div className="text-xs font-bold text-neutral-800 dark:text-white truncate">{q.query}</div>
@@ -832,7 +1043,7 @@ import { formatDistanceToNow } from 'date-fns';
                                 </div>
                             )}
                             <div className="mt-auto pt-4">
-                                <SectionAiSummary insight={data?.intelligence?.lowCTRKeywords} loading={loading} sectionTitle="AI OPPORTUNITY INSIGHT" />
+                                <SectionAiSummary insight={data?.intelligence?.lowCTRKeywords} loading={loading || isSyncing} sectionTitle="AI OPPORTUNITY INSIGHT" />
                             </div>
                         </div>
 
@@ -842,7 +1053,17 @@ import { formatDistanceToNow } from 'date-fns';
                                 <h3 className="text-sm font-black text-neutral-900 dark:text-white">🚀 Keywords Near Page 1</h3>
                                 <div className="flex items-center gap-2">
                                     <button 
-                                        onClick={() => openWithQuestion(`Analyze my GSC keywords that are "Near Page 1" (ranking 8-20). I have ${(data?.keywordsNearPage1 || []).length} keywords in this range. Top examples: ${(data?.keywordsNearPage1 || []).slice(0,3).map(q => `"${q.query}" at rank #${q.position?.toFixed(1)}`).join(', ')}. What SEO tactics (on-page or off-page) will push these keywords into the top 10 search results?`)}
+                                        onClick={() => {
+                                            const allNearStr = (data?.keywordsNearPage1 || []).map((q, idx) => `${idx + 1}. Keyword: "${q.query}" | Avg Position: #${q.position?.toFixed(1)} | Impressions: ${formatNumber(q.impressions)} | Clicks: ${formatNumber(q.clicks)} | CTR: ${q.ctr.toFixed(1)}%`).join('\n');
+                                            openWithQuestion(`Act as my expert SEO Coach and ranking strategist. I have a list of high-opportunity keywords ranking "Near Page 1" (positions #8 to #20) where targeted efforts could yield rapid, first-page organic growth.
+
+Here is the COMPLETE dataset of keywords near Page 1 from this section:
+${allNearStr}
+
+Please deliver a customized ranking roadmap for these keywords:
+1. Which terms have the highest impressions and should be prioritized first?
+2. What step-by-step semantic content expansion, internal link optimization, and topical authority building strategies should we execute to push these terms out of the #8-#20 doldrums and directly onto Page 1?`);
+                                        }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
                                         <SparklesIcon className="w-3.5 h-3.5" />
@@ -851,7 +1072,7 @@ import { formatDistanceToNow } from 'date-fns';
                                 </div>
                             </div>
                             <p className="text-xs text-neutral-400 mb-4">Keywords close to page 1 — a little SEO effort can push them up</p>
-                            {loading ? (
+                            {(loading || isSyncing) ? (
                                 <div className="space-y-3">{[...Array(4)].map((_,i)=><div key={i} className="h-10 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse"/>)}</div>
                             ) : (data?.keywordsNearPage1 || []).length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-10 text-neutral-400">
@@ -860,7 +1081,7 @@ import { formatDistanceToNow } from 'date-fns';
                                 </div>
                             ) : (
                                 <div className="space-y-3">
-                                    {(data?.keywordsNearPage1 || []).slice(0, 5).map((q,i) => (
+                                    {(data?.keywordsNearPage1 || []).slice(0, 30).map((q,i) => (
                                         <div key={i} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-100 dark:border-green-800/30">
                                             <div className="flex-1 min-w-0">
                                                 <div className="text-xs font-bold text-neutral-800 dark:text-white truncate">{q.query}</div>
@@ -868,14 +1089,14 @@ import { formatDistanceToNow } from 'date-fns';
                                             </div>
                                             <div className="text-right ml-3">
                                                 <div className="text-xs font-black text-green-600 dark:text-green-400">Pos #{q.position?.toFixed(1)}</div>
-                                                <div className="text-[11px] text-neutral-400">{(q.ctr * 100).toFixed(1)}% CTR</div>
+                                                <div className="text-[11px] text-neutral-400">{q.ctr.toFixed(1)}% CTR</div>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             )}
                             <div className="mt-auto pt-4">
-                                <SectionAiSummary insight={data?.intelligence?.keywordsNearPage1} loading={loading} sectionTitle="AI RANKING INSIGHT" />
+                                <SectionAiSummary insight={data?.intelligence?.keywordsNearPage1} loading={loading || isSyncing} sectionTitle="AI RANKING INSIGHT" />
                             </div>
                         </div>
                     </div>
@@ -890,7 +1111,18 @@ import { formatDistanceToNow } from 'date-fns';
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button 
-                                        onClick={() => openWithQuestion(`Analyze my top search queries driving organic traffic. My top 5 queries by clicks are: ${(data?.topQueries || []).slice(0,5).map(q => `"${q.query}" (${q.clicks} clicks, rank #${q.position?.toFixed(1)})`).join(', ')}. How can I maintain these rankings while expanding into related long-tail keywords?`)}
+                                        onClick={() => {
+                                            const allQueriesStr = (data?.topQueries || []).map((q, idx) => `${idx + 1}. Query: "${q.query}" | Clicks: ${formatNumber(q.clicks)} | Impressions: ${formatNumber(q.impressions)} | CTR: ${q.ctr.toFixed(2)}% | Position: #${q.position?.toFixed(1)}`).join('\n');
+                                            openWithQuestion(`Act as my elite SEO Strategist. I want you to perform a thorough analysis of my top-performing search queries driving organic traffic.
+
+Here is the COMPLETE dataset of my top organic search queries from this section:
+${allQueriesStr}
+
+Please provide:
+1. A tactical evaluation of our keyword performance profile.
+2. Recommendations on how to defend and secure these high-ranking terms against competitors.
+3. A semantic clustering plan to target high-value related long-tail queries and capture additional organic search volumes.`);
+                                        }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
                                         <SparklesIcon className="w-3.5 h-3.5" />
@@ -907,11 +1139,11 @@ import { formatDistanceToNow } from 'date-fns';
                                         { header: 'Position', cell: (row) => row.position.toFixed(1) },
                                     ]} 
                                     data={data?.topQueries || []} 
-                                    loading={loading} 
+                                    loading={loading || isSyncing} 
                                     initialLimit={5} 
                                 />
                             <div className="p-5 border-t border-neutral-100 dark:border-neutral-800">
-                                <SectionAiSummary insight={data?.intelligence?.topQueries} loading={loading} sectionTitle="AI QUERY INSIGHT" />
+                                <SectionAiSummary insight={data?.intelligence?.topQueries} loading={loading || isSyncing} sectionTitle="AI QUERY INSIGHT" />
                             </div>
                         </div>
                         
@@ -923,7 +1155,17 @@ import { formatDistanceToNow } from 'date-fns';
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button 
-                                        onClick={() => openWithQuestion(`Analyze my top-performing landing pages. My top 5 pages are: ${(data?.topLandingPages || []).slice(0,5).map(p => `"${p.page}" (${p.clicks} clicks, ${p.ctr?.toFixed(1) || '0.0'}% CTR, rank #${p.position?.toFixed(1) || '0.0'})`).join(', ')}. Which of these pages have the highest potential for conversion optimization or further content expansion?`)}
+                                        onClick={() => {
+                                            const allPagesStr = (data?.topLandingPages || []).map((p, idx) => `${idx + 1}. Page URL: ${p.page} | Clicks: ${formatNumber(p.clicks)} | Impressions: ${formatNumber(p.impressions)} | CTR: ${p.ctr.toFixed(2)}% | Position: #${p.position?.toFixed(1)}`).join('\n');
+                                            openWithQuestion(`Act as my expert Conversion Rate Optimization (CRO) and organic engagement specialist. Let's analyze our top organic landing pages.
+
+Here is the COMPLETE dataset of our top organic landing pages from this section:
+${allPagesStr}
+
+Please perform a thorough audit:
+1. Identify landing pages with high visibility (Impressions) but relatively low conversion CTR or rankings, indicating high potential for optimization.
+2. Outline specific, actionable CRO strategies, layout improvements, and call-to-action designs we should implement on these high-traffic entry points to engage and convert organic visitors.`);
+                                        }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
                                         <SparklesIcon className="w-3.5 h-3.5" />
@@ -940,11 +1182,11 @@ import { formatDistanceToNow } from 'date-fns';
                                         { header: 'Position', cell: (row) => row.position.toFixed(1) },
                                     ]} 
                                     data={data?.topLandingPages || []} 
-                                    loading={loading} 
+                                    loading={loading || isSyncing} 
                                     initialLimit={6} 
                                 />
                             <div className="p-5 border-t border-neutral-100 dark:border-neutral-800">
-                                <SectionAiSummary insight={data?.intelligence?.topLandingPages} loading={loading} sectionTitle="AI PAGE INSIGHT" />
+                                <SectionAiSummary insight={data?.intelligence?.topLandingPages} loading={loading || isSyncing} sectionTitle="AI PAGE INSIGHT" />
                             </div>
                         </div>
                     </div>
@@ -958,23 +1200,33 @@ import { formatDistanceToNow } from 'date-fns';
                             </div>
                             <div className="flex items-center gap-2">
                                 <button 
-                                    onClick={() => openWithQuestion(`Analyze my daily GSC search impression volume. Total Period Impressions: ${formatNumber(data?.impressions?.value || 0)}. Recent 7-day trend: ${JSON.stringify((data?.searchPerformanceOverview || []).slice(-7).map(d => ({date: d.date, impressions: d.impressions})))}. What does this impression density indicate about my overall brand search visibility?`)}
+                                    onClick={() => {
+                                        const impressionsTrendStr = (data?.dailyImpressionVolume || []).map(d => `- Date: ${d.date} | Impressions: ${d.impressions}`).join('\n');
+                                        openWithQuestion(`Act as my expert Search Visibility Strategist. Let's perform a comprehensive audit of our daily organic impression volume and brand exposure.
+
+Here is the complete data used in this section:
+- Total Impressions this period: ${formatNumber(data?.impressions?.value || 0)} (${data?.impressions?.change}% vs prior period)
+- Daily Impression Trend:
+${impressionsTrendStr}
+
+What does this overall impression density and trajectory tell us about our brand's growing visibility, search share of voice, and seasonal performance variations? What steps can we take to keep driving these numbers higher?`);
+                                    }}
                                     className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                 >
-                                    <SparklesIcon className="w-3.5 h-3.5" />
-                                    ASK AI
+                                        <SparklesIcon className="w-3.5 h-3.5" />
+                                        ASK AI
                                 </button>
                             </div>
                         </div>
                         <div className="h-[250px]">
-                            {loading ? (
+                            {(loading || isSyncing) ? (
                                 <div className="w-full h-full animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"></div>
                             ) : (
                                 <ResponsiveContainer width="100%" height={250}>
-                                    <BarChart data={data?.searchPerformanceOverview || []} margin={{ top: 5, right: 30, left: -20, bottom: 15 }}>
+                                    <BarChart data={data?.dailyImpressionVolume || []} margin={{ top: 5, right: 30, left: -20, bottom: 15 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" className="dark:stroke-neutral-800" opacity={0.5} />
                                         <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize:10, fill:'#9CA3AF', fontWeight:'bold'}} dy={10} 
-                                        interval={(data?.searchPerformanceOverview || []).length > 15 ? 4 : 2}
+                                        interval={(data?.dailyImpressionVolume || []).length > 15 ? 4 : 2}
                                         tickFormatter={(val) => {
                                             const d = new Date(val);
                                             return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -1003,7 +1255,7 @@ import { formatDistanceToNow } from 'date-fns';
                             )}
                         </div>
                         <div className="mt-4">
-                            <SectionAiSummary insight={data?.intelligence?.dailyImpressionVolume} loading={loading} sectionTitle="AI VISIBILITY INSIGHT" />
+                            <SectionAiSummary insight={data?.intelligence?.dailyImpressionVolume} loading={loading || isSyncing} sectionTitle="AI VISIBILITY INSIGHT" />
                         </div>
                     </div>
 
@@ -1016,7 +1268,31 @@ import { formatDistanceToNow } from 'date-fns';
                         </div>
                         <div className="flex items-center gap-2">
                             <button 
-                                onClick={() => openWithQuestion(`Analyze my GSC master period comparison. Clicks: ${data?.searchClicks?.value || 0} vs ${data?.periodComparison?.lastPeriod?.clicks || 0} (${data?.searchClicks?.change || 0}%), Impressions: ${data?.impressions?.value || 0} vs ${data?.periodComparison?.lastPeriod?.impressions || 0} (${data?.impressions?.change || 0}%), Avg Position: #${data?.avgPosition?.value?.toFixed(1) || '0.0'} vs #${data?.periodComparison?.lastPeriod?.position?.toFixed(1) || '0.0'}. Provide a comprehensive executive summary of my SEO performance shift.`)}
+                                onClick={() => {
+                                    const comp = data?.periodComparison;
+                                    openWithQuestion(`Act as my elite SEO Growth Analyst. Provide a comprehensive Organic Search Executive Audit based on my Period Comparison dataset.
+
+Here is the complete comparison dataset for this section (This Period vs Prior Period):
+📊 [PERIOD-OVER-PERIOD COMPARISON]
+1. Search Clicks:
+   - This Period: ${formatNumber(comp?.thisPeriod?.clicks || 0)}
+   - Last Period: ${formatNumber(comp?.lastPeriod?.clicks || 0)}
+   - Shift: ${comp?.change?.clicks || 0}% change
+2. Search Impressions:
+   - This Period: ${formatNumber(comp?.thisPeriod?.impressions || 0)}
+   - Last Period: ${formatNumber(comp?.lastPeriod?.impressions || 0)}
+   - Shift: ${comp?.change?.impressions || 0}% change
+3. Average CTR:
+   - This Period: ${(comp?.thisPeriod?.ctr || 0).toFixed(2)}%
+   - Last Period: ${(comp?.lastPeriod?.ctr || 0).toFixed(2)}%
+   - Shift: ${comp?.change?.ctr || 0}% change
+4. Average Ranking Position:
+   - This Period: #${(comp?.thisPeriod?.position || 0).toFixed(1)}
+   - Last Period: #${(comp?.lastPeriod?.position || 0).toFixed(1)}
+   - Shift: ${comp?.change?.position || 0}% change
+
+Please deliver a detailed, professional executive SEO audit analyzing this growth shift, highlighting major positive transitions, potential traffic losses, CTR health, and a prioritized list of high-level organic initiatives for the upcoming period.`);
+                                }}
                                 className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1037,7 +1313,7 @@ import { formatDistanceToNow } from 'date-fns';
                             </tr>
                             </thead>
                             <tbody>
-                            {loading ? (
+                               {(loading || isSyncing) ? (
                                 Array(4).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
                                         <td colSpan={4} className="py-3"><div className="h-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg"></div></td>
@@ -1045,13 +1321,18 @@ import { formatDistanceToNow } from 'date-fns';
                                 ))
                             ) : (
                                 (data?.periodComparison ? [
-                                    { metric:'Clicks',       current: data.periodComparison.thisPeriod.clicks,                           prior: data.periodComparison.lastPeriod.clicks,             change: data.periodComparison.change.clicks, up: data.periodComparison.thisPeriod.clicks >= data.periodComparison.lastPeriod.clicks },
-                                    { metric:'Impressions',  current: data.periodComparison.thisPeriod.impressions,                      prior: data.periodComparison.lastPeriod.impressions,        change: data.periodComparison.change.impressions, up: data.periodComparison.thisPeriod.impressions >= data.periodComparison.lastPeriod.impressions },
-                                    { metric:'Click-Through Rate',          current: `${data.periodComparison.thisPeriod.ctr.toFixed(2)}%`,        prior: `${data.periodComparison.lastPeriod.ctr.toFixed(2)}%`,       change: data.periodComparison.change.ctr,  up: data.periodComparison.thisPeriod.ctr >= data.periodComparison.lastPeriod.ctr },
-                                    { metric:'Avg Position',  current: `#${data.periodComparison.thisPeriod.position?.toFixed(1)}`,    prior: `#${data.periodComparison.lastPeriod.position?.toFixed(1)}`,   change: data.periodComparison.change.position, up: data.periodComparison.thisPeriod.position <= data.periodComparison.lastPeriod.position },
+                                    { metric:'Clicks',       current: data.periodComparison.thisPeriod.clicks,                           prior: data.periodComparison.lastPeriod.clicks,             change: data.periodComparison.change.clicks, up: data.periodComparison.thisPeriod.clicks >= data.periodComparison.lastPeriod.clicks, Icon: CursorArrowRaysIcon, colorClass: 'text-blue-500 dark:text-blue-400' },
+                                    { metric:'Impressions',  current: data.periodComparison.thisPeriod.impressions,                      prior: data.periodComparison.lastPeriod.impressions,        change: data.periodComparison.change.impressions, up: data.periodComparison.thisPeriod.impressions >= data.periodComparison.lastPeriod.impressions, Icon: EyeIcon, colorClass: 'text-teal-500 dark:text-teal-400' },
+                                    { metric:'Click-Through Rate',          current: `${data.periodComparison.thisPeriod.ctr.toFixed(2)}%`,        prior: `${data.periodComparison.lastPeriod.ctr.toFixed(2)}%`,       change: data.periodComparison.change.ctr,  up: data.periodComparison.thisPeriod.ctr >= data.periodComparison.lastPeriod.ctr, Icon: ArrowTrendingUpIcon, colorClass: 'text-purple-500 dark:text-purple-400' },
+                                    { metric:'Avg Position',  current: `#${data.periodComparison.thisPeriod.position?.toFixed(1)}`,    prior: `#${data.periodComparison.lastPeriod.position?.toFixed(1)}`,   change: data.periodComparison.change.position, up: data.periodComparison.thisPeriod.position <= data.periodComparison.lastPeriod.position, Icon: HashtagIcon, colorClass: 'text-amber-500 dark:text-amber-400' },
                                 ] : []).map((row, i) => (
                                     <tr key={i} className="border-b border-neutral-50 dark:border-neutral-800/50 hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors">
-                                    <td className="py-3 text-xs font-bold text-neutral-700 dark:text-neutral-300 whitespace-nowrap">{row.metric}</td>
+                                    <td className="py-3 text-xs font-bold text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
+                                        <div className="flex items-center gap-2">
+                                            {row.Icon && <row.Icon className={`w-3.5 h-3.5 ${row.colorClass} flex-shrink-0`} />}
+                                            <span>{row.metric}</span>
+                                        </div>
+                                    </td>
                                     <td className="py-3 text-xs font-black text-neutral-900 dark:text-white tabular-nums">
                                         {typeof row.current === 'number' ? row.current.toLocaleString() : row.current}
                                     </td>
@@ -1074,10 +1355,10 @@ import { formatDistanceToNow } from 'date-fns';
                         </table>
                     </div>
                     <SectionAiSummary 
-                        insight={data?.intelligence?.periodComparison} 
-                        loading={loading} 
-                        sectionTitle="AI SUMMARY"
-                        contextPrompt={`Analyze my GSC master growth trajectory. Comparing this period vs last: Clicks grew/fell by ${data?.searchClicks?.change || 0}%, Impressions by ${data?.impressions?.change || 0}%, and Position shifted from #${data?.periodComparison?.lastPeriod?.position?.toFixed(1) || '0.0'} to #${data?.avgPosition?.value?.toFixed(1) || '0.0'}. What is my overall organic health score?`}
+                         insight={data?.intelligence?.periodComparison} 
+                         loading={loading || isSyncing} 
+                         sectionTitle="AI SUMMARY"
+                         contextPrompt={`Analyze my GSC master growth trajectory. Comparing this period vs last: Clicks grew/fell by ${data?.searchClicks?.change || 0}%, Impressions by ${data?.impressions?.change || 0}%, and Position shifted from #${data?.periodComparison?.lastPeriod?.position?.toFixed(1) || '0.0'} to #${data?.avgPosition?.value?.toFixed(1) || '0.0'}. What is my overall organic health score?`}
                     />
                     </div>
 
