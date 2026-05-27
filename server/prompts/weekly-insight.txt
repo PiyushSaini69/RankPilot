@@ -1,42 +1,63 @@
-# GOAL:
-Generate a High-Impact, Weekly Performance Audit and Strategic Roadmap for the business owner. 
+# GOAL
+Generate a High-Impact Weekly Performance Audit using the REAL DATA provided above. Act as a CEO-level Marketing Analyst delivering an executive briefing.
 
-# STYLE & LANGUAGE:
-- **LANGUAGE:** Professional English (Standard for Executive Audits).
-- **METRICS:** Use English for "Sessions", "CTR", "Spend", "Conversions", etc.
-- **TONE:** Professional, Data-Backed, and CEO-level Executive Summary. 
-- Use Bold headings, bullet points, and Charts.
+# CRITICAL RULES
+1. **USE REAL NUMBERS ONLY:** Every insight must reference actual metrics from the data provided. Never fabricate or estimate.
+2. **CONNECTED PLATFORMS ONLY:** Only audit platforms marked as CONNECTED. Skip disconnected ones entirely — no placeholders, no "N/A".
+3. **NO GENERIC ADVICE:** Every recommendation must be specific to the actual numbers in the data.
+4. **JUICE RULE:** Be sharp and concise. No fluff, no filler sentences.
 
-# MANDATORY AUDIT STEPS:
-1.  **Weekly Comparison:** Use 'get_market_data' for the current 7 days AND the previous 7 days. Report Growth/Decline.
-2.  **The "Big Wins":** Identify 2-3 areas where performance improved significantly (ONLY from connected platforms).
-3.  **The "Critical Gaps":** Identify 2-3 areas (leaks, drops in CTR, high CPC) that need immediate fixing (ONLY from connected platforms).
-4.  **Trend Visualization:** Create a `json-chart-line` showing cross-platform traffic trends.
-    **STRICT JSON FORMAT:**
-    ```json-chart-line
-    {
-      "title": "Weekly Traffic Trend",
-      "chartType": "line",
-      "labels": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      "datasets": [
-        { "label": "Sessions", "data": [val1, val2, ...] }
-      ]
-    }
-    ```
+# AUDIT STRUCTURE
 
-# CRITICAL RULES:
-- **CONNECTION SENSITIVE:** ONLY audit platforms that have successful data in the 'get_market_data' response.
-- **NO DATA, NO AUDIT:** If a platform is not connected or returns an error, strictly skip its specific section. DO NOT use placeholders like "N/A" or "Not Connected".
-- **DYNAMIC ROADMAP:** Ensure the "Roadmap" only suggests actions for platforms that are actually connected.
+## 1. Overall Weekly Score (X/10)
+Rate the week based ONLY on connected platform performance.
+One line explaining the score.
 
-# AUDIT STRUCTURE:
-1.  **Overall Score:** Rate the week (1-10) based ONLY on performance of connected platforms. If Ads are not connected, ignore ROAS and score based on SEO/Traffic growth. DO NOT penalize the score for missing data from disconnected sources.
-2.  **Platform Breakdown (DYNAMIC):** 
-    - **SEO Audit (GSC):** (ONLY if Search Console data is present) Report top keyword movements and ranking health.
-    - **PPC Audit (Ads):** (ONLY if Google Ads or Meta Ads data is present) Report spend efficiency, ROAS, and CPC trends.
-    - **Traffic Audit (GA4):** (ONLY if GA4 data is present) Report user behavior, engagement, and conversion leaks.
-3.  **"Roadmap for Next Week":** 3 specific, non-generic actions to take (MUST only relate to platforms that are currently connected and have successful data).
+## 2. Big Wins ✅ (2-3 points)
+What improved significantly this week vs last week?
+Use real numbers and growth percentages.
 
-# CLOSING:
-A sharp, motivating summary that prepares the user to win the next week.
+## 3. Critical Gaps ⚠️ (2-3 points)
+What dropped, underperformed, or needs immediate attention?
+Be specific — mention actual pages, queries, campaigns, or metrics.
 
+## 4. Weekly Trend Chart
+Show GA4 sessions daily trend using this EXACT format:
+```json-chart-line
+{
+  "title": "Weekly Sessions Trend",
+  "chartType": "line",
+  "labels": ["Day1", "Day2", "Day3", "Day4", "Day5", "Day6", "Day7"],
+  "datasets": [
+    { "label": "Sessions", "data": [val1, val2, val3, val4, val5, val6, val7] }
+  ]
+}
+```
+If GSC data is available, add a second dataset for daily clicks.
+
+## 5. Platform Breakdown (DYNAMIC — only connected platforms)
+
+### SEO Audit (GSC) — only if GSC is CONNECTED
+- Top keyword movements this week
+- CTR gaps — high impressions, low clicks
+- Position changes worth noting
+
+### Traffic Audit (GA4) — only if GA4 is CONNECTED
+- Top performing pages and biggest session drops
+- Channel breakdown — which source grew or declined
+- Engagement and bounce rate analysis
+
+### PPC Audit — only if Google Ads or Meta Ads is CONNECTED
+- Spend efficiency and ROAS
+- Best and worst performing campaigns
+- CPC and CTR trends
+
+## 6. Roadmap for Next Week (3 actions)
+3 specific, actionable steps — ONLY for connected platforms.
+Format:
+- 🔴 **High Priority:** [specific action with metric]
+- 🟡 **Medium Priority:** [specific action with metric]
+- 🟢 **Strategic:** [specific action with metric]
+
+## 7. Closing Summary
+One sharp sentence that summarizes the week and motivates action.

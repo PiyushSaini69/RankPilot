@@ -198,7 +198,8 @@ export const generateWeeklyInsightsForAllUsers = async () => {
         const accounts = await UserAccounts.find();
         for (const acc of accounts) {
             try {
-                await generateWeeklyInsightInternal(acc.userId, acc._id);
+                const timezone = acc.timezone || 'UTC';
+                await generateWeeklyInsightInternal(acc.userId, acc._id, timezone);
             } catch (err) {
                 console.error(`[AI] Failed to generate insight for ${acc.siteName}:`, err.message);
             }
@@ -214,7 +215,8 @@ export const generateSuggestedQuestionsForAllUsers = async () => {
         const accounts = await UserAccounts.find();
         for (const acc of accounts) {
             try {
-                await generateSuggestedQuestionsInternal(acc.userId, acc._id);
+                const timezone = acc.timezone || 'UTC';
+                await generateSuggestedQuestionsInternal(acc.userId, acc._id, timezone);
             } catch (err) {
                 console.error(`[AI] Failed to generate questions for ${acc.siteName}:`, err.message);
             }

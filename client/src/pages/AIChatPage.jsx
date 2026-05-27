@@ -602,7 +602,8 @@ const AIChatPage = () => {
     const handleRefreshInsight = async () => {
         setInsightLoading(true);
         try {
-            const res = await refreshWeeklyInsight(activeSiteId);
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const res = await refreshWeeklyInsight(activeSiteId, timezone);
             setWeeklyInsight(res.data);
         } catch (err) {
             console.error(err);

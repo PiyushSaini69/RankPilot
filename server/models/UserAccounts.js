@@ -6,6 +6,7 @@ const userAccountsSchema = new mongoose.Schema({
     siteName: { type: String, required: true },
     siteUrl: { type: String },
     syncStatus: { type: String, enum: ['idle', 'syncing', 'error', 'pending'], default: 'idle' },
+    timezone: { type: String, default: 'UTC' }, // User's browser-detected IANA timezone
 
     // GA4 Integration
     ga4PropertyId: { type: String },
