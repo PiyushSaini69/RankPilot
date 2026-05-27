@@ -684,8 +684,16 @@ const DashboardPage = () => {
                               }`}
                           >
                             <CalendarIcon className={`w-3.5 h-3.5 ${isDateMenuOpen ? 'text-white' : 'text-brand-600'}`} />
-                            <span className={`text-[9px] font-black uppercase tracking-widest ${isDateMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
-                              {preset === 'custom' ? 'Range' : preset}
+                             <span className={`text-[9px] font-black uppercase tracking-widest ${isDateMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
+                              Date: {{
+                                today: 'Today',
+                                yesterday: 'Yesterday',
+                                '7d': 'Last 7 Days',
+                                '28d': 'Last 28 Days',
+                                '90d': 'Last 90 Days',
+                                '1y': 'Last Year',
+                                custom: 'Custom'
+                              }[preset] || preset}
                             </span>
                             <ChevronDownIcon className={`w-3 h-3 transition-transform ${isDateMenuOpen ? 'rotate-180 opacity-100' : 'opacity-40'}`} />
                           </button>
@@ -766,7 +774,11 @@ const DashboardPage = () => {
                           >
                             <ComputerDesktopIcon className={`w-3.5 h-3.5 ${isDeviceMenuOpen ? 'text-white' : 'text-amber-500'}`} />
                             <span className={`text-[9px] font-black uppercase tracking-widest ${isDeviceMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
-                              {device || 'All'}
+                              Device: {device ? {
+                                mobile: 'Mobile',
+                                desktop: 'Desktop',
+                                tablet: 'Tablet'
+                              }[device] || device : 'All'}
                             </span>
                             <ChevronDownIcon className={`w-3 h-3 transition-transform ${isDeviceMenuOpen ? 'rotate-180 opacity-100' : 'opacity-40'}`} />
                           </button>
@@ -800,21 +812,71 @@ const DashboardPage = () => {
                     <div className="flex flex-col md:flex-row gap-6 lg:items-center">
                       <div className="grid grid-cols-2 gap-2.5 shrink-0">
                         {[
-                          { id: 'ga4', active: !!activeGa4PropertyId, label: 'GA4 Analytics', logo: <Ga4Logo className="w-5 h-5" />, color: 'bg-orange-50' },
-                          { id: 'google-ads', active: !!activeGoogleAdsCustomerId, label: 'Google Ads', logo: <GoogleAdsLogo className="w-5 h-5" />, color: 'bg-amber-50' },
-                          { id: 'gsc', active: !!activeGscSite, label: 'Search Console', logo: <GscLogo className="w-5 h-5" />, color: 'bg-blue-50' },
-                          { id: 'facebook', active: !!activeFacebookAdAccountId, label: 'Facebook Ads', logo: <FacebookAdsLogo className="w-5 h-5" />, color: 'bg-blue-50' }
+                          { 
+                            id: 'ga4', 
+                            active: !!activeGa4PropertyId, 
+                            label: 'GA4 Analytics', 
+                            logo: <Ga4Logo className="w-5 h-5" />, 
+                            color: 'bg-orange-50', 
+                            details: activeGa4PropertyId ? [
+                              `Name: ${ga4?.ga4PropertyName || (activeSiteUrl ? activeSiteUrl.replace(/https?:\/\//, '').replace(/\/$/, '') : 'Property')}`,
+                              `ID: ${activeGa4PropertyId}`
+                            ] : null,
+                            tooltip: `Property: ${ga4?.ga4PropertyName || 'N/A'}\nID: ${activeGa4PropertyId || 'N/A'}\nEmail: ${ga4?.ga4TokenEmail || 'N/A'}`
+                          },
+                          { 
+                            id: 'google-ads', 
+                            active: !!activeGoogleAdsCustomerId, 
+                            label: 'Google Ads', 
+                            logo: <GoogleAdsLogo className="w-5 h-5" />, 
+                            color: 'bg-amber-50', 
+                            details: activeGoogleAdsCustomerId ? [
+                              `Name: ${googleAds?.googleAdsAccountName || (activeSiteUrl ? activeSiteUrl.replace(/https?:\/\//, '').replace(/\/$/, '') : 'Connected')}`,
+                              `ID: ${activeGoogleAdsCustomerId}`
+                            ] : null,
+                            tooltip: `Account: ${googleAds?.googleAdsAccountName || 'N/A'}\nID: ${activeGoogleAdsCustomerId || 'N/A'}\nEmail: ${googleAds?.googleAdsTokenEmail || 'N/A'}`
+                          },
+                          { 
+                            id: 'gsc', 
+                            active: !!activeGscSite, 
+                            label: 'Search Console', 
+                            logo: <GscLogo className="w-5 h-5" />, 
+                            color: 'bg-blue-50', 
+                            details: activeGscSite ? [
+                              `Site: ${activeGscSite.replace(/https?:\/\//, '')}`
+                            ] : null,
+                            tooltip: `Site: ${activeGscSite || 'N/A'}\nEmail: ${gsc?.gscTokenEmail || 'N/A'}`
+                          },
+                          { 
+                            id: 'facebook', 
+                            active: !!activeFacebookAdAccountId, 
+                            label: 'Facebook Ads', 
+                            logo: <FacebookAdsLogo className="w-5 h-5" />, 
+                            color: 'bg-blue-50', 
+                            details: activeFacebookAdAccountId ? [
+                              `Name: ${facebook?.facebookAdAccountName || (activeSiteUrl ? activeSiteUrl.replace(/https?:\/\//, '').replace(/\/$/, '') : 'Connected')}`,
+                              `ID: ${activeFacebookAdAccountId.replace('act_', '')}`
+                            ] : null,
+                            tooltip: `Account: ${facebook?.facebookAdAccountName || 'N/A'}\nID: ${activeFacebookAdAccountId || 'N/A'}\nUser: ${facebook?.facebookTokenName || 'N/A'}`
+                          }
                         ].map((card) => (
-                          <div key={card.id} className="flex flex-col gap-1.5 p-2.5 bg-white dark:bg-dark-surface border border-neutral-100 dark:border-neutral-800 rounded-2xl w-36 shadow-sm transition-all hover:shadow-md group/item">
+                          <div key={card.id} className="flex flex-col gap-2 p-3 bg-white dark:bg-dark-surface border border-neutral-100 dark:border-neutral-800 rounded-2xl w-[180px] shadow-sm transition-all hover:shadow-md group/item">
                             <div className="flex items-center justify-between">
                               <div className={`w-7 h-7 rounded-xl ${card.color} dark:bg-opacity-10 flex items-center justify-center shrink-0 border border-neutral-100/50 dark:border-white/5`}>{card.logo}</div>
-                              <div className={`w-1.5 h-1.5 rounded-full ${card.active ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-neutral-300'}`}></div>
+                              <div className={`w-1.5 h-1.5 rounded-full ${card.active ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-neutral-300 dark:bg-neutral-600'}`}></div>
                             </div>
                             <div>
-                              <p className="text-[9px] font-bold uppercase tracking-tight text-neutral-400 dark:text-neutral-500 leading-none mb-1 group-hover/item:text-neutral-500 transition-colors">{card.label}</p>
-                              <p className={`font-black uppercase tracking-tighter ${card.active ? 'text-emerald-600 dark:text-emerald-400 text-[10px]' : 'text-neutral-300 dark:text-neutral-600 text-[10px]'}`}>
-                                {card.active ? 'Connected' : 'Disconnected'}
-                              </p>
+                              <p className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 leading-none mb-1 group-hover/item:text-neutral-500 dark:group-hover/item:text-neutral-400 transition-colors">{card.label}</p>
+                              <div className="flex flex-col gap-0.5">
+                                <p className={`font-extrabold uppercase tracking-tighter text-[10px] ${card.active ? 'text-emerald-500 dark:text-emerald-400' : 'text-neutral-300 dark:text-neutral-600'}`}>
+                                  {card.active ? 'Connected' : 'Disconnected'}
+                                </p>
+                                {card.active && card.details && card.details.map((detailText, idx) => (
+                                  <p key={idx} className="text-[11px] font-black text-neutral-800 dark:text-neutral-100 truncate max-w-[160px] transition-colors group-hover/item:text-neutral-950 dark:group-hover/item:text-white mt-0.5" title={card.tooltip}>
+                                    {detailText}
+                                  </p>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -917,7 +979,7 @@ const DashboardPage = () => {
                         </div>
                       ) : (
                         <div className="flex flex-col items-start gap-2.5">
-                          <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                          <p className="text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                             {overviewData.intelligence?.overviewGA4 || "Analyzing high-volume traffic across user engagement."}
                           </p>
                         </div>
@@ -981,7 +1043,7 @@ const DashboardPage = () => {
                         </div>
                       ) : (
                         <div className="flex flex-col items-start gap-2.5">
-                          <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                          <p className="text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                             {overviewData.intelligence?.overviewGSC || "SEO visibility is showing stable organic growth."}
                           </p>
                         </div>
@@ -1044,7 +1106,7 @@ const DashboardPage = () => {
                         </div>
                       ) : (
                         <div className="flex flex-col items-start gap-2.5">
-                          <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                          <p className="text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                             {overviewData.intelligence?.overviewGAds || "Google Ads campaigns are actively spending."}
                           </p>
                         </div>
@@ -1107,7 +1169,7 @@ const DashboardPage = () => {
                         </div>
                       ) : (
                         <div className="flex flex-col items-start gap-2.5">
-                          <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                          <p className="text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                             {overviewData.intelligence?.overviewFAds || "Facebook ad reach is expanding profitably."}
                           </p>
                         </div>

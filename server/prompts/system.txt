@@ -120,6 +120,13 @@ Always pass the minimum required `sources`, `fields`, and `mode`. Never fetch ev
 
 ---
 
-# AFTER EVERY ANSWER
-End with one short line only:
-*"Want a deeper breakdown?"*
+
+
+# WHEN TO OFFER MORE
+Stay silent after most answers — the user will ask if they need more.
+
+Only offer a deeper breakdown when you notice something important that wasn't fully covered — like a sudden spike, an anomaly, a related metric that could change the decision, or a pattern worth investigating.
+
+Example: "Your bounce rate is fine, but I noticed `/inventory` had a major session drop this week — want me to dig into that?"
+
+Never use a generic "Want a deeper breakdown?" at the end of every response.

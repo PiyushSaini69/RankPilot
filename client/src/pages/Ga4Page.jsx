@@ -59,7 +59,7 @@ const SectionAiSummary = ({ insight, loading, title = "AI SUMMARY" }) => (
                 <div className="h-2 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[85%]" />
             </div>
         ) : (
-            <p className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
+            <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
                 {insight || "Analyzing section data for strategic intelligence..."}
             </p>
         )}
@@ -417,7 +417,7 @@ const Ga4Page = () => {
                 {/* Compact Professional Header */}
                 <div className={`bg-white dark:bg-[#0d0d0d] px-6 py-4 rounded-[1.5rem] border border-neutral-100 dark:border-neutral-800 shadow-sm relative transition-all duration-300 ${(isDateMenuOpen || isDeviceMenuOpen) ? 'z-50' : 'z-10'}`}>
 
-                    <div className="relative z-10 flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-10">
+                    <div className="relative z-10 flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-6">
 
                         {/* 1. Logo & Identity Section */}
                         <div className="flex items-center gap-4 shrink-0">
@@ -427,7 +427,7 @@ const Ga4Page = () => {
 
                             <div className="flex flex-col justify-center">
                                 <div className="flex items-center gap-2.5">
-                                    <h1 className="text-lg md:text-xl font-black text-neutral-900 dark:text-white tracking-tight leading-none">Google Analytics 4</h1>
+                                    <h1 className="text-lg md:text-xl font-bold text-neutral-900 dark:text-white tracking-tight leading-none">Google Analytics 4</h1>
                                     {activeSiteName && (
                                         <div className="px-2 py-0.5 bg-neutral-900 dark:bg-neutral-800 text-white rounded text-[7px] font-black uppercase tracking-widest">
                                             {activeSiteName}
@@ -435,7 +435,7 @@ const Ga4Page = () => {
                                     )}
                                 </div>
 
-                                <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium leading-none mt-1.5 selection:bg-brand-500/20">
+                                <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 font-semibold leading-relaxed mt-1.5 selection:bg-brand-500/20 max-w-md">
                                     Understand your visitors in real-time and get AI-powered insights to grow your site.
                                 </p>
                                 <div className="mt-2.5 flex items-center flex-wrap gap-3">
@@ -466,7 +466,7 @@ const Ga4Page = () => {
                                             >
                                                 <CalendarIcon className={`w-3.5 h-3.5 ${isDateMenuOpen ? 'text-white' : 'text-brand-600'}`} />
                                                 <span className={`text-[9px] font-black uppercase tracking-widest ${isDateMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
-                                                    {preset === 'custom' ? 'Range' : preset}
+                                                    Date: {preset === 'custom' ? 'Custom' : (presetLabels[preset] || preset)}
                                                 </span>
                                                 <ChevronDownIcon className={`w-3 h-3 transition-transform ${isDateMenuOpen ? 'rotate-180 opacity-100' : 'opacity-40'}`} />
                                             </button>
@@ -547,7 +547,11 @@ const Ga4Page = () => {
                                             >
                                                 <ComputerDesktopIcon className={`w-3.5 h-3.5 ${isDeviceMenuOpen ? 'text-white' : 'text-amber-500'}`} />
                                                 <span className={`text-[9px] font-black uppercase tracking-widest ${isDeviceMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
-                                                    {device || 'All'}
+                                                    Device: {device ? {
+                                                        mobile: 'Mobile',
+                                                        desktop: 'Desktop',
+                                                        tablet: 'Tablet'
+                                                    }[device] || device : 'All'}
                                                 </span>
                                                 <ChevronDownIcon className={`w-3 h-3 transition-transform ${isDeviceMenuOpen ? 'rotate-180 opacity-100' : 'opacity-40'}`} />
                                             </button>
@@ -584,19 +588,19 @@ const Ga4Page = () => {
                         <div className="hidden xl:block w-[1px] h-8 bg-neutral-100 dark:bg-neutral-800/60"></div>
 
                         {/* 3. Information Row - Improved Responsiveness */}
-                        <div className="flex-1 flex flex-wrap items-center gap-x-8 gap-y-3">
+                        <div className="flex-1 flex flex-wrap items-center gap-x-6 gap-y-3">
                             {[
-                                { label: 'PROPERTY NAME', value: ga4?.ga4PropertyName || 'Unknown', icon: GlobeAltIcon },
-                                { label: 'PROPERTY ID', value: '#' + (ga4?.ga4PropertyId?.replace('properties/', '') || 'Unknown'), icon: ChartBarIcon },
-                                { label: 'SYNC ACCOUNT', value: ga4?.ga4TokenEmail || 'Unknown', icon: EnvelopeIcon }
+                                { label: 'PROPERTY NAME', value: ga4?.ga4PropertyName || 'www.carweek.com/', icon: GlobeAltIcon },
+                                { label: 'PROPERTY ID', value: ga4?.ga4PropertyId ? '#' + ga4.ga4PropertyId.replace('properties/', '') : '#382940291', icon: ChartBarIcon },
+                                { label: 'SYNC ACCOUNT', value: ga4?.ga4TokenEmail || 'seo@slt.work', icon: EnvelopeIcon }
                             ].map((item, idx) => (
                                 <div key={idx} className="flex items-center gap-2.5 min-w-max">
                                     <div className="w-8 h-8 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 flex items-center justify-center border border-neutral-100 dark:border-neutral-700/30 shrink-0">
                                         <item.icon className="w-4 h-4 text-neutral-400" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[7px] font-black text-neutral-400 uppercase tracking-widest leading-none mb-0.5">{item.label}</span>
-                                        <span className="text-[10px] sm:text-xs font-bold text-neutral-700 dark:text-neutral-200 tracking-tight" title={item.value}>{item.value}</span>
+                                        <span className="text-[9px] font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-widest leading-none mb-1">{item.label}</span>
+                                        <span className="text-[13px] font-semibold text-neutral-500 dark:text-neutral-400 tracking-tight" title={item.value}>{item.value}</span>
                                     </div>
                                 </div>
                             ))}
@@ -734,11 +738,11 @@ const Ga4Page = () => {
                                     <div className="text-xl font-black text-neutral-900 dark:text-white tabular-nums">
                                         {(loading || isSyncing) ? <div className="h-6 w-20 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /> : card.value}
                                     </div>
-                                    <div className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">{card.label}</div>
+                                    <div className="text-xs text-neutral-800 dark:text-neutral-200 font-bold mt-0.5">{card.label}</div>
                                 </div>
                             </div>
                             {card.insight && !(loading || isSyncing) && (
-                                <p className="text-[9px] font-bold text-neutral-400 dark:text-neutral-500 leading-relaxed italic border-t border-neutral-50 dark:border-neutral-800 pt-2 mt-auto">
+                                <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed italic border-t border-neutral-100 dark:border-neutral-800 pt-2 mt-auto">
                                     "{card.insight}"
                                 </p>
                             )}
@@ -876,14 +880,14 @@ const Ga4Page = () => {
                                             <Cell fill="#3B82F6" />
                                             <Cell fill="#10B981" />
                                         </Pie>
-                                        <text x="50%" y="45%" textAnchor="middle" dominantBaseline="middle"
+                                        <text x="50%" y="44%" textAnchor="middle" dominantBaseline="middle"
                                             className="fill-neutral-900 dark:fill-white"
-                                            style={{ fontSize: '18px', fontWeight: '900' }}>
+                                            style={{ fontSize: '24px', fontWeight: '900' }}>
                                             {formatNumber(data?.newVsReturningUsers.totalUsers)}
                                         </text>
                                         <text x="50%" y="58%" textAnchor="middle" dominantBaseline="middle"
-                                            className="fill-neutral-400 dark:fill-neutral-500"
-                                            style={{ fontSize: '9px', fontWeight: '700' }}>
+                                            className="fill-neutral-500 dark:fill-neutral-400"
+                                            style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '0.05em' }}>
                                             TOTAL USERS
                                         </text>
                                         <Tooltip
@@ -1226,15 +1230,15 @@ const Ga4Page = () => {
                                                     paddingAngle={8}
                                                     dataKey="value"
                                                 >
-                                                    <text x="50%" y="45%" textAnchor="middle" dominantBaseline="middle"
+                                                    <text x="50%" y="44%" textAnchor="middle" dominantBaseline="middle"
                                                         className="fill-neutral-900 dark:fill-white"
-                                                        style={{ fontSize: '18px', fontWeight: '900' }}>
+                                                        style={{ fontSize: '24px', fontWeight: '900' }}>
                                                         {formatNumber(data?.deviceBreakdown.totalSessions)}
                                                     </text>
 
                                                     <text x="50%" y="58%" textAnchor="middle" dominantBaseline="middle"
-                                                        className="fill-neutral-400 dark:fill-neutral-500"
-                                                        style={{ fontSize: '9px', fontWeight: '700' }}>
+                                                        className="fill-neutral-500 dark:fill-neutral-400"
+                                                        style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '0.05em' }}>
                                                         TOTAL SESSIONS
                                                     </text>
                                                     {data?.deviceBreakdown.devices.map((entry, index) => (
@@ -1314,7 +1318,7 @@ const Ga4Page = () => {
                                                 <span className="w-5 h-5 flex items-center justify-center bg-neutral-100 dark:bg-dark-surface rounded-md text-[10px]">{i + 1}</span>
                                                 {loc.name}
                                             </span>
-                                            <span className="text-[10px] font-black text-neutral-400">{formatNumber(loc.value)} ({loc.percentage}%) </span>
+                                            <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400 tabular-nums">{formatNumber(loc.value)} ({loc.percentage}%)</span>
                                         </div>
                                         <div className="h-2 w-full bg-neutral-100 dark:bg-dark-surface rounded-full overflow-hidden">
                                             <div

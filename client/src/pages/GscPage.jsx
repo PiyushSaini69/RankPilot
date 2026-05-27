@@ -56,7 +56,7 @@ import { formatDistanceToNow } from 'date-fns';
                     <div className="h-2 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[85%]" />
                 </div>
             ) : (
-                <p className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
+                <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
                     {insight || "Analyzing section data for strategic intelligence..."}
                 </p>
             )}
@@ -416,7 +416,7 @@ import { formatDistanceToNow } from 'date-fns';
                     )}
                     {/* Compact Professional Header */}
                     <div className={`bg-white dark:bg-[#0d0d0d] px-4 md:px-6 py-4 rounded-[1.5rem] border border-neutral-100 dark:border-neutral-800 shadow-sm relative transition-all duration-300 ${isDateMenuOpen ? 'z-50' : 'z-10'}`}>
-                        <div className="relative z-10 flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-10">
+                        <div className="relative z-10 flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-6">
                             {/* 1. Logo & Identity Section */}
                             <div className="flex items-center gap-4 shrink-0">
                                 <div className="w-12 h-12 bg-white dark:bg-neutral-800/80 rounded-xl flex items-center justify-center shrink-0 border border-neutral-100 dark:border-neutral-700 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]">
@@ -424,14 +424,14 @@ import { formatDistanceToNow } from 'date-fns';
                                 </div>
                                 <div className="flex flex-col justify-center">
                                     <div className="flex items-center gap-2.5">
-                                        <h1 className="text-lg md:text-xl font-black text-neutral-900 dark:text-white tracking-tight leading-none">Google Search Console</h1>
+                                        <h1 className="text-lg md:text-xl font-bold text-neutral-900 dark:text-white tracking-tight leading-none">Google Search Console</h1>
                                         {activeSiteName && (
                                             <div className="px-2 py-0.5 bg-neutral-900 dark:bg-neutral-800 text-white rounded text-[7px] font-black uppercase tracking-widest">
                                                 {activeSiteName}
                                             </div>
                                         )}
                                     </div>
-                                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium leading-none mt-1.5 selection:bg-brand-500/20">
+                                    <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 font-semibold leading-relaxed mt-1.5 selection:bg-brand-500/20 max-w-md">
                                         Monitor your search performance and optimize keywords with AI-powered SEO intelligence.
                                     </p>
                                     <div className="mt-2.5 flex items-center gap-3">
@@ -459,7 +459,7 @@ import { formatDistanceToNow } from 'date-fns';
                                                 >
                                                     <CalendarIcon className={`w-3.5 h-3.5 ${isDateMenuOpen ? 'text-white' : 'text-brand-600'}`} />
                                                     <span className={`text-[9px] font-black uppercase tracking-widest ${isDateMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
-                                                        {preset === 'custom' ? 'Range' : (presetLabels[preset] || preset)}
+                                                        Date: {preset === 'custom' ? 'Custom' : (presetLabels[preset] || preset)}
                                                     </span>
                                                     <ChevronDownIcon className={`w-3 h-3 transition-transform ${isDateMenuOpen ? 'rotate-180 opacity-100' : 'opacity-40'}`} />
                                                 </button>
@@ -535,18 +535,18 @@ import { formatDistanceToNow } from 'date-fns';
                             <div className="hidden xl:block w-[1px] h-8 bg-neutral-100 dark:bg-neutral-800/60"></div>
 
                             {/* 3. Information Row */}
-                            <div className="flex-1 flex flex-wrap items-center gap-x-10 gap-y-3">
+                            <div className="flex-1 flex flex-wrap items-center gap-x-6 gap-y-3">
                                 {[
-                                    { label: 'PROPERTY URL', value: gsc?.gscSiteUrl?.replace('https://', '').replace('http://', '') || 'UnKnown', icon: GlobeAltIcon },
-                                    { label: 'SYNC ACCOUNT', value: gsc?.gscTokenEmail || 'UnKnown', icon: UserCircleIcon }
+                                    { label: 'PROPERTY URL', value: gsc?.gscSiteUrl?.replace('https://', '').replace('http://', '') || 'www.carweek.com/', icon: GlobeAltIcon },
+                                    { label: 'SYNC ACCOUNT', value: gsc?.gscTokenEmail || 'seo@slt.work', icon: UserCircleIcon }
                                 ].map((item, idx) => (
                                     <div key={idx} className="flex items-center gap-2.5 min-w-max">
                                         <div className="w-8 h-8 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 flex items-center justify-center border border-neutral-100 dark:border-neutral-700/30">
                                             <item.icon className="w-4 h-4 text-neutral-400" />
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-[7px] font-black text-neutral-400 uppercase tracking-widest leading-none mb-0.5">{item.label}</span>
-                                            <span className="text-xs font-bold text-neutral-700 dark:text-neutral-200 tracking-tight" title={item.value}>{item.value}</span>
+                                            <span className="text-[9px] font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-widest leading-none mb-1">{item.label}</span>
+                                            <span className="text-[13px] font-semibold text-neutral-500 dark:text-neutral-400 tracking-tight" title={item.value}>{item.value}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -678,11 +678,11 @@ import { formatDistanceToNow } from 'date-fns';
                                         <div className="text-xl font-black text-neutral-900 dark:text-white tabular-nums">
                                             {(loading || isSyncing) ? <div className="h-6 w-20 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /> : card.value}
                                         </div>
-                                        <div className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">{card.label}</div>
+                                        <div className="text-xs text-neutral-800 dark:text-neutral-200 font-bold mt-0.5">{card.label}</div>
                                     </div>
                                 </div>
                                 {card.insight && !(loading || isSyncing) && (
-                                    <p className="text-[9px] font-bold text-neutral-400 dark:text-neutral-500 leading-relaxed italic border-t border-neutral-50 dark:border-neutral-800 pt-2 mt-auto">
+                                    <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed italic border-t border-neutral-100 dark:border-neutral-800 pt-2 mt-auto">
                                         "{card.insight}"
                                     </p>
                                 )}
@@ -832,7 +832,7 @@ import { formatDistanceToNow } from 'date-fns';
                                     </button>
                                 </div>
                             </div>
-                            <p className="text-xs text-neutral-400 mb-4">Daily CTR for selected period</p>
+                            <p className="text-xs text-neutral-400 font-semibold mb-4">Daily CTR for selected period</p>
                             {(loading || isSyncing) ? (
                                 <div className="h-48 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse"/>
                             ) : (data?.clickThroughRateTrend || []).length === 0 ? (
@@ -902,7 +902,7 @@ import { formatDistanceToNow } from 'date-fns';
                                     <span className="text-xs font-bold bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 px-2 py-1 rounded-full border border-amber-100 dark:border-amber-800">Lower rank = Better</span>
                                 </div>
                             </div>
-                            <p className="text-xs text-neutral-400 mb-4">Daily position for selected period</p>
+                            <p className="text-xs text-neutral-400 font-semibold mb-4">Daily position for selected period</p>
                             {(loading || isSyncing) ? (
                                 <div className="h-48 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse"/>
                             ) : (data?.averageRankingPosition || []).length === 0 ? (
@@ -968,7 +968,7 @@ import { formatDistanceToNow } from 'date-fns';
                                     </button>
                                 </div>
                             </div>
-                            <p className="text-xs text-neutral-400 mb-4">These keywords get views but few clicks — fix your title & description</p>
+                            <p className="text-xs text-neutral-400 font-semibold mb-4">These keywords get views but few clicks — fix your title & description</p>
                             {(loading || isSyncing) ? (
                                 <div className="space-y-3">{[...Array(4)].map((_,i)=><div key={i} className="h-10 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse"/>)}</div>
                             ) : (data?.lowCTRKeywords || []).length === 0 ? (
@@ -982,12 +982,12 @@ import { formatDistanceToNow } from 'date-fns';
                                         {(data?.lowCTRKeywords || []).slice(0, showAllLowCtr ? 30 : 5).map((q,i) => (
                                             <div key={i} className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-800/30">
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="text-xs font-bold text-neutral-800 dark:text-white truncate">{q.query}</div>
-                                                    <div className="text-[11px] text-neutral-400 mt-0.5">{formatNumber(q.impressions)} impressions • rank #{q.position?.toFixed(1)}</div>
+                                                    <div className="text-[13px] font-bold text-neutral-800 dark:text-white truncate">{q.query}</div>
+                                                    <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mt-1">{formatNumber(q.impressions)} impressions • rank #{q.position?.toFixed(1)}</div>
                                                 </div>
                                                 <div className="text-right ml-3">
-                                                    <div className="text-xs font-black text-amber-600 dark:text-amber-400">{q.ctr.toFixed(1)}% CTR</div>
-                                                    <div className="text-[11px] text-neutral-400">{q.clicks} clicks</div>
+                                                    <div className="text-[13px] font-extrabold text-amber-600 dark:text-amber-400">{q.ctr.toFixed(1)}% CTR</div>
+                                                    <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mt-1">{q.clicks} clicks</div>
                                                 </div>
                                             </div>
                                         ))}
@@ -1031,7 +1031,7 @@ import { formatDistanceToNow } from 'date-fns';
                                     </button>
                                 </div>
                             </div>
-                            <p className="text-xs text-neutral-400 mb-4">Keywords close to page 1 — a little SEO effort can push them up</p>
+                            <p className="text-xs text-neutral-400 font-semibold mb-4">Keywords close to page 1 — a little SEO effort can push them up</p>
                             {(loading || isSyncing) ? (
                                 <div className="space-y-3">{[...Array(4)].map((_,i)=><div key={i} className="h-10 bg-neutral-100 dark:bg-neutral-800 rounded-xl animate-pulse"/>)}</div>
                             ) : (data?.keywordsNearPage1 || []).length === 0 ? (
@@ -1045,12 +1045,12 @@ import { formatDistanceToNow } from 'date-fns';
                                         {(data?.keywordsNearPage1 || []).slice(0, showAllNearPage1 ? 30 : 5).map((q,i) => (
                                             <div key={i} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-100 dark:border-green-800/30">
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="text-xs font-bold text-neutral-800 dark:text-white truncate">{q.query}</div>
-                                                    <div className="text-[11px] text-neutral-400 mt-0.5">{formatNumber(q.impressions)} impressions • {q.clicks} clicks</div>
+                                                    <div className="text-[13px] font-bold text-neutral-800 dark:text-white truncate">{q.query}</div>
+                                                    <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mt-1">{formatNumber(q.impressions)} impressions • {q.clicks} clicks</div>
                                                 </div>
                                                 <div className="text-right ml-3">
-                                                    <div className="text-xs font-black text-green-600 dark:text-green-400">Pos #{q.position?.toFixed(1)}</div>
-                                                    <div className="text-[11px] text-neutral-400">{q.ctr.toFixed(1)}% CTR</div>
+                                                    <div className="text-[13px] font-extrabold text-green-600 dark:text-green-400">Pos #{q.position?.toFixed(1)}</div>
+                                                    <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mt-1">{q.ctr.toFixed(1)}% CTR</div>
                                                 </div>
                                             </div>
                                         ))}
@@ -1229,7 +1229,7 @@ import { formatDistanceToNow } from 'date-fns';
                     <div className="flex items-center justify-between mb-5">
                         <div>
                         <h3 className="text-sm font-black text-neutral-900 dark:text-white">Period Comparison</h3>
-                        <p className="text-xs text-neutral-400 mt-0.5">This period vs last period — all key metrics</p>
+                        <p className="text-xs text-neutral-400 font-semibold mt-0.5">This period vs last period — all key metrics</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <button 

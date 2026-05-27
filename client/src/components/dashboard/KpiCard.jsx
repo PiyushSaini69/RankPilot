@@ -48,12 +48,12 @@ const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Ic
       {/* Header section: title + value + icon */}
       <div className="relative z-10 flex justify-between items-start mb-2">
         <div className="mb-1">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500 leading-none">
+          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-800 dark:text-neutral-200 leading-none">
             {title}
           </span>
           <div className="flex items-baseline gap-2 mt-2">
             {disconnected ? (
-              <p className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 leading-relaxed mt-1 pr-10 italic">
+              <p className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 leading-relaxed mt-1 pr-10 italic">
                 {insight}
               </p>
             ) : (
@@ -111,7 +111,7 @@ const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Ic
 
       {/* AI Insight Snippet */}
       {insight && !disconnected && (
-        <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed mb-3">
+        <p className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 leading-relaxed mb-3">
           {insight}
         </p>
       )}
@@ -141,7 +141,7 @@ const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Ic
 
         {/* Context text */}
         {changeText && (
-          <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 italic tracking-tight">
+          <span className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 italic tracking-tight">
             {disconnected ? 'Setup Required' : changeText}
           </span>
         )}
