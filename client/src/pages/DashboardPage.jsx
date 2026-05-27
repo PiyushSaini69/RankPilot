@@ -15,7 +15,6 @@ import {
   DevicePhoneMobileIcon,
   DeviceTabletIcon,
   CheckCircleIcon,
-  CloudArrowUpIcon,
   GlobeAltIcon,
   ArrowRightIcon,
   SparklesIcon,
@@ -447,33 +446,108 @@ const DashboardPage = () => {
   return (
     <DashboardLayout>
       <div className="flex flex-col space-y-8 max-w-[1600px] mx-auto">
-        {isSyncingHistorical && (
-          <div className="bg-brand-600/10 border border-brand-200 dark:border-brand-900/30 rounded-3xl p-4 flex flex-col md:flex-row items-center gap-4 animate-in slide-in-from-top duration-500">
-            <div className="w-12 h-12 rounded-2xl bg-brand-600 flex items-center justify-center shrink-0 shadow-lg shadow-brand-600/20">
-              <CloudArrowUpIcon className="w-6 h-6 text-white animate-bounce" />
-            </div>
-            <div className="flex-1 text-center md:text-left">
-              <h3 className="text-sm font-black text-brand-900 dark:text-brand-100">Optimizing Historical Data Sync</h3>
-              <p className="text-xs font-bold text-brand-700/70 dark:text-brand-400 mt-1">
-                We're fetching {activeSite.siteName}'s 3-month marketing history into RankPilot's high-speed memory.
-              </p>
-            </div>
-            <div className="flex flex-col items-center md:items-end gap-2 shrink-0">
-              <div className="text-sm font-black text-brand-600 dark:text-brand-400 flex items-center gap-2">
-                <span className="tabular-nums font-black">{getOverallProgress()}%</span>
-                <div className="w-24 h-2 bg-brand-200 dark:bg-brand-900/50 rounded-full overflow-hidden">
-                  <div className="h-full bg-brand-600 rounded-full transition-all duration-500" style={{ width: `${getOverallProgress()}%` }}></div>
+        {isSyncingHistorical && (() => {
+          const platforms = [
+            activeSite.ga4PropertyId && !activeSite.ga4HistoricalComplete && {
+              key: 'ga4',
+              label: 'Google Analytics 4',
+              logo: <img src="https://www.vectorlogo.zone/logos/google_analytics/google_analytics-icon.svg" alt="GA4" className="w-7 h-7 object-contain" />,
+              syncStatus: activeSite.ga4SyncStatus,
+              syncProgress: activeSite.ga4SyncProgress || 0,
+              syncedDays: activeSite.ga4HistoricalChunkIndex || 0,
+              totalDays: 90,
+              desc: 'We are importing your historical Google Analytics data. Your dashboard metrics, performance charts, and AI insights will automatically populate and update as the sync progresses.',
+            },
+            activeSite.gscSiteUrl && !activeSite.gscHistoricalComplete && {
+              key: 'gsc',
+              label: 'Google Search Console',
+              logo: <img src="https://www.gstatic.com/images/branding/product/2x/search_console_64dp.png" alt="GSC" className="w-7 h-7 object-contain" />,
+              syncStatus: activeSite.gscSyncStatus,
+              syncProgress: activeSite.gscSyncProgress || 0,
+              syncedDays: activeSite.gscHistoricalChunkIndex || 0,
+              totalDays: 90,
+              desc: 'We are importing your historical Google Search Console data. Your search trends and AI insights will automatically populate and update as the sync progresses.',
+            },
+            activeSite.googleAdsCustomerId && !activeSite.googleAdsHistoricalComplete && {
+              key: 'gads',
+              label: 'Google Ads',
+              logo: <img src="https://www.vectorlogo.zone/logos/google_ads/google_ads-icon.svg" alt="Google Ads" className="w-7 h-7 object-contain" />,
+              syncStatus: activeSite.googleAdsSyncStatus,
+              syncProgress: activeSite.googleAdsSyncProgress || 0,
+              syncedDays: activeSite.googleAdsHistoricalChunkIndex || 0,
+              totalDays: 90,
+              desc: 'We are importing your historical Google Ads data. Your campaign metrics and AI insights will automatically populate and update as the sync progresses.',
+            },
+            activeSite.facebookAdAccountId && !activeSite.facebookAdsHistoricalComplete && {
+              key: 'meta',
+              label: 'Meta Ads',
+              logo: <img src="https://www.vectorlogo.zone/logos/facebook/facebook-icon.svg" alt="Meta Ads" className="w-7 h-7 object-contain" />,
+              syncStatus: activeSite.facebookAdsSyncStatus,
+              syncProgress: activeSite.facebookAdsSyncProgress || 0,
+              syncedDays: activeSite.facebookAdsHistoricalChunkIndex || 0,
+              totalDays: 90,
+              desc: 'We are importing your historical Meta Ads data. Your ad performance metrics and AI insights will automatically populate and update as the sync progresses.',
+            },
+          ].filter(Boolean);
+
+          return platforms.map(p => (
+            <div key={p.key} className="relative overflow-hidden w-full bg-white dark:bg-[#0d0d0d] border border-amber-500/30 dark:border-amber-500/20 rounded-[2rem] p-6 shadow-xl shadow-amber-500/5 animate-in fade-in slide-in-from-top-4 duration-1000 group">
+              {/* Decorative background glows */}
+              <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/5 rounded-full blur-[100px] pointer-events-none transition-transform duration-1000 group-hover:scale-110" />
+              <div className="absolute bottom-0 left-0 w-80 h-80 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none transition-transform duration-1000 group-hover:scale-110" />
+
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-5">
+                  {/* Animated sync icon with platform logo */}
+                  <div className="relative shrink-0 w-14 h-14 bg-amber-500/10 rounded-[1.25rem] border border-amber-500/20 flex items-center justify-center overflow-hidden">
+                    {p.logo}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/0 via-amber-500/5 to-amber-500/0 opacity-0 group-hover:opacity-100 duration-700 transition-opacity" />
+                  </div>
+                  <div className="space-y-1.5 text-left">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-[0.15em]">
+                        Syncing Historical Data
+                      </h3>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 animate-pulse">
+                        {p.syncStatus === 'syncing' ? 'Importing Data' : 'In Queue'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-2xl italic">
+                      {p.desc}
+                    </p>
+                    <p className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">{p.label}</p>
+                  </div>
+                </div>
+
+                {/* Premium progress interface */}
+                <div className="w-full md:w-72 space-y-2 shrink-0">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                    <span>Sync Progress</span>
+                    <span className="tabular-nums font-black text-amber-500">
+                      {p.syncProgress ? `${p.syncProgress}%` : 'Starting...'}
+                    </span>
+                  </div>
+                  <div className="relative h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden border border-neutral-200/20">
+                    <div
+                      className="h-full bg-gradient-to-r from-amber-500 to-brand-500 rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+                      style={{ width: `${p.syncProgress || 5}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center text-[9px] font-bold text-neutral-400">
+                    <span>
+                      Days Synced: <span className="text-amber-500 font-black tabular-nums">{p.syncedDays}</span> / {p.totalDays} Days
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                      Live Sync Active
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                {activeSite.ga4PropertyId && <span className={`w-2 h-2 rounded-full ${activeSite.ga4HistoricalComplete ? 'bg-semantic-green' : 'bg-brand-400 animate-pulse'}`} title="GA4" />}
-                {activeSite.gscSiteUrl && <span className={`w-2 h-2 rounded-full ${activeSite.gscHistoricalComplete ? 'bg-semantic-green' : 'bg-brand-400 animate-pulse'}`} title="GSC" />}
-                {activeSite.googleAdsCustomerId && <span className={`w-2 h-2 rounded-full ${activeSite.googleAdsHistoricalComplete ? 'bg-semantic-green' : 'bg-brand-400 animate-pulse'}`} title="Google Ads" />}
-                {activeSite.facebookAdAccountId && <span className={`w-2 h-2 rounded-full ${activeSite.facebookAdsHistoricalComplete ? 'bg-semantic-green' : 'bg-brand-400 animate-pulse'}`} title="Meta Ads" />}
-              </div>
             </div>
-          </div>
-        )}
+          ));
+        })()}
+
 
         <div id="dashboard-report" className="flex flex-col space-y-8 min-w-0">
           {!activeGscSite && !activeGa4PropertyId && !activeGoogleAdsCustomerId && !activeFacebookAdAccountId && !loading ? (
@@ -778,12 +852,12 @@ const DashboardPage = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <KpiCard title="Website Traffic" value={formatNumber(overviewData.ga4?.sessions || 0)} change={overviewData.ga4?.growthSessions || 0} isPositive={(overviewData.ga4?.growthSessions || 0) >= 0} loading={loading} Icon={Ga4Logo} changeText="vs previous period" chartData={timeseriesData.map(d => d.Sessions)} disconnected={!activeGa4PropertyId} onClick={() => navigate(!activeGa4PropertyId ? '/connect-accounts' : '/dashboard/ga4')} insight={overviewData.intelligence?.metricTraffic} contextPrompt={`Analyze Audience Traffic: ${formatNumber(overviewData.ga4?.sessions || 0)} sessions with ${overviewData.ga4?.growthSessions || 0}% growth. What are the key drivers for this traffic trend and how can we scale it further?`} />
-                <KpiCard title="Search Traffic" value={formatNumber(overviewData.gsc?.clicks || 0)} change={overviewData.gsc?.growthClicks || 0} isPositive={(overviewData.gsc?.growthClicks || 0) >= 0} loading={loading} Icon={GscLogo} changeText="vs previous period" chartData={timeseriesData.map(d => d.Clicks)} disconnected={!activeGscSite} onClick={() => navigate(!activeGscSite ? '/connect-accounts' : '/dashboard/gsc')} insight={overviewData.intelligence?.metricClicks} contextPrompt={`Examine Organic Search performance: ${formatNumber(overviewData.gsc?.clicks || 0)} clicks this period. How can we improve our SEO trajectory and keyword rankings?`} />
-                <KpiCard title="Ad Spend" value={formatCurrency((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0))} change={Math.abs(overviewData.googleAds?.growthSpend || 0)} isPositive={(overviewData.googleAds?.growthSpend || 0) <= 0} loading={loading} Icon={GoogleAdsLogo} changeText="vs previous period" chartData={timeseriesData.map(d => d.Spend || 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/google-ads')} insight={overviewData.intelligence?.metricSpend} contextPrompt={`Review our total ad investment of ${formatCurrency((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0))}. Based on our growth, is our spend allocation between Google and Meta efficient?`} />
-                <KpiCard title="Conversions" value={formatNumber((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0))} change={overviewData.googleAds?.growthConversions || 0} isPositive={(overviewData.googleAds?.growthConversions || 0) >= 0} loading={loading} Icon={SuccessLogo} changeText="vs previous period" chartData={timeseriesData.map(d => d.Conversions || 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/google-ads')} insight={overviewData.intelligence?.metricConversions} contextPrompt={`Analyze conversions: ${formatNumber((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0))} total actions. What specific strategies can we use to maximize ROI from these leads?`} />
-                <KpiCard title="Ad Reach" value={formatNumber((overviewData.facebookAds?.impressions || 0) + (overviewData.googleAds?.impressions || 0))} change={overviewData.facebookAds?.growthReach || 0} isPositive={(overviewData.facebookAds?.growthReach || 0) >= 0} loading={loading} Icon={FacebookAdsLogo} changeText="vs previous period" chartData={timeseriesData.map(d => d.Impressions || 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/facebook-ads')} insight={overviewData.intelligence?.metricImpressions} contextPrompt={`Marketing visibility: ${formatNumber((overviewData.facebookAds?.impressions || 0) + (overviewData.googleAds?.impressions || 0))} impressions. Are we building enough brand awareness compared to our competitors?`} />
-                <KpiCard title="Conversion Efficiency" value={((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0)) > 0 ? `+${(((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0)) / (((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0)) / 100)).toFixed(1)}x` : '0.0x'} change={4.2} isPositive={true} loading={loading} Icon={PerformanceLogo} changeText="vs previous period" chartData={timeseriesData.map(d => d.Spend > 0 ? (d.Conversions || 0) / ((d.Spend || 1) / 100) : 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/google-ads')} insight={overviewData.intelligence?.metricEfficiency} contextPrompt={`Audit our Efficiency Score. With a ${formatPct((overviewData.googleAds?.ctr || 0) * 100)} Google CTR and ${(overviewData.facebookAds?.roas || 0).toFixed(2)}x Meta ROAS, how can we lower the cost per conversion?`} />
+                <KpiCard title="Website Traffic" value={formatNumber(overviewData.ga4?.sessions || 0)} change={overviewData.ga4?.growthSessions || 0} isPositive={(overviewData.ga4?.growthSessions || 0) >= 0} loading={loading || isSyncingHistorical} Icon={Ga4Logo} changeText="vs previous period" chartData={timeseriesData.map(d => d.Sessions)} disconnected={!activeGa4PropertyId} onClick={() => navigate(!activeGa4PropertyId ? '/connect-accounts' : '/dashboard/ga4')} insight={overviewData.intelligence?.metricTraffic} contextPrompt={`Analyze Audience Traffic: ${formatNumber(overviewData.ga4?.sessions || 0)} sessions with ${overviewData.ga4?.growthSessions || 0}% growth. What are the key drivers for this traffic trend and how can we scale it further?`} />
+                <KpiCard title="Search Traffic" value={formatNumber(overviewData.gsc?.clicks || 0)} change={overviewData.gsc?.growthClicks || 0} isPositive={(overviewData.gsc?.growthClicks || 0) >= 0} loading={loading || isSyncingHistorical} Icon={GscLogo} changeText="vs previous period" chartData={timeseriesData.map(d => d.Clicks)} disconnected={!activeGscSite} onClick={() => navigate(!activeGscSite ? '/connect-accounts' : '/dashboard/gsc')} insight={overviewData.intelligence?.metricClicks} contextPrompt={`Examine Organic Search performance: ${formatNumber(overviewData.gsc?.clicks || 0)} clicks this period. How can we improve our SEO trajectory and keyword rankings?`} />
+                <KpiCard title="Ad Spend" value={formatCurrency((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0))} change={Math.abs(overviewData.googleAds?.growthSpend || 0)} isPositive={(overviewData.googleAds?.growthSpend || 0) <= 0} loading={loading || isSyncingHistorical} Icon={GoogleAdsLogo} changeText="vs previous period" chartData={timeseriesData.map(d => d.Spend || 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/google-ads')} insight={overviewData.intelligence?.metricSpend} contextPrompt={`Review our total ad investment of ${formatCurrency((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0))}. Based on our growth, is our spend allocation between Google and Meta efficient?`} />
+                <KpiCard title="Conversions" value={formatNumber((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0))} change={overviewData.googleAds?.growthConversions || 0} isPositive={(overviewData.googleAds?.growthConversions || 0) >= 0} loading={loading || isSyncingHistorical} Icon={SuccessLogo} changeText="vs previous period" chartData={timeseriesData.map(d => d.Conversions || 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/google-ads')} insight={overviewData.intelligence?.metricConversions} contextPrompt={`Analyze conversions: ${formatNumber((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0))} total actions. What specific strategies can we use to maximize ROI from these leads?`} />
+                <KpiCard title="Ad Reach" value={formatNumber((overviewData.facebookAds?.impressions || 0) + (overviewData.googleAds?.impressions || 0))} change={overviewData.facebookAds?.growthReach || 0} isPositive={(overviewData.facebookAds?.growthReach || 0) >= 0} loading={loading || isSyncingHistorical} Icon={FacebookAdsLogo} changeText="vs previous period" chartData={timeseriesData.map(d => d.Impressions || 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/facebook-ads')} insight={overviewData.intelligence?.metricImpressions} contextPrompt={`Marketing visibility: ${formatNumber((overviewData.facebookAds?.impressions || 0) + (overviewData.googleAds?.impressions || 0))} impressions. Are we building enough brand awareness compared to our competitors?`} />
+                <KpiCard title="Conversion Efficiency" value={((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0)) > 0 ? `+${(((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0)) / (((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0)) / 100)).toFixed(1)}x` : '0.0x'} change={4.2} isPositive={true} loading={loading || isSyncingHistorical} Icon={PerformanceLogo} changeText="vs previous period" chartData={timeseriesData.map(d => d.Spend > 0 ? (d.Conversions || 0) / ((d.Spend || 1) / 100) : 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/google-ads')} insight={overviewData.intelligence?.metricEfficiency} contextPrompt={`Audit our Efficiency Score. With a ${formatPct((overviewData.googleAds?.ctr || 0) * 100)} Google CTR and ${(overviewData.facebookAds?.roas || 0).toFixed(2)}x Meta ROAS, how can we lower the cost per conversion?`} />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -809,7 +883,7 @@ const DashboardPage = () => {
                       )}
                     </div>
                   </div>
-                  {loading ? (
+                  {(loading || isSyncingHistorical) ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 animate-pulse">
                       {[1, 2, 3, 4, 5, 6].map((i) => (
                         <div key={i} className="p-3 bg-neutral-100 dark:bg-neutral-800/10 rounded-xl h-[52px]" />
@@ -836,7 +910,7 @@ const DashboardPage = () => {
                   {activeGa4PropertyId && (
                     <div className="mt-6 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
                       <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                      {loading ? (
+                      {(loading || isSyncingHistorical) ? (
                         <div className="space-y-1.5 animate-pulse">
                           <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
                           <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[80%]" />
@@ -874,7 +948,7 @@ const DashboardPage = () => {
                       )}
                     </div>
                   </div>
-                  {loading ? (
+                  {(loading || isSyncingHistorical) ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 animate-pulse">
                       {[1, 2, 3, 4, 5, 6].map((i) => (
                         <div key={i} className="p-3 bg-neutral-100 dark:bg-neutral-800/10 rounded-xl h-[52px]" />
@@ -900,7 +974,7 @@ const DashboardPage = () => {
                   {activeGscSite && (
                     <div className="mt-6 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
                       <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                      {loading ? (
+                      {(loading || isSyncingHistorical) ? (
                         <div className="space-y-1.5 animate-pulse">
                           <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
                           <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[80%]" />
@@ -936,7 +1010,7 @@ const DashboardPage = () => {
                       {activeGoogleAdsCustomerId && <button onClick={() => navigate('/dashboard/google-ads')} className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1">View Full <ArrowRightIcon className="w-3 h-3" /></button>}
                     </div>
                   </div>
-                  {loading ? (
+                  {(loading || isSyncingHistorical) ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 animate-pulse">
                       {[1, 2, 3, 4, 5, 6].map((i) => (
                         <div key={i} className="p-3 bg-neutral-100 dark:bg-neutral-800/10 rounded-xl h-[52px]" />
@@ -963,7 +1037,7 @@ const DashboardPage = () => {
                   {activeGoogleAdsCustomerId && (
                     <div className="mt-6 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
                       <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                      {loading ? (
+                      {(loading || isSyncingHistorical) ? (
                         <div className="space-y-1.5 animate-pulse">
                           <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
                           <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[80%]" />
@@ -999,7 +1073,7 @@ const DashboardPage = () => {
                       {activeFacebookAdAccountId && <button onClick={() => navigate('/dashboard/facebook-ads')} className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1">View Full <ArrowRightIcon className="w-3 h-3" /></button>}
                     </div>
                   </div>
-                  {loading ? (
+                  {(loading || isSyncingHistorical) ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 animate-pulse">
                       {[1, 2, 3, 4, 5, 6].map((i) => (
                         <div key={i} className="p-3 bg-neutral-100 dark:bg-neutral-800/10 rounded-xl h-[52px]" />
@@ -1026,7 +1100,7 @@ const DashboardPage = () => {
                   {activeFacebookAdAccountId && (
                     <div className="mt-6 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
                       <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                      {loading ? (
+                      {(loading || isSyncingHistorical) ? (
                         <div className="space-y-1.5 animate-pulse">
                           <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
                           <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[80%]" />
@@ -1102,7 +1176,7 @@ const DashboardPage = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-50 dark:divide-neutral-800/50">
-                      {loading ? (
+                      {(loading || isSyncingHistorical) ? (
                         [1, 2, 3, 4].map((i) => (
                           <tr key={i} className="animate-pulse">
                             <td className="py-4"><div className="w-16 h-3 bg-neutral-100 dark:bg-neutral-800 rounded-full" /></td>
@@ -1152,7 +1226,7 @@ const DashboardPage = () => {
                 {(activeGoogleAdsCustomerId || activeFacebookAdAccountId) && (
                   <div className="mt-4 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
                     <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                    {loading ? (
+                    {(loading || isSyncingHistorical) ? (
                       <div className="space-y-1.5 animate-pulse">
                         <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
                         <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[80%]" />
@@ -1201,7 +1275,7 @@ const DashboardPage = () => {
                   </div>
                 </div>
                 <div className="h-[200px] w-full">
-                  {loading ? (
+                  {(loading || isSyncingHistorical) ? (
                     <div className="w-full h-full bg-neutral-50 dark:bg-neutral-800/20 animate-pulse rounded-2xl flex items-end p-8 gap-4 overflow-hidden">
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((i) => (
                         <div key={i} className="flex-1 bg-neutral-100 dark:bg-neutral-800/50 rounded-lg" style={{ height: `${20 + (i * 7) % 60}%` }} />
@@ -1245,7 +1319,7 @@ const DashboardPage = () => {
 
                 <div className="mt-4 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
                   <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                  {loading ? (
+                  {(loading || isSyncingHistorical) ? (
                     <div className="space-y-1.5 animate-pulse">
                       <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
                       <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[90%]" />
@@ -1283,12 +1357,12 @@ const DashboardPage = () => {
                   </div>
                 </div>
                 <div className="p-2">
-                  <DataTable columns={pageColumns} data={filteredPages} loading={loading} initialLimit={5} className="border-none" rowClassName="py-2" />
+                  <DataTable columns={pageColumns} data={filteredPages} loading={loading || isSyncingHistorical} initialLimit={5} className="border-none" rowClassName="py-2" />
                 </div>
 
                 <div className="mx-4 mb-4 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
                   <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                  {loading ? (
+                  {(loading || isSyncingHistorical) ? (
                     <div className="space-y-1.5 animate-pulse">
                       <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
                       <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[80%]" />
@@ -1332,7 +1406,7 @@ const DashboardPage = () => {
                   <table className="w-full text-sm">
                     <thead><tr className="border-b border-neutral-100 dark:border-neutral-800 text-[9px] font-black uppercase text-neutral-400 text-left"><th className="pb-3 px-1">Source</th><th className="pb-3 px-1">Metric</th><th className="pb-3 px-1 text-right">THIS PERIOD</th><th className="pb-3 px-1 text-right">PRIOR PERIOD</th><th className="pb-3 px-1 text-right">CHANGE</th></tr></thead>
                     <tbody className="divide-y divide-neutral-50 dark:divide-neutral-800/50">
-                      {loading ? (
+                      {(loading || isSyncingHistorical) ? (
                         [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                           <tr key={i} className="animate-pulse">
                             <td className="py-5"><div className="h-2.5 w-20 bg-neutral-100 dark:bg-neutral-800 rounded-full" /></td>
@@ -1379,7 +1453,7 @@ const DashboardPage = () => {
 
                 <div className="mt-4 p-4 bg-brand-50/40 dark:bg-brand-500/5 border border-brand-100/30 dark:border-brand-500/10 rounded-2xl">
                   <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1">AI Summary</h4>
-                  {loading ? (
+                  {(loading || isSyncingHistorical) ? (
                     <div className="space-y-1.5 animate-pulse">
                       <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
                       <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[90%]" />
