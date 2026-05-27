@@ -797,7 +797,7 @@ export const getGscSummary = async (req, res) => {
             if (!gscHistoricalComplete) {
                 result.intelligence = getPlaceholderIntelligence('gsc', 'syncing');
             } else {
-                if (!(result.overview?.clicks > 0)) {
+                if (!(result.searchClicks?.value > 0)) {
                     result.intelligence = getPlaceholderIntelligence('gsc', 'no_data');
                 } else {
                     result.intelligence = await generateGscIntelligence(result, siteName);
@@ -818,7 +818,6 @@ export const getGscSummary = async (req, res) => {
             }
         }
 
-        // Cache only when GSC historical sync is complete
         if (gscHistoricalComplete) analyticsCache.set(cacheKey, result);
         res.status(200).json(result);
     } catch (error) {

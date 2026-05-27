@@ -172,10 +172,10 @@ const GlobalAiChat = () => {
     const { user, token } = useAuthStore();
     const {
         activeSiteId,
-        activeGscSite,
-        activeGa4PropertyId,
-        activeGoogleAdsCustomerId,
-        activeFacebookAdAccountId
+        gsc,
+        ga4,
+        googleAds,
+        facebook
     } = useAccountsStore();
     const location = useLocation();
     const navigate = useNavigate();
@@ -195,15 +195,15 @@ const GlobalAiChat = () => {
     // Check if the relevant data source is connected for the current page
     let isSourceConnected = true;
     if (location.pathname === '/dashboard') {
-        isSourceConnected = !!(activeGscSite || activeGa4PropertyId || activeGoogleAdsCustomerId || activeFacebookAdAccountId);
+        isSourceConnected = !!(gsc?.gscSiteUrl || ga4?.ga4PropertyId || googleAds?.googleAdsCustomerId || facebook?.facebookAdAccountId);
     } else if (location.pathname === '/dashboard/gsc') {
-        isSourceConnected = !!activeGscSite;
+        isSourceConnected = !!gsc?.gscSiteUrl;
     } else if (location.pathname === '/dashboard/ga4') {
-        isSourceConnected = !!activeGa4PropertyId;
+        isSourceConnected = !!ga4?.ga4PropertyId;
     } else if (location.pathname === '/dashboard/google-ads') {
-        isSourceConnected = !!activeGoogleAdsCustomerId;
+        isSourceConnected = !!googleAds?.googleAdsCustomerId;
     } else if (location.pathname === '/dashboard/facebook-ads') {
-        isSourceConnected = !!activeFacebookAdAccountId;
+        isSourceConnected = !!facebook?.facebookAdAccountId;
     }
 
     if (!isSourceConnected) {

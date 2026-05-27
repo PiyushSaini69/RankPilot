@@ -122,22 +122,22 @@ export const generateGscIntelligence = async (data, siteName) => {
           
           EXPECTED JSON FORMAT:
           {
-            "searchClicks": "Search Clicks Card (8-10 words). Analyze ${data.overview.clicks} clicks vs ${data.priorOverview.clicks} prior. Summarize the growth or dip.",
-            "impressions": "Impressions Card (8-10 words). Analyze ${data.overview.impressions} current vs ${data.priorOverview.impressions} prior. Comment on search visibility.",
-            "avgCtr": "Avg. CTR Card (8-10 words). Current CTR is ${(data.overview.ctr * 100).toFixed(2)}%. Explain what this means for snippet attractiveness.",
-            "avgPosition": "Avg. Position Card (8-10 words). Analyze #${data.overview.position?.toFixed(1)} current vs #${data.priorOverview.position?.toFixed(1)} prior. Comment on overall ranking trend.",
-            "totalQueries": "Search Queries Summary (10-12 words). Total unique queries are ${data.totalQueries}. Discuss the breadth of your search reach.",
-            "totalPages": "Total Pages Card (10-12 words). Analyze ${data.totalPages} ranking pages. Comment on the scope of your content visibility.",
-            "topPosition": "Top Position Strip (10-12 words). Analyze your best rank of #${data.topPosition?.toFixed(1)}. Comment on your highest achievement.",
-            "searchPerformanceOverview": "Search Patterns (40-45 words). Analyze the clicks and impressions trend: ${JSON.stringify(data.timeseries.slice(-7).map(d => ({ date: d.date, clicks: d.clicks, impressions: d.impressions })))}.",
-            "clickThroughRateTrend": "CTR Trend Chart (20-25 words). Analyze this 7-day CTR trend: ${JSON.stringify(data.timeseries.slice(-7).map(d => ({ date: d.date, ctr: (d.ctr * 100).toFixed(2) + '%' })))}. Comment on the engagement trajectory.",
-            "averageRankingPosition": "Position Trend Chart (20-25 words). Analyze this 7-day ranking trend: ${JSON.stringify(data.timeseries.slice(-7).map(d => ({ date: d.date, pos: d.position.toFixed(1) })))}. Identify if you are climbing or slipping.",
-            "lowCTRKeywords": "CTR Opportunities (20-25 words). Analyze these low-CTR high-visibility keywords: ${JSON.stringify(data.queries.filter(q => q.impressions > 50 && q.ctr < 0.05).slice(0, 3).map(q => q.query))}. Suggest quick fixes.",
-            "keywordsNearPage1": "Close to Page 1 (20-25 words). Analyze these keywords ranking 8-20: ${JSON.stringify(data.queries.filter(q => q.position >= 8 && q.position <= 20).slice(0, 3).map(q => q.query))}. Suggest a push strategy.",
-            "topQueries": "Top Queries analysis (20-25 words). Analyze these top keywords: ${JSON.stringify(data.queries.slice(0, 3).map(q => q.query))}. Identify keyword winners.",
-            "topLandingPages": "Top Pages analysis (20-25 words). Analyze these top landing pages: ${JSON.stringify(data.pages.slice(0, 3).map(p => p.page))}. Suggest content optimizations.",
-            "dailyImpressionVolume": "Impression Volume Chart (40-45 words). Analyze this 7-day visibility trend: ${JSON.stringify(data.timeseries.slice(-7).map(d => ({ date: d.date, impr: d.impressions })))}. Comment on search reach density.",
-            "periodComparison": "Master GSC Growth Report (40-45 words). Comprehensive comparison of current vs prior: Clicks (${data.overview.clicks} vs ${data.priorOverview.clicks}), Impressions (${data.overview.impressions} vs ${data.priorOverview.impressions}), CTR (${(data.overview.ctr * 100).toFixed(2)}% vs ${(data.priorOverview.ctr * 100).toFixed(2)}%), Position (#${data.overview.position?.toFixed(1)} vs #${data.priorOverview.position?.toFixed(1)}). Summarize overall SEO trajectory."
+            "searchClicks": "Search Clicks Card (8-10 words). Current Clicks: ${data?.searchClicks?.value ?? 0}, Growth/Change: ${data?.searchClicks?.change ?? 0}%, Trajectory: ${data?.searchClicks?.isPositive ? 'positive' : 'negative'}. Summarize the clicks growth or dip.",
+            "impressions": "Impressions Card (8-10 words). Current Impressions: ${data?.impressions?.value ?? 0}, Growth/Change: ${data?.impressions?.change ?? 0}%, Trajectory: ${data?.impressions?.isPositive ? 'positive' : 'negative'}. Comment on search visibility.",
+            "avgCtr": "Avg. CTR Card (8-10 words). Current Average CTR: ${(data?.avgCTR?.value ?? 0).toFixed(2)}%, Growth/Change: ${data?.avgCTR?.change ?? 0}%. Explain what this means for snippet attractiveness.",
+            "avgPosition": "Avg. Position Card (8-10 words). Current Avg Position: #${(data?.avgPosition?.value ?? 0).toFixed(1)}, Growth/Change: ${data?.avgPosition?.change ?? 0}%. Comment on overall ranking trend.",
+            "totalQueries": "Search Queries Summary (10-12 words). Total unique queries: ${data?.totalQueries ?? 0}. Discuss the breadth of your search reach.",
+            "totalPages": "Total Pages Card (10-12 words). Total ranking pages: ${data?.totalPages ?? 0}. Comment on the scope of your content visibility.",
+            "topPosition": "Top Position Strip (10-12 words). Best Rank position: #${(data?.topPosition ?? 0).toFixed(1)}. Comment on your highest achievement.",
+            "searchPerformanceOverview": "Search Patterns (40-45 words). Analyze the clicks and impressions trend: ${JSON.stringify((data?.searchPerformanceOverview || []).slice(-30))}.",
+            "clickThroughRateTrend": "CTR Trend Chart (20-25 words). Analyze this 30-day CTR trend: ${JSON.stringify((data?.clickThroughRateTrend || []).slice(-30))}. Comment on the engagement trajectory.",
+            "averageRankingPosition": "Position Trend Chart (20-25 words). Analyze this 30-day ranking trend: ${JSON.stringify((data?.averageRankingPosition || []).slice(-30))}. Identify if you are climbing or slipping.",
+            "lowCTRKeywords": "CTR Opportunities (20-25 words). Analyze these low-CTR high-visibility keywords: ${JSON.stringify((data?.lowCTRKeywords || []).slice(0, 30))}. Suggest quick fixes.",
+            "keywordsNearPage1": "Close to Page 1 (20-25 words). Analyze these keywords ranking 8-20: ${JSON.stringify((data?.keywordsNearPage1 || []).slice(0, 30))}. Suggest a push strategy.",
+            "topQueries": "Top Queries analysis (20-25 words). Analyze these top keywords: ${JSON.stringify((data?.topQueries || []).slice(0, 30))}. Identify keyword winners.",
+            "topLandingPages": "Top Pages analysis (20-25 words). Analyze these top landing pages: ${JSON.stringify((data?.topLandingPages || []).slice(0, 30))}. Suggest content optimizations.",
+            "dailyImpressionVolume": "Impression Volume Chart (40-45 words). Analyze this 30-day visibility trend: ${JSON.stringify((data?.dailyImpressionVolume || []).slice(-30))}. Comment on search reach density.",
+            "periodComparison": "Master GSC Growth Report (40-45 words). Comprehensive comparison of current vs prior: Clicks (${data?.periodComparison?.thisPeriod?.clicks ?? 0} vs ${data?.periodComparison?.lastPeriod?.clicks ?? 0}), Impressions (${data?.periodComparison?.thisPeriod?.impressions ?? 0} vs ${data?.periodComparison?.lastPeriod?.impressions ?? 0}), CTR (${(data?.periodComparison?.thisPeriod?.ctr ?? 0).toFixed(2)}% vs ${(data?.periodComparison?.lastPeriod?.ctr ?? 0).toFixed(2)}%), Position (#${data?.periodComparison?.thisPeriod?.position?.toFixed(1) ?? '0.0'} vs #${data?.periodComparison?.lastPeriod?.position?.toFixed(1) ?? '0.0'}). Summarize overall SEO trajectory."
           }
 
           STRICT RULES:
@@ -150,34 +150,31 @@ export const generateGscIntelligence = async (data, siteName) => {
         return JSON.parse(aiRes.content.replace(/```json|```/g, '').trim());
     } catch (error) {
         console.error("GSC AI Intelligence failed:", error);
-        const clickDiff = data.overview.clicks - data.priorOverview.clicks;
-        const impDiff = data.overview.impressions - data.priorOverview.impressions;
-        const posDiff = data.overview.position - data.priorOverview.position; // Lower is better
-
+        
         return {
             isFallback: true,
-            searchClicks: clickDiff >= 0
-                ? `Search clicks grew to ${data.overview.clicks}. Your content attracts interest.`
-                : `Clicks are at ${data.overview.clicks}. Update title tags to boost CTR.`,
-            impressions: impDiff >= 0
-                ? `Visibility rose to ${data.overview.impressions}. Your brand appears more often.`
-                : `Impressions are at ${data.overview.impressions}. Expand content to reach more.`,
-            avgCtr: `CTR is ${(data.overview.ctr * 100).toFixed(2)}%. Your search snippets effectively convince visitors.`,
-            totalPages: `You have ${data.totalPages} ranking pages. This ensures multiple entry points for visitors.`,
-            avgPosition: posDiff <= 0
-                ? `Rank improved to #${data.overview.position?.toFixed(1)}. You're climbing Google rankings.`
-                : `Position is #${data.overview.position?.toFixed(1)}. Target high-intent keywords to improve.`,
-            topPosition: `Achieved top rank #${data.topPosition?.toFixed(1)}. Maintaining this position is key to success.`,
-            clickThroughRateTrend: `CTR is averaging ${(data.overview.ctr * 100).toFixed(2)}%. This indicates your snippets capture audience interest. Optimize meta tags to further boost your engagement rates.`,
-            averageRankingPosition: `Ranking position shows ${posDiff <= 0 ? 'positive improvement' : 'steady performance'}. Continue optimizing top pages to maintain this competitive edge and secure higher organic visibility.`,
-            lowCTRKeywords: `You have high-visibility keywords with low CTR. Updating titles to be more enticing could significantly boost click volume and traffic efficiency.`,
-            keywordsNearPage1: `Keywords like "${data.queries.find(q => q.position >= 8 && q.position <= 20)?.query || 'secondary terms'}" are near Page 1. Small content updates or internal links could push them higher.`,
-            dailyImpressionVolume: `Search visibility shows ${impDiff >= 0 ? 'growth' : 'stability'} with ${data.overview.impressions} total impressions. Consistent visibility across search results is a key indicator of your brand authority. Monitoring daily volume helps you understand how seasonal trends affect your overall search market share.`,
-            topQueries: `Top queries drive most organic traffic. Focusing on maintaining these rankings ensures steady flow. Identify new keyword variations to expand your search reach.`,
-            topLandingPages: `Top landing pages are valuable assets. Optimizing their conversion paths maximizes organic traffic ROI. Refresh content regularly to stay relevant and maintain authority.`,
-            totalQueries: `You're ranking for ${data.totalQueries} unique queries. This diverse foundation helps growth.`,
-            searchPerformanceOverview: `Your search trends show ${clickDiff >= 0 ? 'positive growth' : 'steady performance'}. By analyzing weekly peaks, you can identify high-activity periods. Your current volume of ${data.overview.clicks} clicks indicates that your content strategy is effectively capturing organic demand across your core search terms.`,
-            periodComparison: `SEO trajectory for ${data.overview.clicks} clicks is ${clickDiff >= 0 ? 'positive' : 'stable'}. Focusing on winning keywords and improving page CTR positions you for expansion. Your combined metrics suggest that refined optimization of your highest-impression pages will yield the best growth.`
+            searchClicks: (data?.searchClicks?.change || 0) >= 0
+                ? `Search clicks grew to ${data?.searchClicks?.value || 0} (${data?.searchClicks?.change || 0}% growth). Your acquisition strategy is performing well.`
+                : `Clicks are at ${data?.searchClicks?.value || 0} (${data?.searchClicks?.change || 0}% dip). Consider updating titles and descriptions to boost traffic.`,
+            impressions: (data?.impressions?.change || 0) >= 0
+                ? `Search visibility rose to ${data?.impressions?.value || 0} (${data?.impressions?.change || 0}% growth). Your brand is gaining consistent exposure.`
+                : `Impressions are at ${data?.impressions?.value || 0} (${data?.impressions?.change || 0}% dip). Focus on expanding your keyword coverage and content reach.`,
+            avgCtr: `Average CTR is ${(data?.avgCTR?.value || 0).toFixed(2)}% (change: ${data?.avgCTR?.change || 0}%). Optimizing search snippets could further boost user interest.`,
+            totalPages: `You have ${data?.totalPages || 0} active ranking pages. This ensures multiple organic entrance points.`,
+            avgPosition: (data?.avgPosition?.change || 0) >= 0
+                ? `Average rank improved to #${(data?.avgPosition?.value || 0).toFixed(1)} (up ${data?.avgPosition?.change || 0}%). Your keywords are climbing search pages.`
+                : `Average rank is at #${(data?.avgPosition?.value || 0).toFixed(1)} (${data?.avgPosition?.change || 0}% change). Target high-intent queries to regain rankings.`,
+            topPosition: `Achieved a top position of #${Number(data?.topPosition || 0).toFixed(1)} across your search spectrum.`,
+            clickThroughRateTrend: `Your click-through rate is averaging ${(data?.avgCTR?.value || 0).toFixed(2)}%. Consistent CTR trends indicate healthy audience engagement.`,
+            averageRankingPosition: `Ranking position is holding at #${(data?.avgPosition?.value || 0).toFixed(1)}. Focus on content updates to maintain organic visibility.`,
+            lowCTRKeywords: `You have high-impression keywords with lower-than-average CTR. Revamping search meta titles can quickly drive clicks.`,
+            keywordsNearPage1: `Several keywords like "${(data?.keywordsNearPage1 || [])[0]?.query || 'secondary keywords'}" are very close to Google Page 1. A small content boost could push them to the top.`,
+            dailyImpressionVolume: `Daily impression volume is stable at ${data?.impressions?.value || 0} total impressions. Continuous search reach builds steady brand authority.`,
+            topQueries: `Your top queries drive the majority of your organic traffic. Focus on preserving these primary rankings.`,
+            topLandingPages: `Top landing pages are valuable traffic sources. Maximize conversions on these pages to optimize ROI.`,
+            totalQueries: `You are ranking for ${data?.totalQueries || 0} unique search queries. This diverse foundation helps growth.`,
+            searchPerformanceOverview: `Your search trends show ${(data?.searchClicks?.change || 0) >= 0 ? 'positive growth' : 'steady performance'}. By analyzing weekly peaks, you can identify high-activity periods. Your current volume of ${data?.searchClicks?.value || 0} clicks indicates that your content strategy is effectively capturing organic demand across your core search terms.`,
+            periodComparison: `Comparing today's metrics vs prior period shows a stable organic trajectory. Click growth is ${data?.searchClicks?.change || 0}% and impression growth is ${data?.impressions?.change || 0}%.`
         };
     }
 };

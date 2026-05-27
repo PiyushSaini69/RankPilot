@@ -95,6 +95,8 @@ import { formatDistanceToNow } from 'date-fns';
         const [isCustomDateMode, setIsCustomDateMode] = useState(false);
         const [tempDateRange, setTempDateRange] = useState({ start: startDate, end: endDate });
         const [isExportingPdf, setIsExportingPdf] = useState(false);
+        const [showAllLowCtr, setShowAllLowCtr] = useState(false);
+        const [showAllNearPage1, setShowAllNearPage1] = useState(false);
 
         const presetLabels = {
             'today': 'Today',
@@ -183,10 +185,7 @@ import { formatDistanceToNow } from 'date-fns';
             });
 
             try {
-                // 2. Perform sync
                 await api.post('/analytics/sync', { siteId: activeSiteId });
-
-                // 3. Update store with latest metadata (time, status)
                 const res = await getActiveAccounts(activeSiteId);
                 const data = res.data || {};
                 setAccounts({
@@ -198,11 +197,9 @@ import { formatDistanceToNow } from 'date-fns';
                     }
                 });
 
-                // 4. Load the dashboard data
                 await loadData();
             } catch (err) {
                 console.error('Manual sync failed:', err);
-                // Even on error, update metadata to clear syncing status
                 const res = await getActiveAccounts(activeSiteId).catch(() => ({ data: {} }));
                 const data = res.data || {};
                 setAccounts({
@@ -232,15 +229,12 @@ import { formatDistanceToNow } from 'date-fns';
             return () => clearInterval(interval);
         }, [loadData]);
         
-        // Refresh data when sync completes
         useEffect(() => {
             if (gsc?.gscSyncStatus !== 'syncing' && activeSiteId) {
-                console.log('GSC Sync completed or idle, refreshing data...');
                 loadData();
             }
         }, [gsc?.gscSyncStatus, activeSiteId, loadData]);
 
-        // Background polling for GSC sync status
         useEffect(() => {
             let interval;
             if (activeSiteId && gsc?.gscSyncStatus === 'syncing') {
@@ -267,13 +261,10 @@ import { formatDistanceToNow } from 'date-fns';
             return () => clearInterval(interval);
         }, [activeSiteId, gsc?.gscSyncStatus, setAccounts]);
 
-        // Sync chal raha hai to shimmer dikhao
         const isSyncing = gsc?.gscHistoricalComplete === false;
         const syncedDays = gsc?.gscHistoricalChunkIndex || 0;
         const syncProgress = gsc?.gscSyncProgress || 0;
-        const totalSyncDays = syncProgress > 0
-            ? Math.min(90, Math.round(syncedDays / (syncProgress / 100) / 10) * 10)
-            : 90;
+        const totalSyncDays = 90;
 
         const isConnected = !!ga4?.ga4PropertyId || !!activeGscSite;
         const hasSite = !!activeGscSite;
@@ -1027,19 +1018,31 @@ Based on this complete list, please analyze:
                                     <p className="text-xs font-semibold">No low-CTR keywords found</p>
                                 </div>
                             ) : (
-                                <div className="space-y-3">
-                                    {(data?.lowCTRKeywords || []).slice(0, 30).map((q,i) => (
-                                        <div key={i} className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-800/30">
-                                            <div className="flex-1 min-w-0">
-                                                <div className="text-xs font-bold text-neutral-800 dark:text-white truncate">{q.query}</div>
-                                                <div className="text-[11px] text-neutral-400 mt-0.5">{formatNumber(q.impressions)} impressions • rank #{q.position?.toFixed(1)}</div>
+                                <div className="space-y-3 flex-1 flex flex-col justify-between">
+                                    <div className="space-y-3">
+                                        {(data?.lowCTRKeywords || []).slice(0, showAllLowCtr ? 30 : 5).map((q,i) => (
+                                            <div key={i} className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-800/30">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-xs font-bold text-neutral-800 dark:text-white truncate">{q.query}</div>
+                                                    <div className="text-[11px] text-neutral-400 mt-0.5">{formatNumber(q.impressions)} impressions • rank #{q.position?.toFixed(1)}</div>
+                                                </div>
+                                                <div className="text-right ml-3">
+                                                    <div className="text-xs font-black text-amber-600 dark:text-amber-400">{q.ctr.toFixed(1)}% CTR</div>
+                                                    <div className="text-[11px] text-neutral-400">{q.clicks} clicks</div>
+                                                </div>
                                             </div>
-                                            <div className="text-right ml-3">
-                                                <div className="text-xs font-black text-amber-600 dark:text-amber-400">{q.ctr.toFixed(1)}% CTR</div>
-                                                <div className="text-[11px] text-neutral-400">{q.clicks} clicks</div>
-                                            </div>
+                                        ))}
+                                    </div>
+                                    {(data?.lowCTRKeywords || []).length > 5 && (
+                                        <div className="flex justify-center mt-4">
+                                            <button
+                                                onClick={() => setShowAllLowCtr(!showAllLowCtr)}
+                                                className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors flex items-center gap-1.5 py-1.5 px-4 bg-amber-500/15 dark:bg-amber-400/5 rounded-xl border border-amber-500/30 dark:border-amber-400/15 shadow-sm active:scale-95 duration-200"
+                                            >
+                                                {showAllLowCtr ? "Show Less" : `View All (${data.lowCTRKeywords.length})`}
+                                            </button>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             )}
                             <div className="mt-auto pt-4">
@@ -1080,19 +1083,31 @@ Please deliver a customized ranking roadmap for these keywords:
                                     <p className="text-xs font-semibold">No near-page-1 keywords</p>
                                 </div>
                             ) : (
-                                <div className="space-y-3">
-                                    {(data?.keywordsNearPage1 || []).slice(0, 30).map((q,i) => (
-                                        <div key={i} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-100 dark:border-green-800/30">
-                                            <div className="flex-1 min-w-0">
-                                                <div className="text-xs font-bold text-neutral-800 dark:text-white truncate">{q.query}</div>
-                                                <div className="text-[11px] text-neutral-400 mt-0.5">{formatNumber(q.impressions)} impressions • {q.clicks} clicks</div>
+                                <div className="space-y-3 flex-1 flex flex-col justify-between">
+                                    <div className="space-y-3">
+                                        {(data?.keywordsNearPage1 || []).slice(0, showAllNearPage1 ? 30 : 5).map((q,i) => (
+                                            <div key={i} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-100 dark:border-green-800/30">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-xs font-bold text-neutral-800 dark:text-white truncate">{q.query}</div>
+                                                    <div className="text-[11px] text-neutral-400 mt-0.5">{formatNumber(q.impressions)} impressions • {q.clicks} clicks</div>
+                                                </div>
+                                                <div className="text-right ml-3">
+                                                    <div className="text-xs font-black text-green-600 dark:text-green-400">Pos #{q.position?.toFixed(1)}</div>
+                                                    <div className="text-[11px] text-neutral-400">{q.ctr.toFixed(1)}% CTR</div>
+                                                </div>
                                             </div>
-                                            <div className="text-right ml-3">
-                                                <div className="text-xs font-black text-green-600 dark:text-green-400">Pos #{q.position?.toFixed(1)}</div>
-                                                <div className="text-[11px] text-neutral-400">{q.ctr.toFixed(1)}% CTR</div>
-                                            </div>
+                                        ))}
+                                    </div>
+                                    {(data?.keywordsNearPage1 || []).length > 5 && (
+                                        <div className="flex justify-center mt-4">
+                                            <button
+                                                onClick={() => setShowAllNearPage1(!showAllNearPage1)}
+                                                className="text-xs font-bold text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-colors flex items-center gap-1.5 py-1.5 px-4 bg-green-500/15 dark:bg-green-400/5 rounded-xl border border-green-500/30 dark:border-green-400/15 shadow-sm active:scale-95 duration-200"
+                                            >
+                                                {showAllNearPage1 ? "Show Less" : `View All (${data.keywordsNearPage1.length})`}
+                                            </button>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             )}
                             <div className="mt-auto pt-4">
