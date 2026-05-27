@@ -222,7 +222,6 @@ import { formatDistanceToNow } from 'date-fns';
 
         useEffect(() => {
             const interval = setInterval(() => {
-                console.log('Auto-refreshing GSC data...');
                 loadData();
             }, 30 * 60 * 1000);
 
@@ -260,6 +259,24 @@ import { formatDistanceToNow } from 'date-fns';
             }
             return () => clearInterval(interval);
         }, [activeSiteId, gsc?.gscSyncStatus, setAccounts]);
+
+        useEffect(() => {
+            const handleFocus = () => {
+                loadData();
+            };
+
+            const handleOnline = () => {
+                loadData();
+            };
+
+            window.addEventListener('focus', handleFocus);
+            window.addEventListener('online', handleOnline);
+
+            return () => {
+                window.removeEventListener('focus', handleFocus);
+                window.removeEventListener('online', handleOnline);
+            };
+        }, [loadData]);
 
         const isSyncing = gsc?.gscHistoricalComplete === false;
         const syncedDays = gsc?.gscHistoricalChunkIndex || 0;
