@@ -366,6 +366,22 @@ const DashboardPage = () => {
     return () => clearInterval(interval);
   }, [isSyncingHistorical, setUserSites]);
 
+  // Tab focus ya internet wapas aane par refresh
+  useEffect(() => {
+    const handleFocus = () => {
+      loadDashboardData();
+    };
+    const handleOnline = () => {
+      loadDashboardData();
+    };
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [loadDashboardData]);
+
   const { user } = useAuthStore();
 
 
