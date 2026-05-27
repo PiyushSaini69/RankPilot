@@ -701,17 +701,12 @@ import { formatDistanceToNow } from 'date-fns';
                                 <button
                                     onClick={() => {
                                         const dailyDataStr = (data?.searchPerformanceOverview || []).map(d => `- Date: ${d.date} | Clicks: ${d.clicks} | Impressions: ${d.impressions}`).join('\n');
-                                        openWithQuestion(`Act as my elite SEO Growth Strategist and Analytics Expert. Please perform a detailed analysis of my Search Performance Overview.
-Here is the complete daily dataset for the selected period (${startDate} to ${endDate}) used in this chart:
-- Current Period Clicks: ${formatNumber(data?.searchClicks?.value || 0)} (${data?.searchClicks?.change || 0}% change vs prior)
-- Current Period Impressions: ${formatNumber(data?.impressions?.value || 0)} (${data?.impressions?.change || 0}% change vs prior)
-- Prior Period Clicks: ${formatNumber(data?.periodComparison?.lastPeriod?.clicks || 0)}
-- Prior Period Impressions: ${formatNumber(data?.periodComparison?.lastPeriod?.impressions || 0)}
+                                        openWithQuestion(`Act as my elite SEO Growth Strategist and Analytics Expert. Analyze my Search Performance Overview daily dataset for the period ${startDate} to ${endDate}:
 
 Daily Click & Impression Trend:
 ${dailyDataStr}
 
-What significant trends, organic visibility spikes, seasonal patterns, or performance anomalies do you identify? Provide detailed actionable insights based on this data.`);
+Identify significant trends, organic visibility spikes, seasonal patterns, or anomalies and provide detailed actionable insights.`);
                                     }}
                                     className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                 >
@@ -823,15 +818,12 @@ What significant trends, organic visibility spikes, seasonal patterns, or perfor
                                     <button 
                                         onClick={() => {
                                             const dailyCtrStr = (data?.clickThroughRateTrend || []).map(d => `- Date: ${d.date} | CTR: ${d.ctr}%`).join('\n');
-                                            openWithQuestion(`Act as my elite SEO Growth Strategist. Analyze my GSC Click-Through Rate (CTR) Trend.
-Here is the complete daily CTR dataset for the selected period (${startDate} to ${endDate}) used in this chart:
-- Current Average CTR: ${(data?.avgCTR?.value || 0).toFixed(2)}% (${data?.avgCTR?.change || 0}% change vs prior)
-- Prior Average CTR: ${(data?.periodComparison?.lastPeriod?.ctr || 0).toFixed(2)}%
+                                            openWithQuestion(`Act as my elite SEO Growth Strategist. Analyze my GSC Click-Through Rate (CTR) Trend for the period ${startDate} to ${endDate}:
 
 Daily CTR Trend:
 ${dailyCtrStr}
 
-Please evaluate our click engagement profile. Is the clickability of our search snippets improving or declining over this range? What are the key takeaways, and how can we optimize our snippets to maximize search CTR?`);
+Evaluate our click engagement profile. What are the key takeaways, and how can we optimize our snippets to maximize search CTR?`);
                                         }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
@@ -895,15 +887,12 @@ Please evaluate our click engagement profile. Is the clickability of our search 
                                     <button 
                                         onClick={() => {
                                             const dailyPosStr = (data?.averageRankingPosition || []).map(d => `- Date: ${d.date} | Avg Position: #${d.position}`).join('\n');
-                                            openWithQuestion(`Act as my elite SEO Ranking Coach. Analyze my Average Ranking Position trend.
-Here is the complete daily average position dataset for the selected period (${startDate} to ${endDate}) used in this chart:
-- Current Average Position: #${(data?.avgPosition?.value || 0).toFixed(1)} (${data?.avgPosition?.change || 0}% change vs prior)
-- Prior Average Position: #${(data?.periodComparison?.lastPeriod?.position || 0).toFixed(1)}
+                                            openWithQuestion(`Act as my elite SEO Ranking Coach. Analyze my Average Ranking Position trend for the period ${startDate} to ${endDate}:
 
 Daily Position Trend:
 ${dailyPosStr}
 
-Based on this keyword ranking trajectory, are our search positions climbing, stabilizing, or slipping over time? What is the best SEO playbook to optimize our content structure to lift our overall positions in Google's index?`);
+Evaluate our search positions climbing, stabilizing, or slipping over time. What is the best SEO playbook to optimize our content structure to lift our overall positions?`);
                                         }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
@@ -965,15 +954,12 @@ Based on this keyword ranking trajectory, are our search positions climbing, sta
                                     <button 
                                         onClick={() => {
                                             const allLowCtrStr = (data?.lowCTRKeywords || []).map((q, idx) => `${idx + 1}. Keyword: "${q.query}" | Impressions: ${formatNumber(q.impressions)} | Clicks: ${formatNumber(q.clicks)} | CTR: ${q.ctr.toFixed(1)}% | Avg Position: #${q.position?.toFixed(1)}`).join('\n');
-                                            openWithQuestion(`Act as my elite SEO Growth Strategist. I want you to perform a thorough content and metadata optimization audit of my Low CTR Keywords (keywords with high search visibility/impressions but sub-optimal clicks).
-    
-Here is the COMPLETE dataset of Low CTR keyword opportunities from this section:
+                                            openWithQuestion(`Act as my elite SEO Growth Strategist. Analyze my Low CTR Keyword dataset to capture missed clicks:
+
+Low CTR Keyword Opportunities:
 ${allLowCtrStr}
 
-Based on this complete list, please analyze:
-1. Which keywords are our highest priority based on impression volume?
-2. What are the likely causes for their low Click-Through Rates (e.g. alignment with search intent, unappealing meta titles/descriptions, ranking in position clusters where rich snippets are dominant)?
-3. A step-by-step metadata optimization blueprint and search intent audit plan to capture our missed click opportunities.`);
+Please evaluate the highest priority keywords, identify potential reasons for low click-through rates, and deliver a step-by-step metadata optimization blueprint.`);
                                         }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
@@ -1031,14 +1017,12 @@ Based on this complete list, please analyze:
                                     <button 
                                         onClick={() => {
                                             const allNearStr = (data?.keywordsNearPage1 || []).map((q, idx) => `${idx + 1}. Keyword: "${q.query}" | Avg Position: #${q.position?.toFixed(1)} | Impressions: ${formatNumber(q.impressions)} | Clicks: ${formatNumber(q.clicks)} | CTR: ${q.ctr.toFixed(1)}%`).join('\n');
-                                            openWithQuestion(`Act as my expert SEO Coach and ranking strategist. I have a list of high-opportunity keywords ranking "Near Page 1" (positions #8 to #20) where targeted efforts could yield rapid, first-page organic growth.
+                                            openWithQuestion(`Act as my expert SEO Coach and ranking strategist. Analyze these high-opportunity keywords ranking near Page 1 (positions #8 to #20):
 
-Here is the COMPLETE dataset of keywords near Page 1 from this section:
+Keywords Near Page 1:
 ${allNearStr}
 
-Please deliver a customized ranking roadmap for these keywords:
-1. Which terms have the highest impressions and should be prioritized first?
-2. What step-by-step semantic content expansion, internal link optimization, and topical authority building strategies should we execute to push these terms out of the #8-#20 doldrums and directly onto Page 1?`);
+Please deliver a step-by-step ranking roadmap including priority recommendations, semantic content expansions, and link optimization to push these terms onto Page 1.`);
                                         }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
@@ -1101,15 +1085,12 @@ Please deliver a customized ranking roadmap for these keywords:
                                     <button 
                                         onClick={() => {
                                             const allQueriesStr = (data?.topQueries || []).map((q, idx) => `${idx + 1}. Query: "${q.query}" | Clicks: ${formatNumber(q.clicks)} | Impressions: ${formatNumber(q.impressions)} | CTR: ${q.ctr.toFixed(2)}% | Position: #${q.position?.toFixed(1)}`).join('\n');
-                                            openWithQuestion(`Act as my elite SEO Strategist. I want you to perform a thorough analysis of my top-performing search queries driving organic traffic.
+                                            openWithQuestion(`Act as my elite SEO Strategist. Analyze my top-performing organic search queries driving search traffic:
 
-Here is the COMPLETE dataset of my top organic search queries from this section:
+Top Organic Queries:
 ${allQueriesStr}
 
-Please provide:
-1. A tactical evaluation of our keyword performance profile.
-2. Recommendations on how to defend and secure these high-ranking terms against competitors.
-3. A semantic clustering plan to target high-value related long-tail queries and capture additional organic search volumes.`);
+Provide a tactical evaluation of keyword performance, organic defense tactics to secure these rankings, and long-tail query expansions.`);
                                         }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
@@ -1145,14 +1126,12 @@ Please provide:
                                     <button 
                                         onClick={() => {
                                             const allPagesStr = (data?.topLandingPages || []).map((p, idx) => `${idx + 1}. Page URL: ${p.page} | Clicks: ${formatNumber(p.clicks)} | Impressions: ${formatNumber(p.impressions)} | CTR: ${p.ctr.toFixed(2)}% | Position: #${p.position?.toFixed(1)}`).join('\n');
-                                            openWithQuestion(`Act as my expert Conversion Rate Optimization (CRO) and organic engagement specialist. Let's analyze our top organic landing pages.
+                                            openWithQuestion(`Act as my expert organic engagement specialist. Perform a landing page performance and organic visibility audit:
 
-Here is the COMPLETE dataset of our top organic landing pages from this section:
+Top Landing Pages:
 ${allPagesStr}
 
-Please perform a thorough audit:
-1. Identify landing pages with high visibility (Impressions) but relatively low conversion CTR or rankings, indicating high potential for optimization.
-2. Outline specific, actionable CRO strategies, layout improvements, and call-to-action designs we should implement on these high-traffic entry points to engage and convert organic visitors.`);
+Identify pages with high impressions but low conversion CTR and suggest clear CRO improvements and content layout optimizations.`);
                                         }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
@@ -1190,14 +1169,12 @@ Please perform a thorough audit:
                                 <button 
                                     onClick={() => {
                                         const impressionsTrendStr = (data?.dailyImpressionVolume || []).map(d => `- Date: ${d.date} | Impressions: ${d.impressions}`).join('\n');
-                                        openWithQuestion(`Act as my expert Search Visibility Strategist. Let's perform a comprehensive audit of our daily organic impression volume and brand exposure.
+                                        openWithQuestion(`Act as my expert Search Visibility Strategist. Analyze my daily organic impression volume and brand exposure:
 
-Here is the complete data used in this section:
-- Total Impressions this period: ${formatNumber(data?.impressions?.value || 0)} (${data?.impressions?.change}% vs prior period)
-- Daily Impression Trend:
+Daily Impression Trend:
 ${impressionsTrendStr}
 
-What does this overall impression density and trajectory tell us about our brand's growing visibility, search share of voice, and seasonal performance variations? What steps can we take to keep driving these numbers higher?`);
+Evaluate this impression trajectory, identifying our search share of voice, brand exposure spikes, and tactical recommendations to keep driving visibility higher.`);
                                     }}
                                     className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                 >
@@ -1258,28 +1235,15 @@ What does this overall impression density and trajectory tell us about our brand
                             <button 
                                 onClick={() => {
                                     const comp = data?.periodComparison;
-                                    openWithQuestion(`Act as my elite SEO Growth Analyst. Provide a comprehensive Organic Search Executive Audit based on my Period Comparison dataset.
+                                    openWithQuestion(`Act as my elite SEO Growth Analyst. Analyze my Organic Search Period Comparison dataset (This Period vs Prior Period):
 
-Here is the complete comparison dataset for this section (This Period vs Prior Period):
-📊 [PERIOD-OVER-PERIOD COMPARISON]
-1. Search Clicks:
-   - This Period: ${formatNumber(comp?.thisPeriod?.clicks || 0)}
-   - Last Period: ${formatNumber(comp?.lastPeriod?.clicks || 0)}
-   - Shift: ${comp?.change?.clicks || 0}% change
-2. Search Impressions:
-   - This Period: ${formatNumber(comp?.thisPeriod?.impressions || 0)}
-   - Last Period: ${formatNumber(comp?.lastPeriod?.impressions || 0)}
-   - Shift: ${comp?.change?.impressions || 0}% change
-3. Average CTR:
-   - This Period: ${(comp?.thisPeriod?.ctr || 0).toFixed(2)}%
-   - Last Period: ${(comp?.lastPeriod?.ctr || 0).toFixed(2)}%
-   - Shift: ${comp?.change?.ctr || 0}% change
-4. Average Ranking Position:
-   - This Period: #${(comp?.thisPeriod?.position || 0).toFixed(1)}
-   - Last Period: #${(comp?.lastPeriod?.position || 0).toFixed(1)}
-   - Shift: ${comp?.change?.position || 0}% change
+📊 [PERIOD COMPARISON]
+- Clicks: ${formatNumber(comp?.thisPeriod?.clicks || 0)} vs ${formatNumber(comp?.lastPeriod?.clicks || 0)} (${comp?.change?.clicks || 0}% change)
+- Impressions: ${formatNumber(comp?.thisPeriod?.impressions || 0)} vs ${formatNumber(comp?.lastPeriod?.impressions || 0)} (${comp?.change?.impressions || 0}% change)
+- Average CTR: ${(comp?.thisPeriod?.ctr || 0).toFixed(2)}% vs ${(comp?.lastPeriod?.ctr || 0).toFixed(2)}% (${comp?.change?.ctr || 0}% change)
+- Avg Position: #${(comp?.thisPeriod?.position || 0).toFixed(1)} vs #${(comp?.lastPeriod?.position || 0).toFixed(1)} (${comp?.change?.position || 0}% change)
 
-Please deliver a detailed, professional executive SEO audit analyzing this growth shift, highlighting major positive transitions, potential traffic losses, CTR health, and a prioritized list of high-level organic initiatives for the upcoming period.`);
+Please deliver an executive SEO audit analyzing this growth trajectory, key performance highlights, and priority organic growth recommendations.`);
                                 }}
                                 className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
