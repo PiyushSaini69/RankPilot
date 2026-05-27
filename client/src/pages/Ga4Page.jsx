@@ -757,7 +757,12 @@ const Ga4Page = () => {
                             </div>
                             <div className="p-2 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 flex items-center gap-2">
                                 <button
-                                    onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my session trend: ${(data?.sessionsOverTime || []).slice(-30).map(d => `${d.date}: ${d.sessions}`).join(', ')}. Identify any patterns (like weekend surges) and provide a 1-sentence summary + 1-sentence strategic insight.`)}
+                                    onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my Sessions Over Time trend for the period ${startDate} to ${endDate}:
+
+                                    Daily Session Trend:
+                                    ${(data?.sessionsOverTime || []).slice(-30).map(d => `- Date: ${d.date} | Sessions: ${d.sessions}`).join('\n')}
+
+                                    Identify any patterns (like weekend surges) and provide a 1-sentence summary + 1-sentence strategic insight.`)}
                                     className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                 >
                                     <SparklesIcon className="w-3.5 h-3.5" />
@@ -842,7 +847,14 @@ const Ga4Page = () => {
                         <div className="flex items-center justify-between mb-1">
                             <h3 className="text-base font-black text-neutral-900 dark:text-white">New vs Returning Users</h3>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my user split: Total Users ${formatNumber(data?.newVsReturningUsers?.totalUsers)}, New Users ${formatNumber(data?.newVsReturningUsers?.totalNewUsers)} (${data?.newVsReturningUsers?.newUsersPercentage || '0'}%) vs Returning Users ${formatNumber(data?.newVsReturningUsers?.totalReturningUsers)} (${data?.newVsReturningUsers?.returningUsersPercentage || '0'}%). Provide a 1-sentence summary of this loyalty and 1-sentence strategic insight to improve retention.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my user loyalty split (New vs Returning Users) for the period ${startDate} to ${endDate}:
+
+                                    User Mix:
+                                    - Total Users: ${formatNumber(data?.newVsReturningUsers?.totalUsers)}
+                                    - New Users: ${formatNumber(data?.newVsReturningUsers?.totalNewUsers)} (${data?.newVsReturningUsers?.newUsersPercentage || '0'}%)
+                                    - Returning Users: ${formatNumber(data?.newVsReturningUsers?.totalReturningUsers)} (${data?.newVsReturningUsers?.returningUsersPercentage || '0'}%)
+
+                                    Provide a 1-sentence summary of this user loyalty and a 1-sentence strategic insight to improve retention.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -925,7 +937,14 @@ const Ga4Page = () => {
                         </div>
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my engagement: ${data?.engagementRates?.engagementRate || '0'}% rate, ${formatNumber(data?.engagementRates?.engagedSessions || 0)} engaged sessions, and ${data?.engagementRates?.avgEngagedTime} duration. Provide a 1-sentence summary + 1-sentence strategic insight.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my engagement metrics for the period ${startDate} to ${endDate}:
+
+                                    Engagement Profile:
+                                    - Engagement Rate: ${data?.engagementRates?.engagementRate || '0'}%
+                                    - Engaged Sessions: ${formatNumber(data?.engagementRates?.engagedSessions || 0)}
+                                    - Avg Engaged Time: ${data?.engagementRates?.avgEngagedTime}
+
+                                    Provide a 1-sentence summary of content resonance and a 1-sentence strategic insight to expand engagement.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -972,7 +991,12 @@ const Ga4Page = () => {
                         <div className="flex items-center justify-between mb-1">
                             <h3 className="text-sm font-black text-neutral-900 dark:text-white">Bounce Rate Over Time</h3>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my bounce trend: ${(data?.bounceRateOverTime || []).slice(-30).map(d => `${d.date}: ${d.bounceRate}%`).join(', ')}. Provide a 1-sentence summary of stability and 1-sentence strategic insight to fix spikes.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my daily bounce rate trend for the period ${startDate} to ${endDate}:
+
+                                    Daily Bounce Rate Trend:
+                                    ${(data?.bounceRateOverTime || []).slice(-30).map(d => `- Date: ${d.date} | Bounce Rate: ${d.bounceRate}%`).join('\n')}
+
+                                    Provide a 1-sentence summary of stability and a 1-sentence strategic insight to fix spikes.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1031,7 +1055,12 @@ const Ga4Page = () => {
                         <div className="flex items-center justify-between mb-1">
                             <h3 className="text-sm font-black text-neutral-900 dark:text-white">Page Views Over Time</h3>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my traffic patterns: ${(data?.pageViewsOverTime || []).slice(-30).map(d => `${d.date}: ${formatNumber(d.pageViews)} views`).join(', ')}. Provide a 1-sentence summary of the pattern and 1-sentence strategic volume insight.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my daily page views trend for the period ${startDate} to ${endDate}:
+
+                                    Daily Page Views Trend:
+                                    ${(data?.pageViewsOverTime || []).slice(-30).map(d => `- Date: ${d.date} | Page Views: ${formatNumber(d.pageViews)}`).join('\n')}
+
+                                    Provide a 1-sentence summary of the traffic pattern and a 1-sentence strategic volume optimization insight.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1088,7 +1117,12 @@ const Ga4Page = () => {
                         <div className="p-5 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-dark-surface/50 flex items-center justify-between">
                             <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Top Traffic Sources </h3>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my top traffic sources: ${(data?.topTrafficSources || []).slice(0, 5).map(t => `${t.source} (${t.channel}): ${formatNumber(t.sessions)} sessions, ${formatNumber(t.users)} users`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic channel insight.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my top organic traffic sources for the period ${startDate} to ${endDate}:
+
+                                Top Traffic Sources:
+                                ${(data?.topTrafficSources || []).slice(0, 10).map((t, idx) => `${idx + 1}. Source: ${t.source} (${t.channel}) | Sessions: ${formatNumber(t.sessions)} | Users: ${formatNumber(t.users)}`).join('\n')}
+
+                                Provide a 1-sentence summary of channel acquisition performance and a 1-sentence strategic acquisition scaling recommendation.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1120,7 +1154,12 @@ const Ga4Page = () => {
                         <div className="p-5 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-dark-surface/50 flex items-center justify-between">
                             <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Top Pages</h3>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my top pages: ${(data?.topPages || []).slice(0, 5).map(p => `"${p.title}" (${p.path}): ${formatNumber(p.views)} views, ${formatNumber(p.users)} users, ${p.bounceRate}% bounce rate`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic optimization insight.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my top-performing content paths and landing pages for the period ${startDate} to ${endDate}:
+
+                                Top Content Pages:
+                                ${(data?.topPages || []).slice(0, 10).map((p, idx) => `${idx + 1}. Path: ${p.path} | Title: "${p.title || 'Untitled'}" | Views: ${formatNumber(p.views)} | Users: ${formatNumber(p.users)} | Bounce Rate: ${p.bounceRate}`).join('\n')}
+
+                                Provide a 1-sentence content performance summary and a 1-sentence actionable user engagement optimization recommendation.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1159,7 +1198,13 @@ const Ga4Page = () => {
                                 <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Sessions by device type</p>
                             </div>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze device breakdown: Total Sessions ${formatNumber(data?.deviceBreakdown?.totalSessions)}, breakdown: ${(data?.deviceBreakdown?.devices || []).map(d => `${d.name}: ${formatNumber(d.value)} sessions (${d.percentage}%)`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic UX insight.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my traffic device breakdown for the period ${startDate} to ${endDate}:
+
+                                    Device Breakdown:
+                                    - Total Sessions: ${formatNumber(data?.deviceBreakdown?.totalSessions)}
+                                    ${(data?.deviceBreakdown?.devices || []).map(d => `- ${d.name}: ${formatNumber(d.value)} sessions (${d.percentage}%)`).join('\n')}
+
+                                    Provide a 1-sentence device mix summary and a 1-sentence strategic mobile UX/responsiveness recommendation.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1243,7 +1288,12 @@ const Ga4Page = () => {
                                 <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Top 5 countries by sessions</p>
                             </div>
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze top 5 locations: ${(data?.topLocations || []).slice(0, 5).map(l => `${l.name}: ${formatNumber(l.value)} sessions (${l.percentage}%)`).join(', ')}. Provide a 1-sentence summary + 1-sentence strategic geo growth insight.`)}
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my top geographic traffic locations for the period ${startDate} to ${endDate}:
+
+                                Top Geographic Markets:
+                                ${(data?.topLocations || []).slice(0, 5).map((l, idx) => `${idx + 1}. Country: ${l.name} | Sessions: ${formatNumber(l.value)} (${l.percentage}%)`).join('\n')}
+
+                                Provide a 1-sentence geographical breakdown summary and a 1-sentence strategic international expansion recommendation.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1294,13 +1344,16 @@ const Ga4Page = () => {
                         </div>
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my period-over-period trajectory with this dataset:
-                                - Users: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.users)} vs Last Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.users)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.users}%)
-                                - Sessions: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.sessions)} vs Last Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.sessions)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.sessions}%)
-                                - Page Views: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.pageViews)} vs Last Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.pageViews)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.pageViews}%)
-                                - Bounce Rate: This Period ${data?.thisPeriodVsLastPeriod?.thisPeriod?.bounceRate}% vs Last Period ${data?.thisPeriodVsLastPeriod?.lastPeriod?.bounceRate}% (Change: ${data?.thisPeriodVsLastPeriod?.change?.bounceRate}%)
-                                - Avg Session Duration: This Period ${data?.thisPeriodVsLastPeriod?.thisPeriod?.avgSessionDuration} vs Last Period ${data?.thisPeriodVsLastPeriod?.lastPeriod?.avgSessionDuration} (Change: ${data?.thisPeriodVsLastPeriod?.change?.avgSessionDuration}%)
-                                - New Users: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.newUsers)} vs Last Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.newUsers)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.newUsers}%)
+                                onClick={() => openWithQuestion(`Act as my Marketing Coach. Analyze my Period Comparison dataset (This Period vs Last Period):
+
+                                📊 [PERIOD COMPARISON]
+                                - Active Users: ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.users)} vs ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.users)} (${data?.thisPeriodVsLastPeriod?.change?.users || 0}% change)
+                                - Sessions: ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.sessions)} vs ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.sessions)} (${data?.thisPeriodVsLastPeriod?.change?.sessions || 0}% change)
+                                - Page Views: ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.pageViews)} vs ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.pageViews)} (${data?.thisPeriodVsLastPeriod?.change?.pageViews || 0}% change)
+                                - Bounce Rate: ${data?.thisPeriodVsLastPeriod?.thisPeriod?.bounceRate}% vs ${data?.thisPeriodVsLastPeriod?.lastPeriod?.bounceRate}% (${data?.thisPeriodVsLastPeriod?.change?.bounceRate || 0}% change)
+                                - Avg Session Duration: ${data?.thisPeriodVsLastPeriod?.thisPeriod?.avgSessionDuration} vs ${data?.thisPeriodVsLastPeriod?.lastPeriod?.avgSessionDuration} (${data?.thisPeriodVsLastPeriod?.change?.avgSessionDuration || 0}% change)
+                                - New Users: ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.newUsers)} vs ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.newUsers)} (${data?.thisPeriodVsLastPeriod?.change?.newUsers || 0}% change)
+
                                 Provide a 1-sentence trajectory summary + 1-sentence strategic future insight.`)}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
