@@ -1026,10 +1026,9 @@ export const refreshWeeklyInsight = async (req, res) => {
     }
 };
 
-export const generateSuggestedQuestionsInternal = async (userId, siteId) => {
+export const generateSuggestedQuestionsInternal = async (userId, siteId, timezone) => {
     try {
-        // FIX 1: Correct timezone handling
-        const userTimezone = 'UTC'; // replace with user's timezone if available in your DB
+        const userTimezone = timezone || 'UTC';
         const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
         const todayStr = nowLocal.toISOString().split('T')[0];
 
@@ -1238,6 +1237,7 @@ CRITICAL: ONLY generate questions for platforms marked as 'CONNECTED'. Never men
 
 export const getSuggestedQuestions = async (req, res) => {
     const siteId = req.query?.siteId || req.body?.siteId;
+    const timezone = req.query?.timezone || req.body?.timezone || 'UTC';
     const userId = req.user._id;
 
     try {
@@ -1248,7 +1248,7 @@ export const getSuggestedQuestions = async (req, res) => {
         }
 
         // Generate and save (if not found or stale)
-        const questions = await generateSuggestedQuestionsInternal(userId, siteId);
+        const questions = await generateSuggestedQuestionsInternal(userId, siteId, timezone);
         res.status(200).json({ questions });
     } catch (err) {
         res.status(500).json({ message: 'Error fetching suggested questions' });

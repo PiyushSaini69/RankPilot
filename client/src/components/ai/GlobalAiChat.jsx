@@ -635,7 +635,8 @@ const GlobalAiChat = () => {
         if (!activeSiteId) return;
         setSuggestionsLoading(true);
         try {
-            const res = await getSuggestedQuestions(activeSiteId);
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const res = await getSuggestedQuestions(activeSiteId, timezone);
             if (res.data && res.data.questions) {
                 setSuggestions(res.data.questions);
             }

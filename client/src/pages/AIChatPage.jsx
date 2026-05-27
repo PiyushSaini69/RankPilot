@@ -615,7 +615,8 @@ const AIChatPage = () => {
     const loadSuggestions = async () => {
         setSuggestionsLoading(true);
         try {
-            const res = await getSuggestedQuestions(activeSiteId);
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const res = await getSuggestedQuestions(activeSiteId, timezone);
             const questions = res.data?.questions || [];
             if (questions.length > 0) {
                 setSuggestions(questions);
