@@ -13,21 +13,59 @@ import FacebookAdsMetric from '../models/FacebookAdsMetric.js';
 import fs from 'fs';
 import path from 'path';
 
-// Tools Configuration
 const aiTools = [
     {
         name: "get_market_data",
-        description: "Fetch comprehensive analytics (GA4), search performance (GSC), and PPC data (Google/Meta Ads). This tool provides Comparative Intelligence (Current vs Previous period) and starts multidimensional breakdowns for top queries, pages, and campaigns. Use it for performance audits, identifying growth/decline, and anomaly detection.",
+        description: `Fetch analytics data from GA4, GSC, Google Ads, and Meta Ads.
+
+CRITICAL - ALWAYS follow these rules to avoid fetching unnecessary data:
+
+1. SOURCES: Only pass the platforms relevant to the question.
+   - Bounce rate, sessions, traffic, pages → ['ga4']
+   - CTR, impressions, search queries → ['gsc']
+   - Ad spend, ROAS, campaigns → ['google-ads'] or ['facebook-ads']
+   - Full report / overview → leave empty (fetches all)
+
+2. FIELDS: Only pass the specific metrics needed.
+   - "bounce rate" → fields: ['bounceRate']
+   - "sessions" → fields: ['sessions']
+   - "top pages" → fields: ['sessions', 'pageViews']
+   - "ad spend" → fields: ['spend', 'conversions']
+   - Full report → leave empty (fetches all)
+
+3. MODE: Pick the right fetch depth.
+   - Single metric question → mode: 'summary'   (fastest, totals only)
+   - Top pages / channel breakdown → mode: 'standard' (totals + daily + top lists)
+   - Full report / deep dive → mode: 'full'  (everything)
+
+Examples:
+- "What is my bounce rate?" → sources: ['ga4'], fields: ['bounceRate'], mode: 'summary'
+- "Which pages get most traffic?" → sources: ['ga4'], fields: ['sessions','pageViews'], mode: 'standard'
+- "How are my Google Ads campaigns?" → sources: ['google-ads'], fields: [], mode: 'standard'
+- "Give me a full overview" → sources: [], fields: [], mode: 'full'`,
+
         parameters: {
             type: "OBJECT",
             properties: {
-                startDate: { type: "STRING", description: "Start date in YYYY-MM-DD format. Crucial for trend analysis." },
+                startDate: { type: "STRING", description: "Start date in YYYY-MM-DD format." },
                 endDate: { type: "STRING", description: "End date in YYYY-MM-DD format." },
-                device: { type: "STRING", description: "Filter by device: 'mobile', 'desktop', or 'tablet'. Leave empty for all devices." },
                 sources: { 
                     type: "ARRAY", 
                     items: { type: "STRING" }, 
-                    description: "List of sources: 'ga4', 'gsc', 'google-ads', 'facebook-ads'. If empty, fetches all available platforms for a holistic audit." 
+                    description: "Platforms to fetch: 'ga4', 'gsc', 'google-ads', 'facebook-ads'. Pass only what's needed. Empty = all platforms." 
+                },
+                fields: {
+                    type: "ARRAY",
+                    items: { type: "STRING" },
+                    description: "Specific metrics to fetch. Empty = all metrics. Examples: ['bounceRate'], ['sessions','pageViews'], ['spend','conversions']"
+                },
+                mode: {
+                    type: "STRING",
+                    description: "Fetch depth: 'summary' (totals only, fastest), 'standard' (totals + daily + top lists), 'full' (everything including countries, ad groups, page titles). Default: 'standard'"
+                },
+                device: { 
+                    type: "STRING", 
+                    description: "Filter by device: 'mobile', 'desktop', or 'tablet'. Leave empty for all." 
                 }
             },
             required: ["startDate", "endDate"]
@@ -35,24 +73,43 @@ const aiTools = [
     }
 ];
 
-// Tool Executor
-const executeTool = async (name, args, userId, siteId) => {
+const executeTool = async (name, args, userId, siteId, userTimezone) => {
     if (name === "get_market_data") {
-        return await fetchPlatformData(userId, args.startDate, args.endDate, siteId, args.sources || [], args.device);
+        return await fetchPlatformData(
+            userId, 
+            args.startDate, 
+            args.endDate, 
+            siteId, 
+            args.sources || [], 
+            args.device || null,
+            userTimezone,
+            args.fields || [],
+            args.mode || 'standard'
+        );
     }
     return { error: "Unknown tool" };
 };
 
-export const fetchPlatformData = async (userId, startDate, endDate, siteId, activeSources = [], device = null) => {
-    // Safety: Handle if AI sends a single string instead of an array
+export const fetchPlatformData = async (
+    userId, 
+    startDate, 
+    endDate, 
+    siteId, 
+    activeSources = [], 
+    device = null, 
+    userTimezone = 'UTC',
+    fields = [],        // NEW: specific metrics to fetch
+    mode = 'standard'  // NEW: 'summary' | 'standard' | 'full'
+) => {
+    
     const sourceList = Array.isArray(activeSources) ? activeSources : (activeSources ? [activeSources] : []);
-
-    // Normalizing sources for AI reliability (handles spaces, underscores, and casing)
     const normalizedActiveSources = sourceList.map(s => String(s).toLowerCase().trim().replace(/[\s_]/g, '-'));
+    const requestedFields = Array.isArray(fields) ? fields : [];
+
+    // FIX 1: Timezone — use user's timezone, not server's
+    const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
 
     if (!startDate || !endDate) {
-        const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-        const nowLocal = new Date(Date.now() - tzOffset);
         if (!endDate) endDate = nowLocal.toISOString().split('T')[0];
         if (!startDate) {
             const date = new Date(nowLocal);
@@ -69,11 +126,12 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
         siteName: userAcc.siteName,
         startDate, 
         endDate, 
+        mode,
         device: device || 'all',
-        today: new Date().toISOString().split('T')[0] 
+        today: nowLocal.toISOString().split('T')[0]
     };
 
-    // --- High-Level Intelligence: Calculate Comparison Range (Previous Period) ---
+    // Comparison Range
     const currentStart = new Date(startDate);
     const currentEnd = new Date(endDate);
     const daysDiff = Math.ceil((currentEnd.getTime() - currentStart.getTime()) / (1000 * 3600 * 24)) + 1;
@@ -83,9 +141,10 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
     const prevStart = new Date(prevEnd);
     prevStart.setDate(prevStart.getDate() - daysDiff + 1);
 
-    const prevStartStr = prevStart.toISOString().split('T')[0];
-    const prevEndStr = prevEnd.toISOString().split('T')[0];
-    data.comparisonRange = { startDate: prevStartStr, endDate: prevEndStr };
+    data.comparisonRange = { 
+        startDate: prevStart.toISOString().split('T')[0], 
+        endDate: prevEnd.toISOString().split('T')[0] 
+    };
 
     const getGrowth = (curr, prev) => {
         if (!prev || prev === 0) return curr > 0 ? "100.0" : "0.0";
@@ -94,36 +153,43 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
 
     const deviceFilter = device ? { 'metadata.dimensions.device': device.toLowerCase() } : {};
 
+    // All available metrics per platform
+    const ALL_METRICS = {
+        'ga4': ['users', 'newUsers', 'sessions', 'engagedSessions', 'pageViews', 'avgSessionDuration', 'engagementRate', 'bounceRate', 'revenue', 'transactions', 'conversions'],
+        'gsc': ['clicks', 'impressions', 'position', 'ctr'],
+        'google-ads': ['spend', 'impressions', 'clicks', 'conversions', 'conversionValue', 'allConversions', 'viewThroughConversions', 'searchImpressionShare', 'cpc', 'ctr', 'cpm'],
+        'facebook-ads': ['spend', 'impressions', 'clicks', 'reach', 'conversions', 'purchase_value', 'landing_page_views', 'link_clicks', 'frequency', 'engagement', 'cpc', 'cpm', 'ctr']
+    };
+
+    // Metrics needed to correctly compute derived values (e.g. bounceRate needs engagedSessions + sessions)
+    const DERIVED_DEPS = {
+        'bounceRate': ['engagedSessions', 'sessions'],
+        'engagementRate': ['engagedSessions', 'sessions'],
+        'ctr': ['clicks', 'impressions'],
+        'cpc': ['spend', 'clicks'],
+        'cpm': ['spend', 'impressions'],
+        'roas': ['conversionValue', 'spend'],
+    };
+
+    // Expand requested fields to include their dependencies
+    const expandFields = (fields, platformKey) => {
+        if (fields.length === 0) return ALL_METRICS[platformKey]; // no filter = fetch all
+        const expanded = new Set(fields);
+        fields.forEach(f => {
+            if (DERIVED_DEPS[f]) DERIVED_DEPS[f].forEach(dep => expanded.add(dep));
+        });
+        // Only return metrics that exist for this platform
+        return ALL_METRICS[platformKey].filter(m => expanded.has(m));
+    };
+
     const sourceConfigs = [
-        { 
-            key: 'ga4', 
-            model: Ga4Metric, 
-            id: userAcc.ga4PropertyId, 
-            metrics: ['users', 'newUsers', 'sessions', 'engagedSessions', 'pageViews', 'avgSessionDuration', 'engagementRate', 'bounceRate', 'revenue', 'transactions', 'conversions'], 
-            type: 'analytics' 
-        },
-        { 
-            key: 'gsc', 
-            model: GscMetric, 
-            id: userAcc.gscSiteUrl, 
-            metrics: ['clicks', 'impressions', 'position', 'ctr'], 
-            type: 'search' 
-        },
-        { 
-            key: 'google-ads', 
-            model: GoogleAdsMetric, 
-            id: userAcc.googleAdsCustomerId, 
-            metrics: ['spend', 'impressions', 'clicks', 'conversions', 'conversionValue', 'allConversions', 'viewThroughConversions', 'searchImpressionShare', 'cpc', 'ctr', 'cpm'], 
-            type: 'ads' 
-        },
-        { 
-            key: 'facebook-ads', 
-            model: FacebookAdsMetric, 
-            id: userAcc.facebookAdAccountId, 
-            metrics: ['spend', 'impressions', 'clicks', 'reach', 'conversions', 'purchase_value', 'landing_page_views', 'link_clicks', 'frequency', 'engagement', 'cpc', 'cpm', 'ctr'], 
-            type: 'ads' 
-        }
-    ].filter(s => s.id && (normalizedActiveSources.length === 0 || normalizedActiveSources.includes(s.key)));
+        { key: 'ga4',          model: Ga4Metric,          id: userAcc.ga4PropertyId,        type: 'analytics' },
+        { key: 'gsc',          model: GscMetric,           id: userAcc.gscSiteUrl,            type: 'search'    },
+        { key: 'google-ads',   model: GoogleAdsMetric,     id: userAcc.googleAdsCustomerId,   type: 'ads'       },
+        { key: 'facebook-ads', model: FacebookAdsMetric,   id: userAcc.facebookAdAccountId,   type: 'ads'       }
+    ]
+    .filter(s => s.id && (normalizedActiveSources.length === 0 || normalizedActiveSources.includes(s.key)))
+    .map(s => ({ ...s, metrics: expandFields(requestedFields, s.key) })); // attach filtered metrics
 
     const results = {
         totals: [],
@@ -140,25 +206,25 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
         topChannels: [],
         topSources: [],
         topCountries: [],
-        topNetworks: []
+        topNetworks: [],
+        platformErrors: []
     };
+
+    const AVG_METRICS = ['position', 'avgSessionDuration', 'frequency', 'searchImpressionShare', 'ctr', 'bounceRate', 'engagementRate', 'cpc', 'cpm'];
 
     const aggTasks = sourceConfigs.map(async (config) => {
         try {
             const baseFilter = { 'metadata.platformAccountId': config.id, ...deviceFilter };
-            const totalFilter = { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } };
-            
-            // 1. Totals & Comparison
+
+            // ─── ALWAYS: Totals & Comparison ────────────────────────────────
             const totalsAgg = await config.model.aggregate([
-                { $match: totalFilter },
+                { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
                 {
                     $group: {
                         _id: { period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
                         ...Object.fromEntries(config.metrics.map(m => [
-                            m, 
-                            ['position', 'avgSessionDuration', 'frequency', 'searchImpressionShare'].includes(m) 
-                                ? { $avg: `$metrics.${m}` } 
-                                : { $sum: `$metrics.${m}` }
+                            m,
+                            AVG_METRICS.includes(m) ? { $avg: `$metrics.${m}` } : { $sum: `$metrics.${m}` }
                         ])),
                         count: { $sum: 1 }
                     }
@@ -170,13 +236,19 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
                 results.totals.push({ source: config.key, period: t._id.period, sums, counts: t.count });
             });
 
-            // 2. Daily Breakdown (Current Period)
+            // ─── SKIP daily + dimensions for 'summary' mode ─────────────────
+            if (mode === 'summary') return;
+
+            // ─── STANDARD + FULL: Daily Breakdown ───────────────────────────
             const dailyAgg = await config.model.aggregate([
                 { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
                 {
                     $group: {
                         _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
-                        ...Object.fromEntries(config.metrics.map(m => [m, ['position', 'ctr', 'bounceRate', 'avgSessionDuration', 'engagementRate', 'cpc', 'cpm', 'frequency', 'searchImpressionShare'].includes(m) ? { $avg: `$metrics.${m}` } : { $sum: `$metrics.${m}` }]))
+                        ...Object.fromEntries(config.metrics.map(m => [
+                            m,
+                            AVG_METRICS.includes(m) ? { $avg: `$metrics.${m}` } : { $sum: `$metrics.${m}` }
+                        ]))
                     }
                 },
                 { $sort: { _id: 1 } }
@@ -187,65 +259,67 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
                 results.dailyBreakdown.push({ date: d._id, source: config.key, metrics });
             });
 
-            // 3. Source Specific Breakdowns with Growth Analysis
+            // ─── FULL mode only: Top Dimensions ─────────────────────────────
+            const fetchDimensions = mode === 'full';
+
             if (config.key === 'gsc') {
-                const q = await GscMetric.aggregate([
-                    { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
-                    { $group: { 
-                        _id: { query: "$metadata.dimensions.query", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } }, 
-                        clicks: { $sum: "$metrics.clicks" }, 
-                        impressions: { $sum: "$metrics.impressions" }, 
-                        position: { $avg: "$metrics.position" } 
-                    } },
-                    { $group: {
-                        _id: "$_id.query",
-                        current: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$clicks", 0] } },
-                        prior: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$clicks", 0] } },
-                        impressions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$impressions", 0] } },
-                        position: { $avg: { $cond: [{ $eq: ["$_id.period", "current"] }, "$position", null] } }
-                    } },
-                    { $sort: { current: -1 } }, { $limit: 25 }
-                ]);
-                results.topQueries = q.map(i => ({ 
-                    name: i._id, 
-                    clicks: i.current, 
-                    priorClicks: i.prior,
-                    growth: getGrowth(i.current, i.prior),
-                    impressions: i.impressions, 
-                    ctr: i.impressions > 0 ? ((i.current / i.impressions) * 100).toFixed(2) + '%' : "0.00%",
-                    position: (i.position || 0).toFixed(1)
-                }));
+                if (fetchDimensions) {
+                    // Top Queries
+                    const q = await GscMetric.aggregate([
+                        { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
+                        { $group: { 
+                            _id: { query: "$metadata.dimensions.query", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } }, 
+                            clicks: { $sum: "$metrics.clicks" }, 
+                            impressions: { $sum: "$metrics.impressions" },
+                            weightedPosition: { $sum: { $multiply: ["$metrics.position", "$metrics.impressions"] } }
+                        } },
+                        { $group: {
+                            _id: "$_id.query",
+                            current: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$clicks", 0] } },
+                            prior: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$clicks", 0] } },
+                            impressions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$impressions", 0] } },
+                            totalWeightedPosition: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$weightedPosition", 0] } }
+                        } },
+                        { $sort: { current: -1 } }, { $limit: 25 }
+                    ]);
+                    results.topQueries = q.map(i => ({ 
+                        name: i._id, clicks: i.current, priorClicks: i.prior,
+                        growth: getGrowth(i.current, i.prior),
+                        impressions: i.impressions, 
+                        ctr: i.impressions > 0 ? ((i.current / i.impressions) * 100).toFixed(2) + '%' : "0.00%",
+                        position: i.impressions > 0 ? (i.totalWeightedPosition / i.impressions).toFixed(1) : "0.0"
+                    }));
 
-                const gscPages = await GscMetric.aggregate([
-                    { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
-                    { $group: { 
-                        _id: { page: "$metadata.dimensions.page", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } }, 
-                        clicks: { $sum: "$metrics.clicks" }, 
-                        impressions: { $sum: "$metrics.impressions" } 
-                    } },
-                    { $group: {
-                        _id: "$_id.page",
-                        current: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$clicks", 0] } },
-                        prior: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$clicks", 0] } },
-                        impressions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$impressions", 0] } }
-                    } },
-                    { $sort: { current: -1 } }, { $limit: 25 }
-                ]);
-                results.topGscPages = gscPages.map(i => ({ 
-                    name: i._id, 
-                    clicks: i.current, 
-                    priorClicks: i.prior, 
-                    growth: getGrowth(i.current, i.prior),
-                    impressions: i.impressions 
-                }));
+                    // Top GSC Pages
+                    const gscPages = await GscMetric.aggregate([
+                        { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
+                        { $group: { 
+                            _id: { page: "$metadata.dimensions.page", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } }, 
+                            clicks: { $sum: "$metrics.clicks" }, impressions: { $sum: "$metrics.impressions" } 
+                        } },
+                        { $group: {
+                            _id: "$_id.page",
+                            current: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$clicks", 0] } },
+                            prior: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$clicks", 0] } },
+                            impressions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$impressions", 0] } }
+                        } },
+                        { $sort: { current: -1 } }, { $limit: 25 }
+                    ]);
+                    results.topGscPages = gscPages.map(i => ({ 
+                        name: i._id, clicks: i.current, priorClicks: i.prior,
+                        growth: getGrowth(i.current, i.prior), impressions: i.impressions 
+                    }));
 
-                const countries = await GscMetric.aggregate([
-                    { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                    { $group: { _id: "$metadata.dimensions.country", value: { $sum: "$metrics.clicks" } } },
-                    { $sort: { value: -1 } }, { $limit: 25 }
-                ]);
-                results.topCountries.push(...countries.map(i => ({ name: i._id || 'Unknown', value: i.value, source: 'gsc' })));
+                    // Countries
+                    const countries = await GscMetric.aggregate([
+                        { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
+                        { $group: { _id: "$metadata.dimensions.country", value: { $sum: "$metrics.clicks" } } },
+                        { $sort: { value: -1 } }, { $limit: 25 }
+                    ]);
+                    results.topCountries.push(...countries.map(i => ({ name: i._id || 'Unknown', value: i.value, source: 'gsc' })));
+                }
 
+                // Devices always for gsc (lightweight)
                 const dev = await config.model.aggregate([
                     { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
                     { $group: { _id: "$metadata.dimensions.device", value: { $sum: "$metrics.clicks" } } }
@@ -254,6 +328,7 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
             }
 
             if (config.key === 'ga4') {
+                // Top Pages — always in standard + full (commonly needed)
                 const p = await Ga4Metric.aggregate([
                     { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
                     { $group: { 
@@ -272,14 +347,13 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
                     { $sort: { currentSessions: -1 } }, { $limit: 25 }
                 ]);
                 results.topPages = p.map(i => ({ 
-                    name: i._id, 
-                    sessions: i.currentSessions, 
-                    priorSessions: i.priorSessions,
+                    name: i._id, sessions: i.currentSessions, priorSessions: i.priorSessions,
                     growth: getGrowth(i.currentSessions, i.priorSessions),
                     pageViews: i.pageViews, 
                     engagementRate: i.currentSessions > 0 ? ((i.engagedSessions / i.currentSessions) * 100).toFixed(1) : "0.0"
                 }));
 
+                // Channels — always in standard + full
                 const c = await Ga4Metric.aggregate([
                     { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
                     { $group: { 
@@ -290,51 +364,64 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
                     { $sort: { sessions: -1 } }, { $limit: 25 }
                 ]);
                 results.topChannels = c.map(i => ({ 
-                    name: i._id, 
-                    value: i.sessions, 
+                    name: i._id, value: i.sessions, 
                     engagementRate: i.sessions > 0 ? ((i.engagedSessions / i.sessions) * 100).toFixed(1) : "0.0"
                 }));
 
-                const countries = await Ga4Metric.aggregate([
-                    { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                    { $group: { _id: "$metadata.dimensions.country", value: { $sum: "$metrics.sessions" } } },
-                    { $sort: { value: -1 } }, { $limit: 25 }
-                ]);
-                results.topCountries.push(...countries.map(i => ({ name: i._id || 'Unknown', value: i.value, source: 'ga4' })));
+                if (fetchDimensions) {
+                    // Countries
+                    const countries = await Ga4Metric.aggregate([
+                        { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
+                        { $group: { _id: "$metadata.dimensions.country", value: { $sum: "$metrics.sessions" } } },
+                        { $sort: { value: -1 } }, { $limit: 25 }
+                    ]);
+                    results.topCountries.push(...countries.map(i => ({ name: i._id || 'Unknown', value: i.value, source: 'ga4' })));
 
-                const lp = await Ga4Metric.aggregate([
-                    { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                    { $group: { _id: "$metadata.dimensions.landingPage", sessions: { $sum: "$metrics.sessions" }, engagementRate: { $avg: "$metrics.engagementRate" } } },
-                    { $sort: { sessions: -1 } }, { $limit: 25 }
-                ]);
-                results.topLandingPages = lp.map(i => ({ name: i._id, sessions: i.sessions, engagementRate: (i.engagementRate || 0).toFixed(2) }));
+                    // Landing Pages
+                    const lp = await Ga4Metric.aggregate([
+                        { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
+                        { $group: { _id: "$metadata.dimensions.landingPage", sessions: { $sum: "$metrics.sessions" }, engagementRate: { $avg: "$metrics.engagementRate" } } },
+                        { $sort: { sessions: -1 } }, { $limit: 25 }
+                    ]);
+                    results.topLandingPages = lp.map(i => ({ name: i._id, sessions: i.sessions, engagementRate: (i.engagementRate || 0).toFixed(2) }));
 
-                const sources = await Ga4Metric.aggregate([
-                    { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                    { $group: { _id: "$metadata.dimensions.source", value: { $sum: "$metrics.sessions" } } },
-                    { $sort: { value: -1 } }, { $limit: 25 }
-                ]);
-                results.topSources = sources.map(i => ({ name: i._id, value: i.value }));
+                    // Sources
+                    const sources = await Ga4Metric.aggregate([
+                        { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
+                        { $group: { _id: "$metadata.dimensions.source", value: { $sum: "$metrics.sessions" } } },
+                        { $sort: { value: -1 } }, { $limit: 25 }
+                    ]);
+                    results.topSources = sources.map(i => ({ name: i._id, value: i.value }));
 
-                const titles = await Ga4Metric.aggregate([
+                    // Page Titles
+                    const titles = await Ga4Metric.aggregate([
+                        { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
+                        { $group: { _id: "$metadata.dimensions.pageTitle", value: { $sum: "$metrics.sessions" } } },
+                        { $sort: { value: -1 } }, { $limit: 25 }
+                    ]);
+                    results.topPageTitles = titles.map(i => ({ name: i._id, value: i.value }));
+                }
+
+                // Devices
+                const dev = await config.model.aggregate([
                     { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                    { $group: { _id: "$metadata.dimensions.pageTitle", value: { $sum: "$metrics.sessions" } } },
-                    { $sort: { value: -1 } }, { $limit: 25 }
+                    { $group: { _id: "$metadata.dimensions.device", value: { $sum: "$metrics.sessions" } } }
                 ]);
-                results.topPageTitles = titles.map(i => ({ name: i._id, value: i.value }));
+                results.topDevices.push(...dev.map(i => ({ name: i._id || 'Unknown', value: i.value, source: 'ga4' })));
             }
 
             if (config.type === 'ads') {
+                const convValueField = config.key === 'google-ads' ? "$metrics.conversionValue" : "$metrics.purchase_value";
+
+                // Campaigns — always in standard + full
                 const camp = await config.model.aggregate([
                     { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
                     { $group: { 
                         _id: { campaign: "$metadata.dimensions.campaign", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } }, 
-                        spend: { $sum: "$metrics.spend" }, 
-                        clicks: { $sum: "$metrics.clicks" },
-                        impressions: { $sum: "$metrics.impressions" },
-                        conversions: { $sum: "$metrics.conversions" },
+                        spend: { $sum: "$metrics.spend" }, clicks: { $sum: "$metrics.clicks" },
+                        impressions: { $sum: "$metrics.impressions" }, conversions: { $sum: "$metrics.conversions" },
                         status: { $first: "$metadata.dimensions.campaignStatus" },
-                        conversionValue: { $sum: config.key === 'ga4' ? 0 : (config.key === 'google-ads' ? "$metrics.conversionValue" : "$metrics.purchase_value") }
+                        conversionValue: { $sum: convValueField }
                     } },
                     { $group: {
                         _id: "$_id.campaign",
@@ -349,13 +436,9 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
                     { $sort: { currentSpend: -1 } }, { $limit: 25 }
                 ]);
                 results.topCampaigns.push(...camp.map(i => ({ 
-                    name: i._id, 
-                    spend: i.currentSpend.toFixed(2), 
-                    priorSpend: i.priorSpend.toFixed(2),
+                    name: i._id, spend: i.currentSpend.toFixed(2), priorSpend: i.priorSpend.toFixed(2),
                     growth: getGrowth(i.currentSpend, i.priorSpend),
-                    clicks: i.clicks,
-                    impressions: i.impressions,
-                    conversions: i.conversions,
+                    clicks: i.clicks, impressions: i.impressions, conversions: i.conversions,
                     status: config.key === 'google-ads' ? (i.status || 'active') : 'active',
                     cpc: i.clicks > 0 ? (i.currentSpend / i.clicks).toFixed(2) : "0.00",
                     ctr: i.impressions > 0 ? ((i.clicks / i.impressions) * 100).toFixed(2) + '%' : "0.00%",
@@ -363,93 +446,101 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
                     source: config.key 
                 })));
 
-                if (config.key === 'google-ads') {
-                    const ag = await config.model.aggregate([
-                        { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                        { $group: { 
-                            _id: "$metadata.dimensions.adGroup", 
-                            spend: { $sum: "$metrics.spend" }, 
-                            conversions: { $sum: "$metrics.conversions" },
-                            status: { $first: "$metadata.dimensions.adGroupStatus" } 
-                        } },
-                        { $sort: { spend: -1 } }, { $limit: 25 }
-                    ]);
-                    results.topAdGroups = ag.map(i => ({ name: i._id, spend: i.spend.toFixed(2), conversions: i.conversions, status: i.status }));
+                if (fetchDimensions) {
+                    if (config.key === 'google-ads') {
+                        const ag = await config.model.aggregate([
+                            { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
+                            { $group: { 
+                                _id: "$metadata.dimensions.adGroup", 
+                                spend: { $sum: "$metrics.spend" }, conversions: { $sum: "$metrics.conversions" },
+                                status: { $first: "$metadata.dimensions.adGroupStatus" } 
+                            } },
+                            { $sort: { spend: -1 } }, { $limit: 25 }
+                        ]);
+                        results.topAdGroups = ag.map(i => ({ name: i._id, spend: i.spend.toFixed(2), conversions: i.conversions, status: i.status }));
 
-                    const net = await config.model.aggregate([
-                        { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                        { $group: { _id: "$metadata.dimensions.network", value: { $sum: "$metrics.spend" } } },
-                        { $sort: { value: -1 } }
-                    ]);
-                    results.topNetworks = net.map(i => ({ name: i._id, value: i.value.toFixed(2) }));
+                        const net = await config.model.aggregate([
+                            { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
+                            { $group: { _id: "$metadata.dimensions.network", value: { $sum: "$metrics.spend" } } },
+                            { $sort: { value: -1 } }
+                        ]);
+                        results.topNetworks = net.map(i => ({ name: i._id, value: i.value.toFixed(2) }));
+                    }
+
+                    if (config.key === 'facebook-ads') {
+                        const as = await config.model.aggregate([
+                            { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
+                            { $group: { _id: "$metadata.dimensions.adset", spend: { $sum: "$metrics.spend" }, conversions: { $sum: "$metrics.conversions" } } },
+                            { $sort: { spend: -1 } }, { $limit: 25 }
+                        ]);
+                        results.topAdsets = as.map(i => ({ name: i._id, spend: i.spend.toFixed(2), conversions: i.conversions }));
+                    }
                 }
 
-                if (config.key === 'facebook-ads') {
-                    const as = await config.model.aggregate([
-                        { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                        { $group: { _id: "$metadata.dimensions.adset", spend: { $sum: "$metrics.spend" }, conversions: { $sum: "$metrics.conversions" } } },
-                        { $sort: { spend: -1 } }, { $limit: 25 }
-                    ]);
-                    results.topAdsets = as.map(i => ({ name: i._id, spend: i.spend.toFixed(2), conversions: i.conversions }));
-                }
-            }
-
-            if (config.key !== 'gsc') {
+                // Devices
                 const dev = await config.model.aggregate([
                     { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                    { $group: { _id: "$metadata.dimensions.device", value: { $sum: config.key === 'ga4' ? "$metrics.sessions" : "$metrics.spend" } } }
+                    { $group: { _id: "$metadata.dimensions.device", value: { $sum: "$metrics.spend" } } }
                 ]);
                 results.topDevices.push(...dev.map(i => ({ name: i._id || 'Unknown', value: i.value, source: config.key })));
             }
+
         } catch (error) {
             console.error(`Error fetching platform data for ${config.key}:`, error);
-            // Non-blocking: Ensure other sources continue to work
+            results.platformErrors.push(config.key);
         }
     });
 
     await Promise.all(aggTasks);
 
+    // Platform failure warnings for AI
+    if (results.platformErrors.length > 0) {
+        data.warnings = results.platformErrors.map(p => `⚠️ ${p} data could not be fetched. Analysis based on remaining platforms.`);
+    }
+
+    // Build source totals map
     const sourceTotals = { current: {}, previous: {} };
-    const sourceEntryCount = { current: {}, previous: {} };
     results.totals.forEach(t => {
         sourceTotals[t.period][t.source] = t.sums;
-        sourceEntryCount[t.period][t.source] = t.counts;
     });
 
-    const allDates = [...new Set(results.dailyBreakdown.map(d => d.date))].sort();
-    data.dailyBreakdown = {};
-    sourceConfigs.forEach(s => {
-        const sData = results.dailyBreakdown.filter(d => d.source === s.key);
-        data.dailyBreakdown[s.key] = allDates.map(date => {
-            const entry = sData.find(d => d.date === date);
-            return { date, metrics: entry ? entry.metrics : Object.fromEntries(s.metrics.map(m => [m, 0])) };
+    // Daily breakdown (skip in summary mode)
+    if (mode !== 'summary') {
+        const allDates = [...new Set(results.dailyBreakdown.map(d => d.date))].sort();
+        data.dailyBreakdown = {};
+        sourceConfigs.forEach(s => {
+            const sData = results.dailyBreakdown.filter(d => d.source === s.key);
+            data.dailyBreakdown[s.key] = allDates.map(date => {
+                const entry = sData.find(d => d.date === date);
+                return { date, metrics: entry ? entry.metrics : Object.fromEntries(s.metrics.map(m => [m, 0])) };
+            });
         });
-    });
+    }
 
-    data.topDimensions = {
-        queries: results.topQueries,
-        gscPages: results.topGscPages,
-        pages: results.topPages,
-        pageTitles: results.topPageTitles,
-        landingPages: results.topLandingPages,
-        campaigns: results.topCampaigns,
-        adGroups: results.topAdGroups,
-        adsets: results.topAdsets,
-        devices: results.topDevices,
-        channels: results.topChannels,
-        sources: results.topSources,
-        countries: results.topCountries,
-        networks: results.topNetworks
-    };
+    // Top dimensions (skip in summary mode)
+    if (mode !== 'summary') {
+        data.topDimensions = {
+            queries: results.topQueries,
+            gscPages: results.topGscPages,
+            pages: results.topPages,
+            pageTitles: results.topPageTitles,
+            landingPages: results.topLandingPages,
+            campaigns: results.topCampaigns,
+            adGroups: results.topAdGroups,
+            adsets: results.topAdsets,
+            devices: results.topDevices,
+            channels: results.topChannels,
+            sources: results.topSources,
+            countries: results.topCountries,
+            networks: results.topNetworks
+        };
+    }
 
-    // Build Platform Specific Totals with Correct Mathematical Formulas
+    // ─── Platform Totals ───────────────────────────────────────────────────────
     if (sourceTotals.current['ga4']) {
         const curr = sourceTotals.current['ga4'];
         const prev = sourceTotals.previous['ga4'] || {};
-        
-        // Correct Engagement/Bounce calculation from sums
         const currentEngRate = curr.sessions > 0 ? (curr.engagedSessions / curr.sessions) * 100 : 0;
-        const prevEngRate = prev.sessions > 0 ? (prev.engagedSessions / prev.sessions) * 100 : 0;
 
         data.ga4 = {
             users: Math.round(curr.users || 0), usersGrowth: getGrowth(curr.users, prev.users),
@@ -465,25 +556,23 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
             conversions: curr.conversions || 0
         };
     }
+
     if (sourceTotals.current['gsc']) {
         const curr = sourceTotals.current['gsc'];
         const prev = sourceTotals.previous['gsc'] || {};
-        
-        // Correct CTR from sums
         const currentCtr = curr.impressions > 0 ? (curr.clicks / curr.impressions) * 100 : 0;
 
         data.gsc = {
             clicks: curr.clicks || 0, clicksGrowth: getGrowth(curr.clicks, prev.clicks),
             impressions: curr.impressions || 0, impressionsGrowth: getGrowth(curr.impressions, prev.impressions),
-            position: (curr.position || 0).toFixed(1), 
+            position: curr.impressions > 0 ? (curr.position / curr.impressions).toFixed(1) : (curr.position || 0).toFixed(1),
             ctr: currentCtr.toFixed(2) + '%'
         };
     }
+
     if (sourceTotals.current['google-ads']) {
         const curr = sourceTotals.current['google-ads'];
         const prev = sourceTotals.previous['google-ads'] || {};
-        
-        // Correct CTR and CPC from sums
         const currentCtr = curr.impressions > 0 ? (curr.clicks / curr.impressions) * 100 : 0;
         const currentCpc = curr.clicks > 0 ? (curr.spend / curr.clicks) : 0;
 
@@ -501,11 +590,10 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
             cpm: curr.impressions > 0 ? ((curr.spend / curr.impressions) * 1000).toFixed(2) : "0.00"
         };
     }
+
     if (sourceTotals.current['facebook-ads']) {
         const curr = sourceTotals.current['facebook-ads'];
         const prev = sourceTotals.previous['facebook-ads'] || {};
-        
-        // Correct CTR and CPC from sums
         const currentCtr = curr.impressions > 0 ? (curr.clicks / curr.impressions) * 100 : 0;
         const currentCpc = curr.clicks > 0 ? (curr.spend / curr.clicks) : 0;
 
@@ -530,26 +618,30 @@ export const fetchPlatformData = async (userId, startDate, endDate, siteId, acti
 };
 
 export const askAi = async (req, res) => {
-    let { question, conversationId, siteId, history } = req.body;
+    let { question, conversationId, siteId, history, timezone } = req.body;
     const userId = req.user._id;
 
-    // Prepare Sanitized History for Gemini (Prevents Token Limit & Validation Crashes)
+    // FIX 1: Track start time correctly for latency calculation
+    const startTime = Date.now();
+
+    // Prepare Sanitized History for Gemini
+    // FIX 2: Increased history limit from 8 to 15 for better context retention
     let chatHistory = [];
-    const rawHistory = (history || []).slice(-8);
+    const rawHistory = (history || []).slice(-15);
 
     for (const msg of rawHistory) {
         const role = msg.role === 'user' ? 'user' : 'model';
         const text = String(msg.content || "").substring(0, 4000);
         
         if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === role) {
-            // Combine consecutive messages of the same role to satisfy Gemini's strict alternation rule
+            // Combine consecutive messages of same role (Gemini strict alternation rule)
             chatHistory[chatHistory.length - 1].parts[0].text += "\n\n" + text;
         } else {
             chatHistory.push({ role, parts: [{ text }] });
         }
     }
 
-    // Gemini strictly requires the first message in history to be from 'user'
+    // Gemini strictly requires first message in history to be from 'user'
     if (chatHistory.length > 0 && chatHistory[0].role === 'model') {
         chatHistory.shift();
     }
@@ -562,14 +654,16 @@ export const askAi = async (req, res) => {
         systemIns = fs.readFileSync(path.join(process.cwd(), 'prompts', 'system.txt'), 'utf8');
     }
 
-    const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-    const nowLocal = new Date(Date.now() - tzOffset);
+    // FIX 3: Use user's timezone from request body (fallback to UTC)
+    const userTimezone = timezone || 'UTC';
+    const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
     const todayStr = nowLocal.toISOString().split('T')[0];
-    const dateContext = `\n\n[REAL-TIME CONTEXT]: Today's date is ${todayStr}. Use this for all relative date calculations.`;
-    
+    const dateContext = `\n\n[REAL-TIME CONTEXT]: Today's date is ${todayStr}. User timezone: ${userTimezone}. Use this for all relative date calculations.`;
+
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+
     let convId = conversationId;
     let finalContent = "";
 
@@ -582,7 +676,7 @@ export const askAi = async (req, res) => {
             convId = conv._id;
         }
 
-        // 2. Save User Message Immediately
+        // 2. Save User Message
         await Message.create({ conversationId: convId, role: 'user', content: question });
 
         // Send conversationId immediately so UI can use it during streaming
@@ -590,16 +684,14 @@ export const askAi = async (req, res) => {
 
         const chat = await startAgenticChat(chatHistory, aiTools, systemIns + dateContext);
         
-        // --- PROPER STREAMING LOOP ---
-        // We use a stream to send tokens to the UI as they are generated
-        // If a function call happens, we execute it and then resume streaming
+        // --- STREAMING LOOP ---
         let result = await chat.sendMessageStream(question);
         
         let iteration = 0;
         while (iteration < 5) {
             iteration++;
             
-            // 1. Stream the text tokens if any
+            // 1. Stream text tokens
             for await (const chunk of result.stream) {
                 try {
                     const chunkText = chunk.text();
@@ -611,23 +703,20 @@ export const askAi = async (req, res) => {
                         }
                     }
                 } catch (e) {
-                    // Ignore chunks that don't contain text (e.g. function call parts)
+                    // Ignore non-text chunks (e.g. function call parts)
                 }
             }
 
-            // 2. Check for Function Calls in the final response of this turn
+            // 2. Check for Function Calls
             const response = await result.response;
             const calls = response.functionCalls();
             
-            if (!calls || calls.length === 0) break; // End of response
+            if (!calls || calls.length === 0) break;
 
             // 3. Execute Tools
             const toolResponses = [];
             for (const call of calls) {
-                // Inform UI that we are fetching data (optional micro-animation trigger)
-                // res.write(`data: ${JSON.stringify({ status: `Calling tool: ${call.name}...` })}\n\n`);
-                
-                const data = await executeTool(call.name, call.args, userId, siteId);
+                const data = await executeTool(call.name, call.args, userId, siteId, userTimezone);
                 toolResponses.push({
                     functionResponse: {
                         name: call.name,
@@ -636,30 +725,32 @@ export const askAi = async (req, res) => {
                 });
             }
             
-            // 4. Send tool results back to the model and get a NEW stream
+            // 4. Send tool results back to model
             result = await chat.sendMessageStream(toolResponses);
         }
 
-        // Cleanup final content string (extra safety)
+        // Cleanup final content
         finalContent = finalContent.replace(/(\r?\n)*.*response is advisory only.*/gi, '').trim();
 
-        // 3. Save Assistant Message Successfully
+        // FIX 1: Correct latency — Date.now() - startTime (both are numbers)
+        const latencyMs = Date.now() - startTime;
+
+        // 3. Save Assistant Message
         const aiMsg = await Message.create({
             conversationId: convId,
             role: 'assistant',
             content: finalContent,
             model: "gemini-2.5-flash",
-            latencyMs: Date.now() - nowLocal
+            latencyMs
         });
 
-        // Send final done signal
+        // Send done signal
         res.write(`data: ${JSON.stringify({ done: true, conversationId: convId, messageId: aiMsg._id, answer: finalContent })}\n\n`);
         res.end();
 
     } catch (err) {
         console.error("Agentic AI Loop Error:", err);
         
-        // Elite Error Cleaning: Turn technical jargon into human-friendly instructions
         const getFriendlyError = (err) => {
             const msg = err?.message || "";
             if (msg.includes('429') || msg.includes('Quota')) {
@@ -678,22 +769,21 @@ export const askAi = async (req, res) => {
         };
 
         const friendlyMsg = getFriendlyError(err);
-        const errorMessage = finalContent ? `${finalContent}\n\n**⚠️ AI Interrupted:** ${friendlyMsg}` : friendlyMsg;
+        const errorMessage = finalContent 
+            ? `${finalContent}\n\n**⚠️ AI Interrupted:** ${friendlyMsg}` 
+            : friendlyMsg;
         
         if (convId) {
             await Message.create({
                 conversationId: convId,
                 role: 'assistant',
                 content: errorMessage,
-                isError: !finalContent, // Only flag as a complete error if nothing was generated
+                isError: !finalContent,
                 model: "system-error"
             });
         }
 
-        res.write(`data: ${JSON.stringify({ 
-            error: friendlyMsg, 
-            conversationId: convId 
-        })}\n\n`);
+        res.write(`data: ${JSON.stringify({ error: friendlyMsg, conversationId: convId })}\n\n`);
         res.end();
     }
 }
