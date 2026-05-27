@@ -12,6 +12,7 @@ import WeeklyInsight from '../models/WeeklyInsight.js';
 import SuggestedQuestions from '../models/SuggestedQuestions.js';
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
+import AiIntelligence from '../models/AiIntelligence.js';
 import { listProperties } from '../services/ga4Service.js';
 import { listSites as fetchGscSites } from '../services/gscService.js';
 import { listAccounts } from '../services/googleAdsService.js';
@@ -76,10 +77,11 @@ async function performSiteDelete(userId, siteId, account = null) {
         await Conversation.deleteMany({ _id: { $in: convIds } });
     }
 
-    // 3. Delete weekly insights, suggested questions, and notifications
+    // 3. Delete weekly insights, suggested questions, notifications, and AI intelligence data
     await WeeklyInsight.deleteMany({ siteId, userId });
     await SuggestedQuestions.deleteMany({ siteId, userId });
     await Notification.deleteMany({ siteId, userId });
+    await AiIntelligence.deleteMany({ siteId, userId });
 
     // 4. Delete all metrics associated with this specific site strictly by siteId
     const siteFilter = { 'metadata.siteId': siteId, 'metadata.userId': userId };
@@ -229,7 +231,10 @@ export const selectAccounts = async (req, res) => {
         };
 
         if (hasChanged('ga4PropertyId', existingAccount?.ga4PropertyId)) {
-            if (existingAccount?.ga4PropertyId) cleanupMetrics(req.user._id, existingAccount.ga4PropertyId);
+            if (existingAccount?.ga4PropertyId) {
+                cleanupMetrics(req.user._id, existingAccount.ga4PropertyId);
+                await AiIntelligence.deleteMany({ siteId: account._id, userId: req.user._id, platform: 'ga4' });
+            }
             // Reset flags for the new integration
             await UserAccounts.findByIdAndUpdate(account._id, { 
                 ga4HistoricalComplete: false, 
@@ -241,7 +246,10 @@ export const selectAccounts = async (req, res) => {
             }
         }
         if (hasChanged('gscSiteUrl', existingAccount?.gscSiteUrl)) {
-            if (existingAccount?.gscSiteUrl) cleanupMetrics(req.user._id, existingAccount.gscSiteUrl);
+            if (existingAccount?.gscSiteUrl) {
+                cleanupMetrics(req.user._id, existingAccount.gscSiteUrl);
+                await AiIntelligence.deleteMany({ siteId: account._id, userId: req.user._id, platform: 'gsc' });
+            }
             // Reset flags for the new integration
             await UserAccounts.findByIdAndUpdate(account._id, { 
                 gscHistoricalComplete: false, 
@@ -253,7 +261,10 @@ export const selectAccounts = async (req, res) => {
             }
         }
         if (hasChanged('googleAdsCustomerId', existingAccount?.googleAdsCustomerId)) {
-            if (existingAccount?.googleAdsCustomerId) cleanupMetrics(req.user._id, existingAccount.googleAdsCustomerId);
+            if (existingAccount?.googleAdsCustomerId) {
+                cleanupMetrics(req.user._id, existingAccount.googleAdsCustomerId);
+                await AiIntelligence.deleteMany({ siteId: account._id, userId: req.user._id, platform: 'gads' });
+            }
             // Reset flags for the new integration
             await UserAccounts.findByIdAndUpdate(account._id, { 
                 googleAdsHistoricalComplete: false, 
@@ -265,7 +276,10 @@ export const selectAccounts = async (req, res) => {
             }
         }
         if (hasChanged('facebookAdAccountId', existingAccount?.facebookAdAccountId)) {
-            if (existingAccount?.facebookAdAccountId) cleanupMetrics(req.user._id, existingAccount.facebookAdAccountId);
+            if (existingAccount?.facebookAdAccountId) {
+                cleanupMetrics(req.user._id, existingAccount.facebookAdAccountId);
+                await AiIntelligence.deleteMany({ siteId: account._id, userId: req.user._id, platform: 'fbads' });
+            }
             // Reset flags for the new integration
             await UserAccounts.findByIdAndUpdate(account._id, { 
                 facebookAdsHistoricalComplete: false, 
@@ -382,9 +396,18 @@ export const disconnectGoogle = async (req, res) => {
 
         // Cleanup metrics and check for empty sites
         for (const accData of affectedAccounts) {
-            if (accData.ga4TokenId?.toString() === tokenId) await cleanupMetrics(req.user._id, accData.ga4PropertyId);
-            if (accData.gscTokenId?.toString() === tokenId) await cleanupMetrics(req.user._id, accData.gscSiteUrl);
-            if (accData.googleAdsTokenId?.toString() === tokenId) await cleanupMetrics(req.user._id, accData.googleAdsCustomerId);
+            if (accData.ga4TokenId?.toString() === tokenId) {
+                await cleanupMetrics(req.user._id, accData.ga4PropertyId);
+                await AiIntelligence.deleteMany({ siteId: accData._id, userId: req.user._id, platform: 'ga4' });
+            }
+            if (accData.gscTokenId?.toString() === tokenId) {
+                await cleanupMetrics(req.user._id, accData.gscSiteUrl);
+                await AiIntelligence.deleteMany({ siteId: accData._id, userId: req.user._id, platform: 'gsc' });
+            }
+            if (accData.googleAdsTokenId?.toString() === tokenId) {
+                await cleanupMetrics(req.user._id, accData.googleAdsCustomerId);
+                await AiIntelligence.deleteMany({ siteId: accData._id, userId: req.user._id, platform: 'gads' });
+            }
             
             // Check if site has ANY integrations left (fetch updated doc)
             const updatedAcc = await UserAccounts.findById(accData._id);
@@ -405,6 +428,7 @@ export const disconnectGoogle = async (req, res) => {
         });
         // Check for empty sites after broad disconnect
         for (const accData of affectedAccounts) {
+            await AiIntelligence.deleteMany({ siteId: accData._id, userId: req.user._id, platform: { $in: ['ga4', 'gsc', 'gads'] } });
             const updatedAcc = await UserAccounts.findById(accData._id);
             if (updatedAcc && !updatedAcc.ga4TokenId && !updatedAcc.gscTokenId && !updatedAcc.googleAdsTokenId && !updatedAcc.facebookTokenId) {
                 await performSiteDelete(req.user._id, accData._id, updatedAcc);
@@ -444,6 +468,8 @@ export const disconnectFacebook = async (req, res) => {
         });
         for (const accData of affectedAccounts) {
             await cleanupMetrics(req.user._id, accData.facebookAdAccountId);
+            await AiIntelligence.deleteMany({ siteId: accData._id, userId: req.user._id, platform: 'fbads' });
+            
             // Check if site has ANY integrations left
             const updatedAcc = await UserAccounts.findById(accData._id);
             if (updatedAcc && !updatedAcc.ga4TokenId && !updatedAcc.gscTokenId && !updatedAcc.googleAdsTokenId && !updatedAcc.facebookTokenId) {
@@ -461,6 +487,8 @@ export const disconnectFacebook = async (req, res) => {
         });
         for (const accData of affectedAccounts) {
             await cleanupMetrics(req.user._id, accData.facebookAdAccountId);
+            await AiIntelligence.deleteMany({ siteId: accData._id, userId: req.user._id, platform: 'fbads' });
+            
             const updatedAcc = await UserAccounts.findById(accData._id);
             if (updatedAcc && !updatedAcc.ga4TokenId && !updatedAcc.gscTokenId && !updatedAcc.googleAdsTokenId && !updatedAcc.facebookTokenId) {
                 await performSiteDelete(req.user._id, accData._id, updatedAcc);

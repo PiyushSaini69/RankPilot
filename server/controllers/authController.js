@@ -15,6 +15,7 @@ import FacebookAdsMetric from '../models/FacebookAdsMetric.js';
 import Message from '../models/Message.js';
 import Notification from '../models/Notification.js';
 import WeeklyInsight from '../models/WeeklyInsight.js';
+import AiIntelligence from '../models/AiIntelligence.js';
 import { sendPasswordResetEmail, sendVerificationEmail } from '../utils/emailService.js';
 
 const generateToken = (userId, email) => {
@@ -247,6 +248,7 @@ export const deleteMe = async (req, res) => {
         FacebookAdsMetric.deleteMany({ 'metadata.userId': userId }),
         Notification.deleteMany({ userId }),
         WeeklyInsight.deleteMany({ userId }),
+        AiIntelligence.deleteMany({ userId }),
         Message.deleteMany({ conversationId: { $in: convIds } }),
         Conversation.deleteMany({ userId }),
         User.findByIdAndDelete(userId)
