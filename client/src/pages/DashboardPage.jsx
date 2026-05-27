@@ -1401,8 +1401,8 @@ const DashboardPage = () => {
               <div className={`bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden mb-6 ${topPages.length === 0 ? 'hide-in-pdf' : ''}`}>
                 <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center">
                   <div className="space-y-0.5">
-                    <h3 className="text-base font-black text-neutral-900 dark:text-white uppercase tracking-tight">Top Pages Performance</h3>
-                    <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400">See how your top pages are performing</p>
+                    <h3 className="text-xl font-black text-neutral-900 dark:text-white uppercase tracking-tight">Top Pages Performance</h3>
+                    <p className="text-sm font-bold text-neutral-500 dark:text-neutral-400">See how your top pages are performing</p>
                   </div>
                   <div className="flex items-center gap-3">
                     {!loading && (
@@ -1423,7 +1423,7 @@ const DashboardPage = () => {
                 </div>
 
                 <div className="mx-4 mb-4 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                  <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
+                  <h4 className="text-sm font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
                   {(loading || isSyncingHistorical) ? (
                     <div className="space-y-1.5 animate-pulse">
                       <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
@@ -1431,7 +1431,7 @@ const DashboardPage = () => {
                     </div>
                   ) : (
                     <div className="flex flex-col items-start gap-2.5">
-                      <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                      <p className="text-sm font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                         {overviewData.intelligence?.topPagesInsight || "Landing page performance and growth bottlenecks."}
                       </p>
                     </div>
@@ -1442,8 +1442,8 @@ const DashboardPage = () => {
               <div className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-800 rounded-2xl p-4 mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-base font-black uppercase tracking-tight">This Period vs Last Period</h3>
-                    <p className="text-[9px] font-bold text-neutral-500 dark:text-neutral-400">
+                    <h3 className="text-xl font-black uppercase tracking-tight">This Period vs Last Period</h3>
+                    <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400">
                       Compare your performance with the previous period
                     </p>
                   </div>
@@ -1459,14 +1459,14 @@ const DashboardPage = () => {
                         ASK AI
                       </button>
                     )}
-                    <span className="text-[8px] font-black bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full border border-purple-100 uppercase tracking-widest flex items-center gap-1 shrink-0">
+                    <span className="text-[11px] font-black bg-purple-50 text-purple-600 px-3 py-1 rounded-full border border-purple-100 uppercase tracking-widest flex items-center gap-1 shrink-0">
                       Compare Periods
                     </span>
                   </div>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead><tr className="border-b border-neutral-100 dark:border-neutral-800 text-[9px] font-black uppercase text-neutral-400 text-left"><th className="pb-3 px-1">Source</th><th className="pb-3 px-1">Metric</th><th className="pb-3 px-1 text-right">THIS PERIOD</th><th className="pb-3 px-1 text-right">PRIOR PERIOD</th><th className="pb-3 px-1 text-right">CHANGE</th></tr></thead>
+                    <thead><tr className="border-b border-neutral-100 dark:border-neutral-800 text-xs font-black uppercase text-neutral-400 text-left"><th className="pb-3 px-2">Source</th><th className="pb-3 px-2">Metric</th><th className="pb-3 px-2 text-right">THIS PERIOD</th><th className="pb-3 px-2 text-right">PRIOR PERIOD</th><th className="pb-3 px-2 text-right">CHANGE</th></tr></thead>
                     <tbody className="divide-y divide-neutral-50 dark:divide-neutral-800/50">
                       {(loading || isSyncingHistorical) ? (
                         [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
@@ -1492,16 +1492,16 @@ const DashboardPage = () => {
                           const priorValue = row.prior || 0;
                           return (
                             <tr key={i} className="hover:bg-neutral-50/50 transition-colors">
-                              <td className="py-2 px-1 font-black text-neutral-500 text-[9px] flex items-center gap-1.5">
-                                <div className="w-6 h-6 flex items-center justify-center bg-neutral-50 dark:bg-neutral-800 rounded-lg shrink-0 border border-neutral-100 dark:border-neutral-700/50">{row.logo}</div>
+                              <td className="py-3 px-2 font-black text-neutral-500 text-xs flex items-center gap-2">
+                                <div className="w-7 h-7 flex items-center justify-center bg-neutral-50 dark:bg-neutral-800 rounded-lg shrink-0 border border-neutral-100 dark:border-neutral-700/50">{row.logo}</div>
                                 {row.s}
                               </td>
-                              <td className="py-2 px-1 font-bold text-neutral-700 dark:text-neutral-300 text-[10px]">{row.m}</td>
-                              <td className="py-2 px-1 font-black tabular-nums text-[11px] text-right">{row.isCurr ? formatCurrency(row.val) : formatNumber(row.val)}</td>
-                              <td className="py-2 px-1 font-bold text-neutral-400 tabular-nums text-[10px] text-right">{row.isCurr ? formatCurrency(priorValue) : formatNumber(priorValue)}</td>
-                              <td className="py-2 px-1 text-right">
-                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black inline-flex items-center gap-0.5 ${row.grow >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                                  {row.grow >= 0 ? <ArrowUpIcon className="w-2 h-2" /> : <ArrowDownIcon className="w-2 h-2" />}
+                              <td className="py-3 px-2 font-bold text-neutral-700 dark:text-neutral-300 text-sm">{row.m}</td>
+                              <td className="py-3 px-2 font-black tabular-nums text-sm text-right">{row.isCurr ? formatCurrency(row.val) : formatNumber(row.val)}</td>
+                              <td className="py-3 px-2 font-bold text-neutral-400 tabular-nums text-sm text-right">{row.isCurr ? formatCurrency(priorValue) : formatNumber(priorValue)}</td>
+                              <td className="py-3 px-2 text-right">
+                                <span className={`px-2.5 py-1 rounded-full text-xs font-black inline-flex items-center gap-1 ${row.grow >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                                  {row.grow >= 0 ? <ArrowUpIcon className="w-3 h-3" /> : <ArrowDownIcon className="w-3 h-3" />}
                                   {Math.abs(row.grow || 0).toFixed(1)}%
                                 </span>
                               </td>
@@ -1514,7 +1514,7 @@ const DashboardPage = () => {
                 </div>
 
                 <div className="mt-4 p-4 bg-brand-50/40 dark:bg-brand-500/5 border border-brand-100/30 dark:border-brand-500/10 rounded-2xl">
-                  <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1">AI Summary</h4>
+                  <h4 className="text-xs font-black text-neutral-900 dark:text-white mb-1">AI Summary</h4>
                   {(loading || isSyncingHistorical) ? (
                     <div className="space-y-1.5 animate-pulse">
                       <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
@@ -1522,7 +1522,7 @@ const DashboardPage = () => {
                     </div>
                   ) : (
                     <div className="flex flex-col items-start gap-2.5">
-                      <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 leading-tight">
+                      <p className="text-sm font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                         {overviewData.intelligence?.comparisonInsight || "Historical performance growth benchmarks."}
                       </p>
                     </div>
