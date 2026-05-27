@@ -626,17 +626,6 @@ import { formatDistanceToNow } from 'date-fns';
                             changeText="vs last period"
                             chartData={(data?.searchClicks?.timeseries || []).map(d => d.clicks).slice(-30)}
                             insight={data?.intelligence?.searchClicks}
-                            onClick={() => {
-                                const clicksTrendStr = (data?.searchClicks?.timeseries || []).map(d => d.clicks).join(', ');
-                                openWithQuestion(`Act as my elite SEO Growth Strategist. Let's perform a detailed, professional analysis of my organic search clicks.
-Here is the complete dataset for this section:
-- Total Clicks this period: ${formatNumber(data?.searchClicks?.value || 0)}
-- Click shift: ${data?.searchClicks?.change || 0}% vs last period
-- Daily Click Trend values: [${clicksTrendStr}]
-
-Based on this click trend, what is your expert analysis and what strategies should we deploy to accelerate click growth?`);
-                            }}
-                            contextPrompt={`Analyze my Google Search Console clicks. Current clicks: ${formatNumber(data?.searchClicks?.value || 0)} vs Prior: ${formatNumber(data?.periodComparison?.lastPeriod?.clicks || 0)}. Growth: ${data?.searchClicks?.change || 0}%. What strategies can I use to further accelerate this click growth?`}
                         />
                         <KpiCard
                             title="Impressions"
@@ -648,17 +637,6 @@ Based on this click trend, what is your expert analysis and what strategies shou
                             changeText="vs last period"
                             chartData={(data?.impressions?.timeseries || []).map(d => d.impressions).slice(-30)}
                             insight={data?.intelligence?.impressions}
-                            onClick={() => {
-                                const impressionsTrendStr = (data?.impressions?.timeseries || []).map(d => d.impressions).join(', ');
-                                openWithQuestion(`Act as my elite SEO Growth Strategist. Let's perform a detailed, professional analysis of my organic search visibility (Impressions).
-Here is the complete dataset for this section:
-- Total Impressions this period: ${formatNumber(data?.impressions?.value || 0)}
-- Impression shift: ${data?.impressions?.change || 0}% vs last period
-- Daily Impression Trend values: [${impressionsTrendStr}]
-
-Based on this visibility trend, what is your expert analysis and what strategies can we deploy to expand our search volume in SERPs?`);
-                            }}
-                            contextPrompt={`Analyze my GSC search visibility. Current Impressions: ${formatNumber(data?.impressions?.value || 0)} vs Prior: ${formatNumber(data?.periodComparison?.lastPeriod?.impressions || 0)}. Change: ${data?.impressions?.change || 0}%. Am I appearing for the right kind of search queries?`}
                         />
                         <KpiCard
                             title="Avg. CTR"
@@ -670,17 +648,6 @@ Based on this visibility trend, what is your expert analysis and what strategies
                             changeText="vs last period"
                             chartData={(data?.avgCTR?.timeseries || []).map(d => d.ctr).slice(-30)}
                             insight={data?.intelligence?.avgCtr}
-                            onClick={() => {
-                                const ctrTrendStr = (data?.avgCTR?.timeseries || []).map(d => `${d.ctr}%`).join(', ');
-                                openWithQuestion(`Act as my elite SEO Growth Strategist. Let's perform a detailed, professional analysis of my average organic Click-Through Rate (CTR).
-Here is the complete dataset for this section:
-- Average CTR this period: ${(data?.avgCTR?.value || 0).toFixed(2)}%
-- CTR shift: ${data?.avgCTR?.change || 0}% vs last period
-- Daily CTR Trend values: [${ctrTrendStr}]
-
-Based on this CTR trend, how can we optimize our snippets to maximize click-through rates?`);
-                            }}
-                            contextPrompt={`Analyze my Click-Through Rate (CTR). Current CTR: ${(data?.avgCTR?.value || 0).toFixed(2)}% vs Prior: ${(data?.periodComparison?.lastPeriod?.ctr || 0).toFixed(2)}%. Change: ${data?.avgCTR?.change || 0}%. How can I make my search snippets more attractive to users in the search results?`}
                         />
                         <KpiCard
                             title="Avg. Position"
@@ -692,17 +659,6 @@ Based on this CTR trend, how can we optimize our snippets to maximize click-thro
                             changeText="vs last period"
                             chartData={(data?.avgPosition?.timeseries || []).map(d => d.position).slice(-30)}
                             insight={data?.intelligence?.avgPosition}
-                            onClick={() => {
-                                const positionTrendStr = (data?.avgPosition?.timeseries || []).map(d => `#${d.position}`).join('\n');
-                                openWithQuestion(`Act as my elite SEO Ranking Coach. Let's perform a detailed, professional analysis of my Average Ranking Position.
-Here is the complete dataset for this section:
-- Average Position this period: #${(data?.avgPosition?.value || 0).toFixed(1)}
-- Position shift: ${data?.avgPosition?.change || 0}% vs last period
-- Daily Position Trend values: [${positionTrendStr}]
-
-Based on this ranking trajectory, what is your expert analysis and how can we push our average position closer to page 1?`);
-                            }}
-                            contextPrompt={`Analyze my average search position. Current: #${(data?.avgPosition?.value || 0).toFixed(1)} vs Prior: #${(data?.periodComparison?.lastPeriod?.position || 0).toFixed(1)}. Change: ${data?.avgPosition?.change || 0}%. What is the best way to move my overall rankings closer to position #1?`}
                         />
                     </div>
 
