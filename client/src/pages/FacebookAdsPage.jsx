@@ -394,7 +394,7 @@ const FacebookAdsPage = () => {
                             Please provide: 
                             1. Social Marketing Score (1-100)
                             2. Fastest growing campaign
-                            3. One advice on creative optimization to improve ROAS.`)}
+                            3. One advice on creative optimization to improve ROAS.`, '🎯 Full Facebook Ads Dashboard Audit')}
                             className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-2xl text-[11px] font-black flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-sm active:scale-95 w-full uppercase"
                         >
                             <SparklesIcon className="w-4 h-4" />
@@ -539,7 +539,7 @@ const FacebookAdsPage = () => {
                         </div>
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => openWithQuestion(`My Facebook Ads: Spend $${overview?.spend?.toFixed(2) || 0}, Reach ${formatNumber(overview?.reach)}, Impressions ${formatNumber(overview?.impressions)}, CTR ${ctr}%, ROAS ${roas}x. What's my overall social ad performance and how can I improve efficiency?`)}
+                                onClick={() => openWithQuestion(`My Facebook Ads: Spend $${overview?.spend?.toFixed(2) || 0}, Reach ${formatNumber(overview?.reach)}, Impressions ${formatNumber(overview?.impressions)}, CTR ${ctr}%, ROAS ${roas}x. What's my overall social ad performance and how can I improve efficiency?`, '📊 Facebook Ads Performance Summary')}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -614,7 +614,7 @@ const FacebookAdsPage = () => {
                         <div className="flex items-center justify-between mb-1">
                             <h3 className="text-sm font-black text-neutral-900 dark:text-white">Reach Trend</h3>
                             <button
-                                onClick={() => openWithQuestion(`My Facebook Ads reach: ${formatNumber(overview?.reach)} unique people reached, frequency: ${frequency}x per person. Is my reach growing? ${highFrequency ? 'I have high frequency which may cause ad fatigue. What should I do?' : 'My frequency looks healthy.'}`)}
+                                onClick={() => openWithQuestion(`My Facebook Ads reach: ${formatNumber(overview?.reach)} unique people reached, frequency: ${frequency}x per person. Is my reach growing? ${highFrequency ? 'I have high frequency which may cause ad fatigue. What should I do?' : 'My frequency looks healthy.'}`, '👥 Reach & Ad Frequency Resonance')}
                                 className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -656,7 +656,7 @@ const FacebookAdsPage = () => {
                         <div className="flex items-center justify-between mb-1">
                             <h3 className="text-sm font-black text-neutral-900 dark:text-white">Campaign Spend</h3>
                             <button
-                                onClick={() => openWithQuestion(`My Facebook Ads spend by campaign: ${campaigns.slice(0, 5).map(c => `${c.name}: $${c.spend?.toFixed(2)} (${c.conversions} conv, ${formatNumber(c.reach)} reach)`).join(' | ')}. Which campaigns should I scale and which should I pause?`)}
+                                onClick={() => openWithQuestion(`My Facebook Ads spend by campaign: ${campaigns.slice(0, 5).map(c => `${c.name}: $${c.spend?.toFixed(2)} (${c.conversions} conv, ${formatNumber(c.reach)} reach)`).join(' | ')}. Which campaigns should I scale and which should I pause?`, '💸 Campaign Spend & Conversion Analysis')}
                                 className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -767,7 +767,7 @@ const FacebookAdsPage = () => {
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
-                                    onClick={() => openWithQuestion(`My Facebook Ads top campaigns: ${campaigns.slice(0, 5).map(c => `${c.name}: $${c.spend?.toFixed(2)} spend, ${c.conversions} conv, ${formatNumber(c.reach)} reach`).join(' | ')}. Which campaign has the best ROAS? What creative or audience changes do you recommend?`)}
+                                    onClick={() => openWithQuestion(`My Facebook Ads top campaigns: ${campaigns.slice(0, 5).map(c => `${c.name}: $${c.spend?.toFixed(2)} spend, ${c.conversions} conv, ${formatNumber(c.reach)} reach`).join(' | ')}. Which campaign has the best ROAS? What creative or audience changes do you recommend?`, '🚀 Meta Campaigns Scaling Optimization')}
                                     className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                 >
                                     <SparklesIcon className="w-3.5 h-3.5" />
@@ -799,7 +799,7 @@ const FacebookAdsPage = () => {
                             <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Ad spend distribution by hardware category</p>
                         </div>
                         <button
-                            onClick={() => openWithQuestion(`My Facebook Ads device breakdown: ${devices.map(d => `${d.name}: $${d.value?.toFixed(2)}`).join(', ')}. Should I adjust my mobile vs desktop bids? What device-specific strategies do you recommend for Meta ads?`)}
+                            onClick={() => openWithQuestion(`My Facebook Ads device breakdown: ${devices.map(d => `${d.name}: $${d.value?.toFixed(2)}`).join(', ')}. Should I adjust my mobile vs desktop bids? What device-specific strategies do you recommend for Meta ads?`, '📱 Mobile vs Desktop ROI Performance')}
                             className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                         >
                             <SparklesIcon className="w-3.5 h-3.5" />
@@ -860,7 +860,7 @@ const FacebookAdsPage = () => {
                         </div>
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => openWithQuestion(`My Facebook Ads trends: Spend $${overview?.spend?.toFixed(2)}, Reach ${formatNumber(overview?.reach)}, CTR ${ctr}%, ROAS ${roas}x, Frequency ${frequency}x. ${highFrequency ? 'Frequency is high' : 'Frequency is healthy'}. What are my biggest wins and concerns this period?`)}
+                                onClick={() => openWithQuestion(`My Facebook Ads trends: Spend $${overview?.spend?.toFixed(2)}, Reach ${formatNumber(overview?.reach)}, CTR ${ctr}%, ROAS ${roas}x, Frequency ${frequency}x. ${highFrequency ? 'Frequency is high' : 'Frequency is healthy'}. What are my biggest wins and concerns this period?`, '📊 Facebook Ads Performance Trends')}
                                 className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />

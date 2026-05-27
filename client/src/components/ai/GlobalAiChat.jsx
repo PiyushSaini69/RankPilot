@@ -61,11 +61,36 @@ const TypingIndicator = () => {
     );
 };
 
+
 const GlobalChatMessage = ({ msg, onEdit, onRetry, MD }) => {
     const isUser = msg.role === 'user';
     const [isCopied, setIsCopied] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
-    const isLongMessage = msg.content?.length > 400 || (msg.content?.split('\n').length > 6);
+
+    // If msg has an explicit displayLabel, use it
+    const hasLabel = !!msg.displayLabel;
+    const displayTitle = msg.displayLabel;
+    const detailsContent = msg.content;
+    
+    // Choose high-level headers based on content keywords
+    let headerTitle = '📊 Dashboard Analysis';
+    if (msg.content) {
+        const lowerContent = msg.content.toLowerCase();
+        if (lowerContent.includes('seo') || lowerContent.includes('gsc') || lowerContent.includes('keyword') || lowerContent.includes('organic') || lowerContent.includes('ranking')) {
+            headerTitle = '🔍 SEO Performance Audit';
+        } else if (lowerContent.includes('google ads') || lowerContent.includes('gads') || lowerContent.includes('googleads')) {
+            headerTitle = '🎯 Google Ads Optimization';
+        } else if (lowerContent.includes('facebook ads') || lowerContent.includes('facebookads') || lowerContent.includes('meta ads') || lowerContent.includes('fads')) {
+            headerTitle = '📱 Facebook Ads Analysis';
+        } else if (lowerContent.includes('ga4') || lowerContent.includes('session') || lowerContent.includes('user loyalty') || lowerContent.includes('traffic')) {
+            headerTitle = '📈 Web Analytics Review';
+        }
+    }
+
+    // Long message logic
+    const isLongMessage = hasLabel 
+        ? detailsContent?.length > 100 
+        : msg.content?.length > 400 || (msg.content?.split('\n').length > 6);
 
     const handleCopy = () => {
         if (!msg.content) return;
@@ -81,20 +106,29 @@ const GlobalChatMessage = ({ msg, onEdit, onRetry, MD }) => {
         return (
             <div className="flex justify-end mb-4 w-full group">
                 <div className="flex flex-col items-end max-w-[85%]">
-                    <div className={`px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-2xl text-[13px] text-zinc-800 dark:text-zinc-100 leading-relaxed break-words relative overflow-hidden transition-all duration-500 shadow-sm dark:shadow-none ${(!isExpanded && isLongMessage) ? 'max-h-[180px]' : 'max-h-[5000px]'}`}>
-                        <div className="whitespace-pre-wrap">{msg.content}</div>
-                        {!isExpanded && isLongMessage && (
-                            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-zinc-100 dark:from-zinc-800 via-zinc-100/90 dark:via-zinc-800/90 to-transparent pointer-events-none flex items-end justify-start px-4 pb-2">
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); setIsExpanded(true); }}
-                                    className="text-[11px] font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 pointer-events-auto transition-colors"
-                                >
-                                    Show more
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                    {isExpanded && isLongMessage && (
+                    {hasLabel ? (
+                        /* Clean Bubble style displaying only the custom friendly label passed from openWithQuestion */
+                        <div className="px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-2xl text-[13px] text-zinc-800 dark:text-zinc-100 leading-relaxed break-words shadow-sm dark:shadow-none">
+                            <div className="whitespace-pre-wrap">{displayTitle}</div>
+                        </div>
+                    ) : (
+                        /* Traditional Chat Bubble for regular messages */
+                        <div className={`px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-2xl text-[13px] text-zinc-800 dark:text-zinc-100 leading-relaxed break-words relative overflow-hidden transition-all duration-500 shadow-sm dark:shadow-none ${(!isExpanded && isLongMessage) ? 'max-h-[180px]' : 'max-h-[5000px]'}`}>
+                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                            {!isExpanded && isLongMessage && (
+                                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-zinc-100 dark:from-zinc-800 via-zinc-100/90 dark:via-zinc-800/90 to-transparent pointer-events-none flex items-end justify-start px-4 pb-2">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setIsExpanded(true); }}
+                                        className="text-[11px] font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 pointer-events-auto transition-colors"
+                                    >
+                                        Show more
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
+                    {isExpanded && isLongMessage && !hasLabel && (
                         <button
                             onClick={() => setIsExpanded(false)}
                             className="text-[10px] font-bold text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 mt-1.5 self-start pl-2 transition-colors"
@@ -102,6 +136,7 @@ const GlobalChatMessage = ({ msg, onEdit, onRetry, MD }) => {
                             Show less
                         </button>
                     )}
+
                     <div className="flex items-center gap-3 mt-2 pr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-neutral-400">
                         <span className="text-[10px] font-bold uppercase tracking-wider cursor-default" title={format(new Date(msg.createdAt || Date.now()), 'PPP p')}>
                             {format(new Date(msg.createdAt || Date.now()), 'HH:mm')}
@@ -122,6 +157,7 @@ const GlobalChatMessage = ({ msg, onEdit, onRetry, MD }) => {
             </div>
         );
     }
+
 
     return (
         <div className="flex justify-start w-full max-w-full mb-6 group">
@@ -210,7 +246,7 @@ const GlobalAiChat = () => {
         return null;
     }
 
-    const { isOpen, setIsOpen, initialQuestion, clearInitialQuestion } = useAiChatStore();
+    const { isOpen, setIsOpen, initialQuestion, initialDisplayLabel, clearInitialQuestion } = useAiChatStore();
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -471,14 +507,14 @@ const GlobalAiChat = () => {
     });
 
     /* ── Core send function ── */
-    const sendMessage = useCallback(async (text) => {
+    const sendMessage = useCallback(async (text, displayLabel = '') => {
         const question = (typeof text === 'string' ? text : input).trim();
         if (!question || loading) return;
 
         setInput('');
         setMessages(prev => [
             ...prev,
-            { role: 'user', content: question },
+            { role: 'user', content: question, displayLabel: displayLabel || undefined },
             { role: 'assistant', content: '', isLoading: true }
         ]);
         setLoading(true);
@@ -497,9 +533,7 @@ const GlobalAiChat = () => {
                     siteId: activeSiteId || undefined,
                     history: messages
                         .filter(m => !m.isLoading)
-                        .slice(-15)
                         .map(m => ({ role: m.role, content: m.content })),
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 }),
             });
 
@@ -572,7 +606,7 @@ const GlobalAiChat = () => {
                 if (last?.role === 'assistant') {
                     updated[updated.length - 1] = {
                         ...last,
-                        content: "Sorry, I'm having trouble connecting right now. Please try again.",
+                        content: "Unable to send your request right now. Please try again.",
                         isLoading: false,
                         isError: true,
                     };
@@ -638,10 +672,10 @@ const GlobalAiChat = () => {
     /* ── Handle initial question from store ── */
     useEffect(() => {
         if (initialQuestion) {
-            sendMessage(initialQuestion);
+            sendMessage(initialQuestion, initialDisplayLabel);
             clearInitialQuestion();
         }
-    }, [initialQuestion, sendMessage, clearInitialQuestion]);
+    }, [initialQuestion, initialDisplayLabel, sendMessage, clearInitialQuestion]);
 
     /* ── Focus input ── */
     useEffect(() => {
@@ -684,8 +718,8 @@ const GlobalAiChat = () => {
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className={`relative flex items-center gap-2.5 px-6 py-4 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl overflow-hidden ${isOpen
-                            ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
-                            : 'bg-brand-600 text-white shadow-brand-500/40'
+                        ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
+                        : 'bg-brand-600 text-white shadow-brand-500/40'
                         }`}
                 >
                     {/* Shine/Shimmer Effect */}

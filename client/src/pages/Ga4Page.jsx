@@ -644,7 +644,7 @@ const Ga4Page = () => {
                                         1. A **Comprehensive Executive Health Check** summarizing the overall trajectory and identifying any hidden anomalies.
                                         2. A **Traffic-to-Content Correlation Audit** explaining which channels drive high-quality traffic (low bounce, high duration) and which pages suffer from friction.
                                         3. A **3-Part Actionable Growth Blueprint** containing step-by-step strategies for conversion rate optimization (CRO) and organic acquisition scaling.`;
-                                    openWithQuestion(fullPrompt);
+                                    openWithQuestion(fullPrompt, '📊 Full GA4 Dashboard Analysis');
                                 }}
                                 className="h-8 px-4 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
@@ -762,7 +762,7 @@ const Ga4Page = () => {
                                     Daily Session Trend:
                                     ${(data?.sessionsOverTime || []).slice(-30).map(d => `- Date: ${d.date} | Sessions: ${d.sessions}`).join('\n')}
 
-                                    Identify any patterns (like weekend surges) and provide a 1-sentence summary + 1-sentence strategic insight.`)}
+                                    Identify any patterns (like weekend surges) and provide a 1-sentence summary + 1-sentence strategic insight.`, '📈 Analyzing Sessions Over Time...')}
                                     className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                 >
                                     <SparklesIcon className="w-3.5 h-3.5" />
@@ -854,7 +854,7 @@ const Ga4Page = () => {
                                     - New Users: ${formatNumber(data?.newVsReturningUsers?.totalNewUsers)} (${data?.newVsReturningUsers?.newUsersPercentage || '0'}%)
                                     - Returning Users: ${formatNumber(data?.newVsReturningUsers?.totalReturningUsers)} (${data?.newVsReturningUsers?.returningUsersPercentage || '0'}%)
 
-                                    Provide a 1-sentence summary of this user loyalty and a 1-sentence strategic insight to improve retention.`)}
+                                    Provide a 1-sentence summary of this user loyalty and a 1-sentence strategic insight to improve retention.`, '👥 Analyzing New vs Returning Users...')}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -944,7 +944,7 @@ const Ga4Page = () => {
                                     - Engaged Sessions: ${formatNumber(data?.engagementRates?.engagedSessions || 0)}
                                     - Avg Engaged Time: ${data?.engagementRates?.avgEngagedTime}
 
-                                    Provide a 1-sentence summary of content resonance and a 1-sentence strategic insight to expand engagement.`)}
+                                    Provide a 1-sentence summary of content resonance and a 1-sentence strategic insight to expand engagement.`, '⚡ Analyzing Engagement Rate...')}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -996,7 +996,7 @@ const Ga4Page = () => {
                                     Daily Bounce Rate Trend:
                                     ${(data?.bounceRateOverTime || []).slice(-30).map(d => `- Date: ${d.date} | Bounce Rate: ${d.bounceRate}%`).join('\n')}
 
-                                    Provide a 1-sentence summary of stability and a 1-sentence strategic insight to fix spikes.`)}
+                                    Provide a 1-sentence summary of stability and a 1-sentence strategic insight to fix spikes.`, '📉 Analyzing Bounce Rate Trend...')}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1060,7 +1060,7 @@ const Ga4Page = () => {
                                     Daily Page Views Trend:
                                     ${(data?.pageViewsOverTime || []).slice(-30).map(d => `- Date: ${d.date} | Page Views: ${formatNumber(d.pageViews)}`).join('\n')}
 
-                                    Provide a 1-sentence summary of the traffic pattern and a 1-sentence strategic volume optimization insight.`)}
+                                    Provide a 1-sentence summary of the traffic pattern and a 1-sentence strategic volume optimization insight.`, '📄 Analyzing Page Views Over Time...')}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1122,7 +1122,7 @@ const Ga4Page = () => {
                                 Top Traffic Sources:
                                 ${(data?.topTrafficSources || []).slice(0, 10).map((t, idx) => `${idx + 1}. Source: ${t.source} (${t.channel}) | Sessions: ${formatNumber(t.sessions)} | Users: ${formatNumber(t.users)}`).join('\n')}
 
-                                Provide a 1-sentence summary of channel acquisition performance and a 1-sentence strategic acquisition scaling recommendation.`)}
+                                Provide a 1-sentence summary of channel acquisition performance and a 1-sentence strategic acquisition scaling recommendation.`, '🚦 Analyzing Top Traffic Sources...')}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1159,7 +1159,7 @@ const Ga4Page = () => {
                                 Top Content Pages:
                                 ${(data?.topPages || []).slice(0, 10).map((p, idx) => `${idx + 1}. Path: ${p.path} | Title: "${p.title || 'Untitled'}" | Views: ${formatNumber(p.views)} | Users: ${formatNumber(p.users)} | Bounce Rate: ${p.bounceRate}`).join('\n')}
 
-                                Provide a 1-sentence content performance summary and a 1-sentence actionable user engagement optimization recommendation.`)}
+                                Provide a 1-sentence content performance summary and a 1-sentence actionable user engagement optimization recommendation.`, '📝 Analyzing Top Pages...')}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1204,7 +1204,7 @@ const Ga4Page = () => {
                                     - Total Sessions: ${formatNumber(data?.deviceBreakdown?.totalSessions)}
                                     ${(data?.deviceBreakdown?.devices || []).map(d => `- ${d.name}: ${formatNumber(d.value)} sessions (${d.percentage}%)`).join('\n')}
 
-                                    Provide a 1-sentence device mix summary and a 1-sentence strategic mobile UX/responsiveness recommendation.`)}
+                                    Provide a 1-sentence device mix summary and a 1-sentence strategic mobile UX/responsiveness recommendation.`, '📱 Analyzing Device Breakdown...')}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1293,7 +1293,7 @@ const Ga4Page = () => {
                                 Top Geographic Markets:
                                 ${(data?.topLocations || []).slice(0, 5).map((l, idx) => `${idx + 1}. Country: ${l.name} | Sessions: ${formatNumber(l.value)} (${l.percentage}%)`).join('\n')}
 
-                                Provide a 1-sentence geographical breakdown summary and a 1-sentence strategic international expansion recommendation.`)}
+                                Provide a 1-sentence geographical breakdown summary and a 1-sentence strategic international expansion recommendation.`, '🌍 Analyzing Geographic Traffic Locations...')}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -1354,7 +1354,7 @@ const Ga4Page = () => {
                                 - Avg Session Duration: ${data?.thisPeriodVsLastPeriod?.thisPeriod?.avgSessionDuration} vs ${data?.thisPeriodVsLastPeriod?.lastPeriod?.avgSessionDuration} (${data?.thisPeriodVsLastPeriod?.change?.avgSessionDuration || 0}% change)
                                 - New Users: ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.newUsers)} vs ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.newUsers)} (${data?.thisPeriodVsLastPeriod?.change?.newUsers || 0}% change)
 
-                                Provide a 1-sentence trajectory summary + 1-sentence strategic future insight.`)}
+                                Provide a 1-sentence trajectory summary + 1-sentence strategic future insight.`, '📊 GA4 Period-over-Period Performance Comparison')}
                                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <SparklesIcon className="w-3.5 h-3.5" />

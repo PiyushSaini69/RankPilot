@@ -754,18 +754,22 @@ export const askAi = async (req, res) => {
         const getFriendlyError = (err) => {
             const msg = err?.message || "";
             if (msg.includes('429') || msg.includes('Quota')) {
-                return "AI is busy. Please try again in 60 seconds.";
+                const retryMatch = msg.match(/retry in (\d+)/i);
+                const wait = retryMatch?.[1];
+                return wait
+                ? `Request limit reached. Please try again in ${wait} seconds.`
+                : "Request limit reached. Please try again shortly.";
             }
             if (msg.includes('getaddrinfo') || msg.includes('ENOTFOUND') || msg.includes('redis') || msg.includes('connect')) {
-                return "Connection glitch. Please try again in 2-3 minutes.";
+                return "We're having trouble connecting. Please try again shortly.";
             }
             if (msg.includes('API_KEY_INVALID') || msg.includes('auth')) {
-                return "Configuration error. Please contact support.";
+                return "Service configuration issue detected. Please contact support.";
             }
             if (msg.includes('safety') || msg.includes('blocked')) {
-                return "Question blocked for safety. Please rephrase.";
+                return "Your request couldn't be processed. Please try rewording it..";
             }
-            return "Something went wrong. Please refresh the page.";
+            return "We couldn't complete your request. Please try again";
         };
 
         const friendlyMsg = getFriendlyError(err);

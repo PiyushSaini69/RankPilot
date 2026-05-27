@@ -827,7 +827,7 @@ const DashboardPage = () => {
                             - Total Organic Clicks (GSC): ${formatNumber(overviewData.gsc?.clicks || 0)}
                             - Total Ad Spend (Meta + Google): ${formatCurrency((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0))}
                             - Total Ad Conversions: ${formatNumber((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0))}
-                            Strategic review: Brand Performance, Efficiency, Strategy.`)}
+                            Strategic review: Brand Performance, Efficiency, Strategy.`, '📊 Complete Brand Performance Analysis')}
                           className="h-10 px-4 bg-brand-50 hover:bg-brand-100 dark:bg-brand-500/10 dark:hover:bg-brand-500/20 text-brand-600 dark:text-brand-400 rounded-2xl text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95"
                         >
                           <SparklesIcon className="w-3.5 h-3.5" />
@@ -871,7 +871,7 @@ const DashboardPage = () => {
                       {activeGa4PropertyId && !loading && (
                         <button
                           onClick={() => openWithQuestion(`Provide a detailed analysis for this GA4 traffic summary: ${overviewData.intelligence?.overviewGA4 || 'Traffic engagement overview'}.
-                            Current Data: Users: ${formatNumber(overviewData.ga4?.users)}, Sessions: ${formatNumber(overviewData.ga4?.sessions)}, Growth: ${overviewData.ga4?.growthSessions}%, Bounce Rate: ${formatPct(overviewData.ga4?.bounceRate || 0)}, Avg Time: ${formatTime(overviewData.ga4?.avgSessionDuration)}, Page Views: ${formatNumber(overviewData.ga4?.pageViews)}`)}
+                            Current Data: Users: ${formatNumber(overviewData.ga4?.users)}, Sessions: ${formatNumber(overviewData.ga4?.sessions)}, Growth: ${overviewData.ga4?.growthSessions}%, Bounce Rate: ${formatPct(overviewData.ga4?.bounceRate || 0)}, Avg Time: ${formatTime(overviewData.ga4?.avgSessionDuration)}, Page Views: ${formatNumber(overviewData.ga4?.pageViews)}`, '📈 GA4 Web Analytics Review')}
                           className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                         >
                           <SparklesIcon className="w-3.5 h-3.5" />
@@ -936,7 +936,7 @@ const DashboardPage = () => {
                       {activeGscSite && !loading && (
                         <button
                           onClick={() => openWithQuestion(`How can I improve my SEO strategy based on this Search Console summary? ${overviewData.intelligence?.overviewGSC || 'Organic visibility overview'}.
-                            Current Data: Clicks: ${formatNumber(overviewData.gsc?.clicks)} (${overviewData.gsc?.growthClicks}% growth), Impressions: ${formatNumber(overviewData.gsc?.impressions)}, CTR: ${formatPct((overviewData.gsc?.ctr || 0) * 100)}, Avg Position: #${(overviewData.gsc?.position || 0).toFixed(1)}`)}
+                            Current Data: Clicks: ${formatNumber(overviewData.gsc?.clicks)} (${overviewData.gsc?.growthClicks}% growth), Impressions: ${formatNumber(overviewData.gsc?.impressions)}, CTR: ${formatPct((overviewData.gsc?.ctr || 0) * 100)}, Avg Position: #${(overviewData.gsc?.position || 0).toFixed(1)}`, '🔍 GSC SEO Performance Audit')}
                           className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                         >
                           <SparklesIcon className="w-3.5 h-3.5" />
@@ -1000,7 +1000,7 @@ const DashboardPage = () => {
                       {activeGoogleAdsCustomerId && !loading && (
                         <button
                           onClick={() => openWithQuestion(`Analyze Google Ads efficiency based on this overview: ${overviewData.intelligence?.overviewGAds || 'Ad campaign overview'}.
-                            Current Data: Spend: ${formatCurrency(overviewData.googleAds?.spend)} (${overviewData.googleAds?.growthSpend}% growth), Clicks: ${formatNumber(overviewData.googleAds?.clicks)}, Impressions: ${formatNumber(overviewData.googleAds?.impressions)}, Conversions: ${formatNumber(overviewData.googleAds?.conversions)} (${overviewData.googleAds?.growthConversions}% growth), CPC: ${formatCurrency(overviewData.googleAds?.cpc)}, CTR: ${formatPct((overviewData.googleAds?.ctr || 0) * 100)}`)}
+                            Current Data: Spend: ${formatCurrency(overviewData.googleAds?.spend)} (${overviewData.googleAds?.growthSpend}% growth), Clicks: ${formatNumber(overviewData.googleAds?.clicks)}, Impressions: ${formatNumber(overviewData.googleAds?.impressions)}, Conversions: ${formatNumber(overviewData.googleAds?.conversions)} (${overviewData.googleAds?.growthConversions}% growth), CPC: ${formatCurrency(overviewData.googleAds?.cpc)}, CTR: ${formatPct((overviewData.googleAds?.ctr || 0) * 100)}`, '🎯 Google Ads Optimization Review')}
                           className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                         >
                           <SparklesIcon className="w-3.5 h-3.5" />
@@ -1063,7 +1063,7 @@ const DashboardPage = () => {
                       {activeFacebookAdAccountId && !loading && (
                         <button
                           onClick={() => openWithQuestion(`Give me actionable strategies to scale Meta Ads based on this summary: ${overviewData.intelligence?.overviewFAds || 'Meta ads overview'}.
-                            Current Data: Spend: ${formatCurrency(overviewData.facebookAds?.spend)} (${overviewData.facebookAds?.growthSpend}% growth), Reach: ${formatNumber(overviewData.facebookAds?.reach)} (${overviewData.facebookAds?.growthReach}% growth), Impressions: ${formatNumber(overviewData.facebookAds?.impressions)}, Clicks: ${formatNumber(overviewData.facebookAds?.clicks)}, ROAS: ${(overviewData.facebookAds?.roas || 0).toFixed(2)}x, CTR: ${formatPct((overviewData.facebookAds?.ctr || 0) * 100)}`)}
+                            Current Data: Spend: ${formatCurrency(overviewData.facebookAds?.spend)} (${overviewData.facebookAds?.growthSpend}% growth), Reach: ${formatNumber(overviewData.facebookAds?.reach)} (${overviewData.facebookAds?.growthReach}% growth), Impressions: ${formatNumber(overviewData.facebookAds?.impressions)}, Clicks: ${formatNumber(overviewData.facebookAds?.clicks)}, ROAS: ${(overviewData.facebookAds?.roas || 0).toFixed(2)}x, CTR: ${formatPct((overviewData.facebookAds?.ctr || 0) * 100)}`, '📱 Meta Ads Performance Review')}
                           className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                         >
                           <SparklesIcon className="w-3.5 h-3.5" />
@@ -1138,7 +1138,7 @@ const DashboardPage = () => {
                       onClick={() => openWithQuestion(`Based on the Ad Platform Comparison table, which channel should I prioritize? 
                         Google Stats: $${formatNumber(overviewData.googleAds?.spend)} spend, ${formatNumber(overviewData.googleAds?.conversions)} conv, ${formatPct((overviewData.googleAds?.ctr || 0) * 100)} CTR.
                         Meta Stats: $${formatNumber(overviewData.facebookAds?.spend)} spend, ${formatNumber(overviewData.facebookAds?.conversions)} conv, ${formatPct((overviewData.facebookAds?.ctr || 0) * 100)} CTR.
-                        AI Insight: ${overviewData.intelligence?.adWinnerInsight || 'Comparison analysis needed.'}`)}
+                        AI Insight: ${overviewData.intelligence?.adWinnerInsight || 'Comparison analysis needed.'}`, '📊 Cross-Channel Ad Platform Comparison')}
                       className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-semibold flex items-center gap-1.5"
                     >
                       <SparklesIcon className="w-3 h-3" />
@@ -1260,7 +1260,7 @@ const DashboardPage = () => {
                           Detailed Context: Analyzing ${selectedMetric} trends over time. 
                           GA4 Sessions: ${formatNumber(overviewData.ga4?.sessions)} (${overviewData.ga4?.growthSessions}% growth).
                           GSC Clicks: ${formatNumber(overviewData.gsc?.clicks)} (${overviewData.gsc?.growthClicks}% growth).
-                          Current Selection: Total ${selectedMetric} is ${selectedMetric === 'Spend' ? formatCurrency((overviewData.googleAds?.spend || 0) + (overviewData.facebookAds?.spend || 0)) : formatNumber(overviewData.ga4?.sessions || 0)}.`)}
+                          Current Selection: Total ${selectedMetric} is ${selectedMetric === 'Spend' ? formatCurrency((overviewData.googleAds?.spend || 0) + (overviewData.facebookAds?.spend || 0)) : formatNumber(overviewData.ga4?.sessions || 0)}.`, '📈 Growth Matrix Trajectory Audit')}
                         className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                       >
                         <SparklesIcon className="w-3.5 h-3.5" />
@@ -1346,7 +1346,7 @@ const DashboardPage = () => {
                     {!loading && (
                       <button
                         onClick={() => openWithQuestion(`Analyze these top pages performance further: ${overviewData.intelligence?.topPagesInsight || 'Page performance'}.
-                          Top Pages Breakdown: ${topPages.slice(0, 3).map(p => `${p.url} with ${formatNumber(p.visitors)} unique visitors and ${formatNumber(p.views)} views`).join(', ')}.`)}
+                          Top Pages Breakdown: ${topPages.slice(0, 3).map(p => `${p.url} with ${formatNumber(p.visitors)} unique visitors and ${formatNumber(p.views)} views`).join(', ')}.`, '📝 Top Landing Pages Traffic Audit')}
                         className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                       >
                         <SparklesIcon className="w-3.5 h-3.5" />
@@ -1390,7 +1390,7 @@ const DashboardPage = () => {
                       <button
                         onClick={() => openWithQuestion(`What actionable steps should I take based on these period comparisons? ${overviewData.intelligence?.comparisonInsight || 'Comparison trends'}. 
                           Current Period Metrics: Sessions ${formatNumber(overviewData.ga4?.sessions)}, GSC Clicks ${formatNumber(overviewData.gsc?.clicks)}, GAds Spend ${formatCurrency(overviewData.googleAds?.spend)}, Meta Spend ${formatCurrency(overviewData.facebookAds?.spend)}.
-                          Prior Period Metrics: Sessions ${formatNumber(overviewData.ga4?.priorSessions)}, GSC Clicks ${formatNumber(overviewData.gsc?.priorClicks)}, GAds Spend ${formatCurrency(overviewData.googleAds?.priorSpend)}, Meta Spend ${formatCurrency(overviewData.facebookAds?.priorSpend)}.`)}
+                          Prior Period Metrics: Sessions ${formatNumber(overviewData.ga4?.priorSessions)}, GSC Clicks ${formatNumber(overviewData.gsc?.priorClicks)}, GAds Spend ${formatCurrency(overviewData.googleAds?.priorSpend)}, Meta Spend ${formatCurrency(overviewData.facebookAds?.priorSpend)}.`, '📊 Period-over-Period Performance Comparison')}
                         className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                       >
                         <SparklesIcon className="w-3.5 h-3.5" />

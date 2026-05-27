@@ -589,7 +589,7 @@ import { formatDistanceToNow } from 'date-fns';
                                             1. A **Comprehensive SEO Executive Audit** summarizing the organic trajectory, CTR health, and ranking shifts.
                                             2. A **Query-to-Landing-Page Correlation Audit** identifying low-hanging opportunities where keywords rank well but pages underperform or miss metadata CTR potential.
                                             3. A **3-Part Actionable On-Page & Off-Page Ranking Blueprint** to push Near Page 1 terms into the Top 5 results and optimize meta titles/descriptions to fix Low CTR issues.`;
-                                        openWithQuestion(fullPrompt);
+                                        openWithQuestion(fullPrompt, '🔍 Full GSC Executive SEO Audit');
                                     }}
                                     className="h-9 md:h-8 px-4 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm w-full sm:w-auto"
                                 >
@@ -706,7 +706,7 @@ import { formatDistanceToNow } from 'date-fns';
                                         Daily Click & Impression Trend:
                                         ${dailyDataStr}
 
-                                        Identify significant trends, organic visibility spikes, seasonal patterns, or anomalies and provide detailed actionable insights.`);
+                                        Identify significant trends, organic visibility spikes, seasonal patterns, or anomalies and provide detailed actionable insights.`, '📈 Search Click & Impression Trends');
                                     }}
                                     className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                 >
@@ -823,7 +823,7 @@ import { formatDistanceToNow } from 'date-fns';
                                             Daily CTR Trend:
                                             ${dailyCtrStr}
 
-                                            Evaluate our click engagement profile. What are the key takeaways, and how can we optimize our snippets to maximize search CTR?`);
+                                            Evaluate our click engagement profile. What are the key takeaways, and how can we optimize our snippets to maximize search CTR?`, '📊 Click-Through Rate (CTR) Trend');
                                         }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
@@ -892,7 +892,7 @@ import { formatDistanceToNow } from 'date-fns';
                                                 Daily Position Trend:
                                                 ${dailyPosStr}
 
-                                                Evaluate our search positions climbing, stabilizing, or slipping over time. What is the best SEO playbook to optimize our content structure to lift our overall positions?`);
+                                                Evaluate our search positions climbing, stabilizing, or slipping over time. What is the best SEO playbook to optimize our content structure to lift our overall positions?`, '🔢 Average Ranking Position Trend');
                                         }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
@@ -959,7 +959,7 @@ import { formatDistanceToNow } from 'date-fns';
                                             Low CTR Keyword Opportunities:
                                             ${allLowCtrStr}
 
-                                            Please evaluate the highest priority keywords, identify potential reasons for low click-through rates, and deliver a step-by-step metadata optimization blueprint.`);
+                                            Please evaluate the highest priority keywords, identify potential reasons for low click-through rates, and deliver a step-by-step metadata optimization blueprint.`, '💡 Low CTR Keyword Opportunities');
                                         }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
@@ -1022,7 +1022,7 @@ import { formatDistanceToNow } from 'date-fns';
                                             Keywords Near Page 1:
                                             ${allNearStr}
 
-                                            Please deliver a step-by-step ranking roadmap including priority recommendations, semantic content expansions, and link optimization to push these terms onto Page 1.`);
+                                            Please deliver a step-by-step ranking roadmap including priority recommendations, semantic content expansions, and link optimization to push these terms onto Page 1.`, '🚀 Near Page 1 Keywords (Ranking #8 - #20)');
                                         }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
@@ -1090,7 +1090,7 @@ import { formatDistanceToNow } from 'date-fns';
                                             Top Organic Queries:
                                             ${allQueriesStr}
 
-                                            Provide a tactical evaluation of keyword performance, organic defense tactics to secure these rankings, and long-tail query expansions.`);
+                                            Provide a tactical evaluation of keyword performance, organic defense tactics to secure these rankings, and long-tail query expansions.`, '📣 Top Performing Search Queries');
                                         }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
@@ -1131,7 +1131,7 @@ import { formatDistanceToNow } from 'date-fns';
                                             Top Landing Pages:
                                             ${allPagesStr}
 
-                                            Identify pages with high impressions but low conversion CTR and suggest clear CRO improvements and content layout optimizations.`);
+                                            Identify pages with high impressions but low conversion CTR and suggest clear CRO improvements and content layout optimizations.`, '📝 Landing Page Performance Audit');
                                         }}
                                         className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                     >
@@ -1174,7 +1174,7 @@ import { formatDistanceToNow } from 'date-fns';
                                         Daily Impression Trend:
                                         ${impressionsTrendStr}
 
-                                        Evaluate this impression trajectory, identifying our search share of voice, brand exposure spikes, and tactical recommendations to keep driving visibility higher.`);
+                                        Evaluate this impression trajectory, identifying our search share of voice, brand exposure spikes, and tactical recommendations to keep driving visibility higher.`, '📺 Daily Organic Impression Trends');
                                     }}
                                     className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                                 >
@@ -1243,7 +1243,7 @@ import { formatDistanceToNow } from 'date-fns';
                                     - Average CTR: ${(comp?.thisPeriod?.ctr || 0).toFixed(2)}% vs ${(comp?.lastPeriod?.ctr || 0).toFixed(2)}% (${comp?.change?.ctr || 0}% change)
                                     - Avg Position: #${(comp?.thisPeriod?.position || 0).toFixed(1)} vs #${(comp?.lastPeriod?.position || 0).toFixed(1)} (${comp?.change?.position || 0}% change)
 
-                                    Please deliver an executive SEO audit analyzing this growth trajectory, key performance highlights, and priority organic growth recommendations.`);
+                                    Please deliver an executive SEO audit analyzing this growth trajectory, key performance highlights, and priority organic growth recommendations.`, '📊 Period Comparison Analysis');
                                 }}
                                 className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                             >

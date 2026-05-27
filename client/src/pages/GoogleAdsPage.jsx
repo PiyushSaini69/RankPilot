@@ -408,7 +408,7 @@ const GoogleAdsPage = () => {
               Please provide: 
               1. ROAS/Efficiency Score (1-100)
               2. Most profitable campaign hint
-              3. One advice to lower the CPC.`)}
+              3. One advice to lower the CPC.`, '🎯 Full Google Ads Dashboard Audit')}
               className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-2xl text-[11px] font-black flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-sm active:scale-95 w-full uppercase"
             >
               <SparklesIcon className="w-4 h-4" />
@@ -552,7 +552,7 @@ const GoogleAdsPage = () => {
             </div>
             <div className="flex gap-4 items-center">
               <button
-                onClick={() => openWithQuestion(`My Google Ads performance: Spend $${overview?.cost?.toFixed(2) || 0}, Clicks: ${formatNumber(overview?.clicks)}, Conversions: ${formatNumber(overview?.conversions)}, CTR: ${ctr}%, ROAS: ${roas}x. What's my overall ad efficiency and where should I focus optimization?`)}
+                onClick={() => openWithQuestion(`My Google Ads performance: Spend $${overview?.cost?.toFixed(2) || 0}, Clicks: ${formatNumber(overview?.clicks)}, Conversions: ${formatNumber(overview?.conversions)}, CTR: ${ctr}%, ROAS: ${roas}x. What's my overall ad efficiency and where should I focus optimization?`, '📊 Ad Efficiency & ROI Performance')}
                 className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
               >
                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -641,7 +641,7 @@ const GoogleAdsPage = () => {
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-sm font-black text-neutral-900 dark:text-white">Conversion Trend</h3>
               <button
-                onClick={() => openWithQuestion(`My Google Ads conversion trend for this period: Total conversions ${formatNumber(overview?.conversions)}, Conv. Rate ${convRate}%, Cost per conversion $${costPerConv}. Are my conversions trending up or down? What can I do to improve conversion rate?`)}
+                onClick={() => openWithQuestion(`My Google Ads conversion trend for this period: Total conversions ${formatNumber(overview?.conversions)}, Conv. Rate ${convRate}%, Cost per conversion $${costPerConv}. Are my conversions trending up or down? What can I do to improve conversion rate?`, '📈 Google Ads Conversion & Cost Analysis')}
                 className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
               >
                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -683,7 +683,7 @@ const GoogleAdsPage = () => {
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-sm font-black text-neutral-900 dark:text-white">Campaign Spend</h3>
               <button
-                onClick={() => openWithQuestion(`My Google Ads campaigns by spend: ${campaigns.slice(0, 5).map(c => `${c.name}: $${c.cost?.toFixed(2)} (${c.conversions} conv)`).join(', ')}. Which campaigns are worth increasing budget and which should be paused?`)}
+                onClick={() => openWithQuestion(`My Google Ads campaigns by spend: ${campaigns.slice(0, 5).map(c => `${c.name}: $${c.cost?.toFixed(2)} (${c.conversions} conv)`).join(', ')}. Which campaigns are worth increasing budget and which should be paused?`, '💸 Campaign Budget & Spend Optimization')}
                 className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
               >
                 <SparklesIcon className="w-3.5 h-3.5" />
@@ -792,7 +792,7 @@ const GoogleAdsPage = () => {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => openWithQuestion(`My Google Ads top campaigns: ${campaigns.slice(0, 5).map(c => `${c.name}: ${c.conversions} conv, $${c.cost?.toFixed(2)} spend, ${c.clicks} clicks`).join(' | ')}. Which campaigns need attention and which should I scale?`)}
+                  onClick={() => openWithQuestion(`My Google Ads top campaigns: ${campaigns.slice(0, 5).map(c => `${c.name}: ${c.conversions} conv, $${c.cost?.toFixed(2)} spend, ${c.clicks} clicks`).join(' | ')}. Which campaigns need attention and which should I scale?`, '🚀 Top Campaigns Scaling Recommendations')}
                   className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
                 >
                   <SparklesIcon className="w-3.5 h-3.5" />
@@ -824,7 +824,7 @@ const GoogleAdsPage = () => {
               <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Ad spend distribution by hardware category</p>
             </div>
             <button
-              onClick={() => openWithQuestion(`My Google Ads spend by device: ${devices.map(d => `${d.name}: $${d.value?.toFixed(2)}`).join(', ')}. Should I adjust device bid modifiers? Which device is delivering the best ROI?`)}
+              onClick={() => openWithQuestion(`My Google Ads spend by device: ${devices.map(d => `${d.name}: $${d.value?.toFixed(2)}`).join(', ')}. Should I adjust device bid modifiers? Which device is delivering the best ROI?`, '📱 Device Spend & ROI Performance')}
               className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
             >
               <SparklesIcon className="w-3.5 h-3.5" />
@@ -885,7 +885,7 @@ const GoogleAdsPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => openWithQuestion(`My Google Ads this period: Spend $${overview?.cost?.toFixed(2)}, Conversions ${formatNumber(overview?.conversions)}, CTR ${ctr}%, ROAS ${roas}x. How is my overall performance trending and what's the biggest area to improve?`)}
+                onClick={() => openWithQuestion(`My Google Ads this period: Spend $${overview?.cost?.toFixed(2)}, Conversions ${formatNumber(overview?.conversions)}, CTR ${ctr}%, ROAS ${roas}x. How is my overall performance trending and what's the biggest area to improve?`, '📊 Google Ads Performance Trends')}
                 className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
               >
                 <SparklesIcon className="w-3.5 h-3.5" />
