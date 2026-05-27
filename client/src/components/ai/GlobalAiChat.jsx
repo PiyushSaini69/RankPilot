@@ -207,6 +207,7 @@ const GlobalChatMessage = ({ msg, onEdit, onRetry, MD }) => {
 const GlobalAiChat = () => {
     const { user, token } = useAuthStore();
     const {
+        userSites,
         activeSiteId,
         gsc,
         ga4,
@@ -215,6 +216,18 @@ const GlobalAiChat = () => {
     } = useAccountsStore();
     const location = useLocation();
     const navigate = useNavigate();
+
+    const activeSite = userSites?.find?.(s => s._id === activeSiteId);
+    const isSyncingHistorical = !!(activeSite && (
+        (activeSite.ga4PropertyId && !activeSite.ga4HistoricalComplete) ||
+        (activeSite.gscSiteUrl && !activeSite.gscHistoricalComplete) ||
+        (activeSite.googleAdsCustomerId && !activeSite.googleAdsHistoricalComplete) ||
+        (activeSite.facebookAdAccountId && !activeSite.facebookAdsHistoricalComplete)
+    ));
+
+    if (isSyncingHistorical) {
+        return null;
+    }
 
     const allowedPaths = [
         '/dashboard',

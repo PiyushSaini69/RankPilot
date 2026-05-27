@@ -621,6 +621,24 @@ export const askAi = async (req, res) => {
     let { question, conversationId, siteId, history, timezone } = req.body;
     const userId = req.user._id;
 
+    // Check if historical sync is running
+    const userAcc = await UserAccounts.findOne(siteId ? { _id: siteId, userId } : { userId }).sort({ updatedAt: -1 });
+    const isSyncingHistorical = !!(userAcc && (
+        (userAcc.ga4PropertyId && !userAcc.ga4HistoricalComplete) ||
+        (userAcc.gscSiteUrl && !userAcc.gscHistoricalComplete) ||
+        (userAcc.googleAdsCustomerId && !userAcc.googleAdsHistoricalComplete) ||
+        (userAcc.facebookAdAccountId && !userAcc.facebookAdsHistoricalComplete)
+    ));
+
+    if (isSyncingHistorical) {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.write(`data: ${JSON.stringify({ error: "RankPilot AI is paused while importing historical data. Your assistant will be fully active as soon as the historical sync completes." })}\n\n`);
+        res.end();
+        return;
+    }
+
     // FIX 1: Track start time correctly for latency calculation
     const startTime = Date.now();
 

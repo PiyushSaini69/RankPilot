@@ -420,9 +420,19 @@ const ChatMessage = React.memo(({ msg, userName, userAvatar, onEdit, onRetry }) 
 });
 
 const AIChatPage = () => {
-    const { gsc, ga4, googleAds, facebook, activeSiteId } = useAccountsStore();
+    const { userSites, gsc, ga4, googleAds, facebook, activeSiteId } = useAccountsStore();
     const { user } = useAuthStore();
     const navigate = useNavigate();
+
+    const activeSite = userSites?.find?.(s => s._id === activeSiteId);
+    const isSyncingHistorical = !!(activeSite && (
+        (activeSite.ga4PropertyId && !activeSite.ga4HistoricalComplete) ||
+        (activeSite.gscSiteUrl && !activeSite.gscHistoricalComplete) ||
+        (activeSite.googleAdsCustomerId && !activeSite.googleAdsHistoricalComplete) ||
+        (activeSite.facebookAdAccountId && !activeSite.facebookAdsHistoricalComplete)
+    ));
+
+
 
     const hasConnections = !!(gsc?.gscSiteUrl || ga4?.ga4PropertyId || googleAds?.googleAdsCustomerId || facebook?.facebookAdAccountId);
     const [searchParams, setSearchParams] = useSearchParams();
@@ -473,7 +483,17 @@ const AIChatPage = () => {
         loadConversations();
         loadWeeklyInsight();
         loadSuggestions();
-    }, [activeSiteId]);
+
+        // Restore last active conversation from localStorage
+        if (activeSiteId && !urlConversationId) {
+            const savedConvId = localStorage.getItem(`rankpilot_active_conversation_id_${activeSiteId}`);
+            if (savedConvId) {
+                loadConversationDetails(savedConvId);
+            } else {
+                handleNewChat();
+            }
+        }
+    }, [activeSiteId, urlConversationId]);
 
     useEffect(() => {
         if (urlConversationId) {
@@ -531,6 +551,9 @@ const AIChatPage = () => {
             const res = await getConversation(id);
             setMessages(res.data.messages);
             setActiveConversationId(res.data._id);
+            if (activeSiteId) {
+                localStorage.setItem(`rankpilot_active_conversation_id_${activeSiteId}`, res.data._id);
+            }
         } catch (err) {
             console.error(err);
         }
@@ -539,6 +562,9 @@ const AIChatPage = () => {
     const handleNewChat = () => {
         setActiveConversationId(null);
         setMessages([]);
+        if (activeSiteId) {
+            localStorage.removeItem(`rankpilot_active_conversation_id_${activeSiteId}`);
+        }
     };
 
     const handleDeleteConversation = (id, e) => {
@@ -683,6 +709,9 @@ const AIChatPage = () => {
                                 // Sync conversation ID even on error to prevent duplicates
                                 if (!activeConversationId && data.conversationId) {
                                     setActiveConversationId(data.conversationId);
+                                    if (activeSiteId) {
+                                        localStorage.setItem(`rankpilot_active_conversation_id_${activeSiteId}`, data.conversationId);
+                                    }
                                     loadConversations();
                                 }
 
@@ -718,6 +747,9 @@ const AIChatPage = () => {
                             if (data.done) {
                                 if (!activeConversationId && data.conversationId) {
                                     setActiveConversationId(data.conversationId);
+                                    if (activeSiteId) {
+                                        localStorage.setItem(`rankpilot_active_conversation_id_${activeSiteId}`, data.conversationId);
+                                    }
                                     loadConversations();
                                 }
                             }
@@ -929,64 +961,88 @@ const AIChatPage = () => {
                                                     {getTimeGreeting()}, {user?.name?.split(' ')[0] || 'Explorer'}
                                                 </h1>
                                                 <p className="text-[13px] sm:text-sm text-neutral-500 dark:text-neutral-400 font-medium mb-4 sm:mb-6 text-center max-w-xs sm:max-w-sm leading-relaxed shrink-0">
-                                                    Ask anything about your marketing data. I have access to all your connected platforms.
+                                                    {isSyncingHistorical
+                                                        ? "RankPilot is currently syncing your historical data. AI features will be active shortly."
+                                                        : "Ask anything about your marketing data. I have access to all your connected platforms."
+                                                    }
                                                 </p>
 
-                                                {/* Suggestions — moved here from footer */}
-                                                <div className="w-full max-w-2xl mx-auto">
-                                                    {/* Loading skeleton */}
-                                                    {suggestionsLoading && (
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4">
-                                                            {[1, 2, 3, 4].map(i => (
-                                                                <div key={i} className="h-[72px] bg-neutral-100 dark:bg-neutral-800 rounded-2xl animate-pulse" />
-                                                            ))}
+                                                {isSyncingHistorical ? (
+                                                    <div className="w-full max-w-md bg-amber-500/[0.03] dark:bg-amber-500/[0.01] border border-amber-500/20 rounded-[2rem] p-6 shadow-xl relative overflow-hidden group mb-8 flex flex-col items-center">
+                                                        <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full blur-[80px]" />
+                                                        <div className="flex flex-col items-center text-center gap-4">
+                                                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center animate-bounce-subtle">
+                                                                <ArrowPathIcon className="w-6 h-6 text-amber-500 animate-spin" />
+                                                            </div>
+                                                            <div>
+                                                                <h3 className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-widest mb-1.5">Historical Sync Active</h3>
+                                                                <p className="text-xs text-neutral-500 dark:text-neutral-400 font-bold leading-relaxed max-w-xs">
+                                                                    We are currently importing and analyzing your historical marketing trends. AI chat and strategic insights are temporarily paused during this process to ensure complete accuracy.
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full">
+                                                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                                                                <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">Importing Data...</span>
+                                                            </div>
                                                         </div>
-                                                    )}
+                                                    </div>
+                                                ) : (
+                                                    /* Suggestions — moved here from footer */
+                                                    <div className="w-full max-w-2xl mx-auto">
+                                                        {/* Loading skeleton */}
+                                                        {suggestionsLoading && (
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4">
+                                                                {[1, 2, 3, 4].map(i => (
+                                                                    <div key={i} className="h-[72px] bg-neutral-100 dark:bg-neutral-800 rounded-2xl animate-pulse" />
+                                                                ))}
+                                                            </div>
+                                                        )}
 
-                                                    {/* Suggestion cards */}
-                                                    {!suggestionsLoading && suggestions.length > 0 && (
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4">
-                                                            {suggestions.slice(0, 4).map((q, i) => (
-                                                                <button key={i} onClick={() => setQuery(q)}
-                                                                    className="px-4 py-3.5 sm:px-5 sm:py-4 bg-neutral-50 dark:bg-neutral-800/50 hover:bg-brand-50 dark:hover:bg-brand-900/10 border border-neutral-200 dark:border-neutral-700/50 hover:border-brand-300 dark:hover:border-brand-600 rounded-2xl text-[11px] sm:text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:text-brand-600 dark:hover:text-brand-400 transition-all text-left leading-relaxed active:scale-[0.98] shadow-sm">
-                                                                    {q}
+                                                        {/* Suggestion cards */}
+                                                        {!suggestionsLoading && suggestions.length > 0 && (
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4">
+                                                                {suggestions.slice(0, 4).map((q, i) => (
+                                                                    <button key={i} onClick={() => setQuery(q)}
+                                                                        className="px-4 py-3.5 sm:px-5 sm:py-4 bg-neutral-50 dark:bg-neutral-800/50 hover:bg-brand-50 dark:hover:bg-brand-900/10 border border-neutral-200 dark:border-neutral-700/50 hover:border-brand-300 dark:hover:border-brand-600 rounded-2xl text-[11px] sm:text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:text-brand-600 dark:hover:text-brand-400 transition-all text-left leading-relaxed active:scale-[0.98] shadow-sm">
+                                                                        {q}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Quick action pills */}
+                                                        <div className="flex flex-wrap justify-center gap-2 mb-8">
+                                                            {[
+                                                                {
+                                                                    label: 'Search Console',
+                                                                    prompt: 'Analyze my Google Search Console performance and identify top-ranking keywords.',
+                                                                    logo: <img src="https://www.gstatic.com/images/branding/product/2x/search_console_64dp.png" alt="GSC" className="w-3.5 h-3.5 object-contain" />
+                                                                },
+                                                                {
+                                                                    label: 'GA4 Analytics',
+                                                                    prompt: 'Deep dive into my GA4 data to understand user behavior and conversions.',
+                                                                    logo: <img src="https://www.vectorlogo.zone/logos/google_analytics/google_analytics-icon.svg" alt="GA4" className="w-3.5 h-3.5 object-contain" />
+                                                                },
+                                                                {
+                                                                    label: 'Google Ads',
+                                                                    prompt: 'Evaluate my Google Ads campaign efficiency including CTR, CPC, and ROAS.',
+                                                                    logo: <img src="https://www.vectorlogo.zone/logos/google_ads/google_ads-icon.svg" alt="Google Ads" className="w-3.5 h-3.5 object-contain" />
+                                                                },
+                                                                {
+                                                                    label: 'Facebook Ads',
+                                                                    prompt: 'Review my Meta Ads reach and engagement metrics.',
+                                                                    logo: <img src="https://www.vectorlogo.zone/logos/facebook/facebook-icon.svg" alt="Meta Ads" className="w-3.5 h-3.5 object-contain" />
+                                                                },
+                                                            ].map((item, i) => (
+                                                                <button key={i} onClick={() => setQuery(item.prompt)}
+                                                                    className="flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/50 rounded-xl text-[10px] sm:text-[11px] font-bold text-neutral-500 dark:text-neutral-400 hover:border-brand-400 dark:hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-300 transition-all active:scale-95 group shadow-sm">
+                                                                    {item.logo}
+                                                                    {item.label}
                                                                 </button>
                                                             ))}
                                                         </div>
-                                                    )}
-
-                                                    {/* Quick action pills */}
-                                                    <div className="flex flex-wrap justify-center gap-2 mb-8">
-                                                        {[
-                                                            {
-                                                                label: 'Search Console',
-                                                                prompt: 'Analyze my Google Search Console performance and identify top-ranking keywords.',
-                                                                logo: <img src="https://www.gstatic.com/images/branding/product/2x/search_console_64dp.png" alt="GSC" className="w-3.5 h-3.5 object-contain" />
-                                                            },
-                                                            {
-                                                                label: 'GA4 Analytics',
-                                                                prompt: 'Deep dive into my GA4 data to understand user behavior and conversions.',
-                                                                logo: <img src="https://www.vectorlogo.zone/logos/google_analytics/google_analytics-icon.svg" alt="GA4" className="w-3.5 h-3.5 object-contain" />
-                                                            },
-                                                            {
-                                                                label: 'Google Ads',
-                                                                prompt: 'Evaluate my Google Ads campaign efficiency including CTR, CPC, and ROAS.',
-                                                                logo: <img src="https://www.vectorlogo.zone/logos/google_ads/google_ads-icon.svg" alt="Google Ads" className="w-3.5 h-3.5 object-contain" />
-                                                            },
-                                                            {
-                                                                label: 'Facebook Ads',
-                                                                prompt: 'Review my Meta Ads reach and engagement metrics.',
-                                                                logo: <img src="https://www.vectorlogo.zone/logos/facebook/facebook-icon.svg" alt="Meta Ads" className="w-3.5 h-3.5 object-contain" />
-                                                            },
-                                                        ].map((item, i) => (
-                                                            <button key={i} onClick={() => setQuery(item.prompt)}
-                                                                className="flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/50 rounded-xl text-[10px] sm:text-[11px] font-bold text-neutral-500 dark:text-neutral-400 hover:border-brand-400 dark:hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-300 transition-all active:scale-95 group shadow-sm">
-                                                                {item.logo}
-                                                                {item.label}
-                                                            </button>
-                                                        ))}
                                                     </div>
-                                                </div>
+                                                )}
 
                                             </div>
                                         ) : (
@@ -1015,59 +1071,73 @@ const AIChatPage = () => {
 
                                     {/* 7. BOTTOM INPUT BAR — shrink-0, always at bottom of left column */}
                                     <div className="shrink-0 border-t border-neutral-100 dark:border-neutral-800 px-3 sm:px-4 py-4 bg-white dark:bg-dark-card w-full z-10">
-                                        {/* Input form */}
-                                        <form onSubmit={handleSendMessage} className={`${isCanvasOpen ? 'w-full' : 'max-w-3xl mx-auto'}`}>
-                                            <div className="flex items-end gap-2 bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-2xl px-2.5 sm:px-3 py-2 sm:py-2.5 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/10 transition-all shadow-sm">
-                                                {/* Left action buttons */}
-                                                <div className="flex items-center gap-0.5 flex-shrink-0 pb-0.5">
-                                                    <button type="button" onClick={handleNewChat} title="New Chat"
-                                                        className="hidden lg:flex w-8 h-8 items-center justify-center rounded-xl text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all">
-                                                        <PlusIcon className="w-4 h-4" />
-                                                    </button>
-                                                    <button type="button" title="Weekly Insight"
-                                                        onClick={() => { setIsInsightOpen(!isInsightOpen); if (!isInsightOpen) { setIsHistoryOpen(false); if (!weeklyInsight) loadWeeklyInsight(); } }}
-                                                        className={`hidden lg:flex w-8 h-8 items-center justify-center rounded-xl transition-all ${isInsightOpen ? 'text-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20'}`}>
-                                                        <InboxStackIcon className={`w-4 h-4 ${insightLoading ? 'animate-pulse' : ''}`} />
-                                                    </button>
-                                                    <button type="button" title="Chat History"
-                                                        onClick={() => { setIsHistoryOpen(!isHistoryOpen); if (!isHistoryOpen) setIsInsightOpen(false); }}
-                                                        className={`hidden lg:flex w-8 h-8 items-center justify-center rounded-xl transition-all ${isHistoryOpen ? 'text-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20'}`}>
-                                                        <ChatBubbleLeftRightIcon className="w-4 h-4" />
-                                                    </button>
+                                        {isSyncingHistorical ? (
+                                            <div className="flex items-center gap-3.5 p-4 border border-amber-500/20 bg-amber-500/[0.03] dark:bg-amber-500/[0.01] rounded-2xl w-full max-w-3xl mx-auto shadow-sm">
+                                                <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                                                    <ArrowPathIcon className="w-5 h-5 text-amber-500 animate-spin" />
                                                 </div>
-
-                                                {/* Divider */}
-                                                <div className="hidden lg:block w-px h-5 bg-neutral-200 dark:bg-neutral-700 flex-shrink-0 mb-2" />
-
-                                                {/* Text input */}
-                                                <textarea
-                                                    ref={textareaRef}
-                                                    value={query}
-                                                    onChange={e => setQuery(e.target.value)}
-                                                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-                                                    placeholder="Message RankPilot AI..."
-                                                    disabled={loading}
-                                                    rows={1}
-                                                    className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 py-2 min-h-[20px] min-w-0 resize-none max-h-40 leading-normal [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-                                                />
-
-                                                {/* Right: Send */}
-                                                <div className="flex items-end gap-1.5 flex-shrink-0 pb-0.5">
-                                                    {/* Send button */}
-                                                    <button type="submit" disabled={!query.trim() || loading}
-                                                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-brand-600 hover:bg-brand-700 text-white disabled:bg-neutral-200 dark:disabled:bg-neutral-700 disabled:text-neutral-400 transition-all shadow-md shadow-brand-500/20 active:scale-95">
-                                                        {loading
-                                                            ? <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                                                            : <PaperAirplaneIcon className="w-4 h-4" />
-                                                        }
-                                                    </button>
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-[0.15em] mb-0.5">AI Chat Paused</h4>
+                                                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-bold leading-normal">
+                                                        Historical sync is currently in progress. AI chat and performance insights will automatically become available once the sync completes.
+                                                    </p>
                                                 </div>
                                             </div>
+                                        ) : (
+                                            /* Input form */
+                                            <form onSubmit={handleSendMessage} className={`${isCanvasOpen ? 'w-full' : 'max-w-3xl mx-auto'}`}>
+                                                <div className="flex items-end gap-2 bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-2xl px-2.5 sm:px-3 py-2 sm:py-2.5 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/10 transition-all shadow-sm">
+                                                    {/* Left action buttons */}
+                                                    <div className="flex items-center gap-0.5 flex-shrink-0 pb-0.5">
+                                                        <button type="button" onClick={handleNewChat} title="New Chat"
+                                                            className="hidden lg:flex w-8 h-8 items-center justify-center rounded-xl text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all">
+                                                            <PlusIcon className="w-4 h-4" />
+                                                        </button>
+                                                        <button type="button" title="Weekly Insight"
+                                                            onClick={() => { setIsInsightOpen(!isInsightOpen); if (!isInsightOpen) { setIsHistoryOpen(false); if (!weeklyInsight) loadWeeklyInsight(); } }}
+                                                            className={`hidden lg:flex w-8 h-8 items-center justify-center rounded-xl transition-all ${isInsightOpen ? 'text-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20'}`}>
+                                                            <InboxStackIcon className={`w-4 h-4 ${insightLoading ? 'animate-pulse' : ''}`} />
+                                                        </button>
+                                                        <button type="button" title="Chat History"
+                                                            onClick={() => { setIsHistoryOpen(!isHistoryOpen); if (!isHistoryOpen) setIsInsightOpen(false); }}
+                                                            className={`hidden lg:flex w-8 h-8 items-center justify-center rounded-xl transition-all ${isHistoryOpen ? 'text-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20'}`}>
+                                                            <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
 
-                                            <p className="text-center text-[10px] text-neutral-400 dark:text-neutral-500 mt-2 font-medium">
-                                                RankPilot AI can make mistakes. Always verify critical metrics before making decisions.
-                                            </p>
-                                        </form>
+                                                    {/* Divider */}
+                                                    <div className="hidden lg:block w-px h-5 bg-neutral-200 dark:bg-neutral-700 flex-shrink-0 mb-2" />
+
+                                                    {/* Text input */}
+                                                    <textarea
+                                                        ref={textareaRef}
+                                                        value={query}
+                                                        onChange={e => setQuery(e.target.value)}
+                                                        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+                                                        placeholder="Message RankPilot AI..."
+                                                        disabled={loading}
+                                                        rows={1}
+                                                        className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 py-2 min-h-[20px] min-w-0 resize-none max-h-40 leading-normal [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                                                    />
+
+                                                    {/* Right: Send */}
+                                                    <div className="flex items-end gap-1.5 flex-shrink-0 pb-0.5">
+                                                        {/* Send button */}
+                                                        <button type="submit" disabled={!query.trim() || loading}
+                                                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-brand-600 hover:bg-brand-700 text-white disabled:bg-neutral-200 dark:disabled:bg-neutral-700 disabled:text-neutral-400 transition-all shadow-md shadow-brand-500/20 active:scale-95">
+                                                            {loading
+                                                                ? <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                                                                : <PaperAirplaneIcon className="w-4 h-4" />
+                                                            }
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <p className="text-center text-[10px] text-neutral-400 dark:text-neutral-500 mt-2 font-medium">
+                                                    RankPilot AI can make mistakes. Always verify critical metrics before making decisions.
+                                                </p>
+                                            </form>
+                                        )}
                                     </div>
                                 </div> {/* End of LEFT Column */}
 
