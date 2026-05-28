@@ -73,6 +73,7 @@ const Ga4Page = () => {
 
     const activeSiteId = useAccountsStore(s => s.activeSiteId);
     const activeSiteName = useAccountsStore(s => s.activeSiteName);
+    const activeSiteUrl = useAccountsStore(s => s.activeSiteUrl);
     const ga4 = useAccountsStore(s => s.ga4);
     const setAccounts = useAccountsStore(s => s.setAccounts);
 
@@ -415,259 +416,304 @@ const Ga4Page = () => {
                     </div>
                 )}
                 {/* Compact Professional Header */}
-                <div className={`bg-white dark:bg-[#0d0d0d] px-6 py-4 rounded-[1.5rem] border border-neutral-100 dark:border-neutral-800 shadow-sm relative transition-all duration-300 ${(isDateMenuOpen || isDeviceMenuOpen) ? 'z-50' : 'z-10'}`}>
+                <div className={`bg-gradient-to-br from-blue-50/80 via-indigo-50/40 to-slate-100/70 dark:from-[#0a0f1d] dark:via-[#070a12] dark:to-[#0f1424] px-6 py-5 rounded-[2rem] border border-blue-100/80 dark:border-blue-950/80 shadow-lg shadow-blue-500/5 relative transition-all duration-300 ${(isDateMenuOpen || isDeviceMenuOpen) ? 'z-50' : 'z-10'}`}>
 
-                    <div className="relative z-10 flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-6">
+                    <div className="relative z-10 flex flex-col gap-5">
 
-                        {/* 1. Logo & Identity Section */}
-                        <div className="flex items-center gap-4 shrink-0">
-                            <div className="w-12 h-12 bg-white dark:bg-neutral-800/80 rounded-xl flex items-center justify-center shrink-0 border border-neutral-100 dark:border-neutral-700 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]">
-                                <Ga4Logo className="w-7 h-7" />
+                        {/* Top Block: Identity & Main Actions */}
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                            {/* Logo & Identity */}
+                            <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 bg-white dark:bg-neutral-800/80 rounded-xl flex items-center justify-center shrink-0 border border-neutral-100 dark:border-neutral-700 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] mt-0.5">
+                                    <Ga4Logo className="w-7 h-7" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <div className="flex items-center gap-2.5">
+                                        <h1 className="text-lg md:text-xl font-bold text-neutral-900 dark:text-white tracking-tight leading-none">Google Analytics 4</h1>
+                                        {activeSiteName && (
+                                            <a 
+                                                href={activeSiteUrl || '#'} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="px-2.5 py-0.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 dark:from-amber-500/20 dark:to-orange-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/30 rounded-full text-[8px] font-black uppercase tracking-widest leading-none hover:scale-105 hover:border-amber-500/40 active:scale-95 transition-all duration-300 cursor-pointer inline-flex items-center gap-1"
+                                            >
+                                                {activeSiteName}
+                                                <svg className="w-2 h-2 shrink-0 opacity-60" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                                                </svg>
+                                            </a>
+                                        )}
+                                    </div>
+                                    <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 font-semibold leading-relaxed mt-1.5 selection:bg-brand-500/20 max-w-lg">
+                                        Understand your visitors in real-time and get AI-powered insights to grow your site.
+                                    </p>
+                                </div>
                             </div>
 
-                            <div className="flex flex-col justify-center">
-                                <div className="flex items-center gap-2.5">
-                                    <h1 className="text-lg md:text-xl font-bold text-neutral-900 dark:text-white tracking-tight leading-none">Google Analytics 4</h1>
-                                    {activeSiteName && (
-                                        <div className="px-2 py-0.5 bg-neutral-900 dark:bg-neutral-800 text-white rounded text-[7px] font-black uppercase tracking-widest">
-                                            {activeSiteName}
-                                        </div>
+                            {/* Action Buttons */}
+                            <div className="flex flex-col sm:flex-row gap-2 shrink-0 self-start lg:self-center">
+                                <button
+                                    onClick={() => {
+                                        const fullPrompt = `Act as my elite Marketing Coach and Growth Strategist. I want you to perform a deep-dive, professional marketing audit of my Google Analytics 4 (GA4) dashboard for the period ${startDate} to ${endDate}.
+ 
+                                            Here is the COMPLETE raw analytical dataset of my site's GA4 integration:
+ 
+                                            📊 [CORE PERFORMANCE METRICS]
+                                            - Active Users: ${formatNumber(data?.activeUsers?.value)} (${data?.activeUsers?.change}% vs prior period)
+                                            - Total Sessions: ${formatNumber(data?.totalSessions?.value)} (${data?.totalSessions?.change}% vs prior period)
+                                            - Total Page Views: ${formatNumber(data?.pageViews)}
+                                            - Engagement Rate: ${data?.engagementRates?.engagementRate || '0'}% (${data?.engagementRate?.change}% vs prior period)
+                                            - Average Session Duration: ${data?.avgSessionDuration?.value}
+                                            - Bounce Rate: ${(data?.thisPeriodVsLastPeriod?.thisPeriod?.bounceRate || 0).toFixed(1)}%
+ 
+                                            📈 [PERIOD VS PERIOD TRAJECTORY METRICS]
+                                            - Users: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.users)} vs Prior Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.users)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.users}%)
+                                            - Sessions: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.sessions)} vs Prior Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.sessions)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.sessions}%)
+                                            - Page Views: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.pageViews)} vs Prior Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.pageViews)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.pageViews}%)
+                                            - Bounce Rate: This Period ${(data?.thisPeriodVsLastPeriod?.thisPeriod?.bounceRate || 0).toFixed(1)}% vs Prior Period ${(data?.thisPeriodVsLastPeriod?.lastPeriod?.bounceRate || 0).toFixed(1)}% (Change: ${data?.thisPeriodVsLastPeriod?.change?.bounceRate}%)
+                                            - Avg Session Duration: This Period ${data?.thisPeriodVsLastPeriod?.thisPeriod?.avgSessionDuration} vs Prior Period ${data?.thisPeriodVsLastPeriod?.lastPeriod?.avgSessionDuration} (Change: ${data?.thisPeriodVsLastPeriod?.change?.avgSessionDuration}%)
+ 
+                                            📣 [USER ACQUISITION BY TRAFFIC CHANNEL]
+                                            ${(data?.topTrafficSources || []).map((t, idx) => `${idx + 1}. Source: ${t.source} | Sessions: ${formatNumber(t.sessions)} | Users: ${formatNumber(t.users)}`).join('\n')}
+ 
+                                            📝 [TOP RESOUNDING PAGES & CONTENT PATHS]
+                                            ${(data?.topPages || []).map((p, idx) => `${idx + 1}. Path: ${p.path} | Title: "${p.title || 'Untitled'}" | Views: ${formatNumber(p.views)} | Users: ${formatNumber(p.users)} | Bounce Rate: ${(p.bounceRate || 0).toFixed(1)}%`).join('\n')}
+ 
+                                            👥 [AUDIENCE PERSONA & DEMOGRAPHICS]
+                                            - New Visitors: ${data?.newVsReturningUsers?.newUsersPercentage || '0'}% of users
+                                            - Returning Visitors: ${data?.newVsReturningUsers?.returningUsersPercentage || '0'}% of users
+ 
+                                            📱 [DEVICE & EXPERIENCE CHANNELS]
+                                            ${(data?.deviceBreakdown?.devices || []).map(d => `- ${d.name}: ${d.percentage}% of traffic (${formatNumber(d.value)} sessions)`).join('\n')}
+ 
+                                            ---
+ 
+                                            Based on this complete, granular dataset, please deliver:
+                                            1. A **Comprehensive Executive Health Check** summarizing the overall trajectory and identifying any hidden anomalies.
+                                            2. A **Traffic-to-Content Correlation Audit** explaining which channels drive high-quality traffic (low bounce, high duration) and which pages suffer from friction.
+                                            3. A **3-Part Actionable Growth Blueprint** containing step-by-step strategies for conversion rate optimization (CRO) and organic acquisition scaling.`;
+                                        openWithQuestion(fullPrompt, '📊 Full GA4 Dashboard Analysis');
+                                    }}
+                                    className="h-8 px-4 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                                >
+                                    <SparklesIcon className="w-3.5 h-3.5" />
+                                    AI SUMMARY
+                                </button>
+                                <button
+                                    onClick={handlePdfExport}
+                                    disabled={isExportingPdf}
+                                    className={`h-8 px-3 bg-white dark:bg-neutral-800/20 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-2 hover:bg-neutral-50 transition-all ${isExportingPdf ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    {isExportingPdf ? (
+                                        <div className="w-3.5 h-3.5 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <ArrowDownTrayIcon className="w-3.5 h-3.5" />
                                     )}
-                                </div>
-
-                                <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 font-semibold leading-relaxed mt-1.5 selection:bg-brand-500/20 max-w-md">
-                                    Understand your visitors in real-time and get AI-powered insights to grow your site.
-                                </p>
-                                <div className="mt-2.5 flex items-center flex-wrap gap-3">
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/5 rounded-full border border-emerald-500/10 shrink-0 hide-in-pdf">
-                                        <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></div>
-                                        <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">Active</span>
-                                    </div>
-                                    <div className="flex items-center gap-3 hide-in-pdf">
-                                        <div className="flex items-center gap-1.5 text-[9px] text-neutral-400 font-bold uppercase tracking-widest">
-                                            Synced: <span className={`tabular-nums font-black ${isSyncing ? 'text-amber-500' : 'text-neutral-700 dark:text-neutral-300'}`}>
-                                                {isSyncing ? 'Syncing...' : ga4?.ga4LastSyncedAt ? formatDistanceToNow(new Date(ga4.ga4LastSyncedAt), { addSuffix: true }) : 'Never'}
-                                            </span>
-                                            <button onClick={handleManualRefresh} className="hover:text-brand-500 transition-all active:rotate-180 ml-1">
-                                                <ArrowPathIcon className={`w-3 h-3 ${(loading || isSyncing) ? 'animate-spin' : ''}`} />
-                                            </button>
-                                        </div>
-
-                                        {/* Date Selector Integration */}
-                                        <div className="h-4 w-px bg-neutral-200 dark:bg-neutral-800 hidden sm:block"></div>
-
-                                        <div className="relative">
-                                            <button
-                                                onClick={() => { setIsDateMenuOpen(!isDateMenuOpen); setIsDeviceMenuOpen(false); }}
-                                                className={`flex items-center gap-2 px-2.5 py-1 transition-all active:scale-95 group/date rounded-full border shadow-sm ${isDateMenuOpen
-                                                    ? 'bg-brand-600 border-brand-500 text-white'
-                                                    : 'bg-white/50 dark:bg-dark-surface/50 border-neutral-200/50 dark:border-neutral-800/60'
-                                                    }`}
-                                            >
-                                                <CalendarIcon className={`w-3.5 h-3.5 ${isDateMenuOpen ? 'text-white' : 'text-brand-600'}`} />
-                                                <span className={`text-[9px] font-black uppercase tracking-widest ${isDateMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
-                                                    Date: {preset === 'custom' ? 'Custom' : (presetLabels[preset] || preset)}
-                                                </span>
-                                                <ChevronDownIcon className={`w-3 h-3 transition-transform ${isDateMenuOpen ? 'rotate-180 opacity-100' : 'opacity-40'}`} />
-                                            </button>
-
-                                            {isDateMenuOpen && (
-                                                <div className="absolute top-full left-0 mt-2 z-[100] bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl p-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200 normal-case tracking-normal">
-                                                    {!isCustomDateMode ? (
-                                                        <>
-                                                            {[
-                                                                { label: 'Today', value: 'today', days: 0 },
-                                                                { label: 'Yesterday', value: 'yesterday', days: 1 },
-                                                                { label: 'Last 7 Days', value: '7d', days: 7 },
-                                                                { label: 'Last 28 Days', value: '28d', days: 28 },
-                                                                { label: 'Last 90 Days', value: '90d', days: 90 },
-                                                                { label: 'Last Year', value: '1y', days: 365 },
-                                                                { label: 'Custom Range', value: 'custom', icon: CalendarIcon },
-                                                            ].map((p) => (
-                                                                <button
-                                                                    key={p.value}
-                                                                    onClick={() => handleDatePresetSelect(p)}
-                                                                    className={`w-full text-left px-3 py-2 rounded-xl text-[10px] font-bold transition-all flex items-center justify-between ${preset === p.value
-                                                                        ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20'
-                                                                        : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                                                                        }`}
-                                                                >
-                                                                    {p.label}
-                                                                    {p.value === 'custom' && <ChevronRightIcon className="w-3 h-3 opacity-50" />}
-                                                                </button>
-                                                            ))}
-                                                        </>
-                                                    ) : (
-                                                        <div className="p-2 space-y-3">
-                                                            <div className="flex items-center justify-between">
-                                                                <span className="text-[10px] font-black uppercase text-neutral-400">Custom</span>
-                                                                <button onClick={() => setIsCustomDateMode(false)} className="text-[10px] font-bold text-brand-600 hover:underline">Back</button>
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                <div>
-                                                                    <label className="text-[8px] font-black text-neutral-400 uppercase ml-1">Start</label>
-                                                                    <input
-                                                                        type="date"
-                                                                        value={tempDateRange.start}
-                                                                        onChange={(e) => setTempDateRange({ ...tempDateRange, start: e.target.value })}
-                                                                        className="w-full bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg px-2 py-1.5 text-[10px] font-bold outline-none text-neutral-900 dark:text-white"
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <label className="text-[8px] font-black text-neutral-400 uppercase ml-1">End</label>
-                                                                    <input
-                                                                        type="date"
-                                                                        value={tempDateRange.end}
-                                                                        onChange={(e) => setTempDateRange({ ...tempDateRange, end: e.target.value })}
-                                                                        className="w-full bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg px-2 py-1.5 text-[10px] font-bold outline-none text-neutral-900 dark:text-white"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                            <button
-                                                                onClick={handleApplyCustomDate}
-                                                                className="w-full py-2 bg-brand-600 text-white text-[10px] font-black rounded-lg shadow-lg shadow-brand-500/20 active:scale-95 transition-all"
-                                                            >
-                                                                APPLY RANGE
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="h-4 w-px bg-neutral-200 dark:bg-neutral-800 hidden sm:block"></div>
-
-                                        <div className="relative">
-                                            <button
-                                                onClick={() => { setIsDeviceMenuOpen(!isDeviceMenuOpen); setIsDateMenuOpen(false); }}
-                                                className={`flex items-center gap-2 px-2.5 py-1 transition-all active:scale-95 group/device rounded-full border shadow-sm ${isDeviceMenuOpen
-                                                    ? 'bg-amber-500 border-amber-400 text-white'
-                                                    : 'bg-white/50 dark:bg-dark-surface/50 border-neutral-200/50 dark:border-neutral-800/60'
-                                                    }`}
-                                            >
-                                                <ComputerDesktopIcon className={`w-3.5 h-3.5 ${isDeviceMenuOpen ? 'text-white' : 'text-amber-500'}`} />
-                                                <span className={`text-[9px] font-black uppercase tracking-widest ${isDeviceMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
-                                                    Device: {device ? {
-                                                        mobile: 'Mobile',
-                                                        desktop: 'Desktop',
-                                                        tablet: 'Tablet'
-                                                    }[device] || device : 'All'}
-                                                </span>
-                                                <ChevronDownIcon className={`w-3 h-3 transition-transform ${isDeviceMenuOpen ? 'rotate-180 opacity-100' : 'opacity-40'}`} />
-                                            </button>
-
-                                            {isDeviceMenuOpen && (
-                                                <div className="absolute top-full left-0 mt-2 z-[100] bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl p-1.5 min-w-[120px] animate-in fade-in zoom-in-95 duration-200 normal-case tracking-normal">
-                                                    {[
-                                                        { label: 'All Devices', value: 'all', icon: FunnelIcon },
-                                                        { label: 'Mobile', value: 'mobile', icon: DevicePhoneMobileIcon },
-                                                        { label: 'Desktop', value: 'desktop', icon: ComputerDesktopIcon },
-                                                        { label: 'Tablet', value: 'tablet', icon: DeviceTabletIcon },
-                                                    ].map((d) => (
-                                                        <button
-                                                            key={d.value}
-                                                            onClick={() => handleDeviceSelect(d.value)}
-                                                            className={`w-full text-left px-3 py-2 rounded-xl text-[10px] font-bold transition-all flex items-center gap-2 ${device === d.value
-                                                                ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
-                                                                : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                                                                }`}
-                                                        >
-                                                            <d.icon className="w-3 h-3" />
-                                                            {d.label}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
+                                    {isExportingPdf ? 'GENERATING' : 'PDF REPORT'}
+                                </button>
                             </div>
                         </div>
 
-                        {/* 2. Divider (Desktop) */}
-                        <div className="hidden xl:block w-[1px] h-8 bg-neutral-100 dark:bg-neutral-800/60"></div>
+                        {/* Thin Divider Line */}
+                        <div className="w-full h-px bg-blue-200/50 dark:bg-blue-900/30 my-1 shrink-0"></div>
 
-                        {/* 3. Information Row - Improved Responsiveness */}
-                        <div className="flex-1 flex flex-wrap items-center gap-x-6 gap-y-3">
-                            {[
-                                { label: 'PROPERTY NAME', value: ga4?.ga4PropertyName || 'www.carweek.com/', icon: GlobeAltIcon },
-                                { label: 'PROPERTY ID', value: ga4?.ga4PropertyId ? '#' + ga4.ga4PropertyId.replace('properties/', '') : '#382940291', icon: ChartBarIcon },
-                                { label: 'SYNC ACCOUNT', value: ga4?.ga4TokenEmail || 'seo@slt.work', icon: EnvelopeIcon }
-                            ].map((item, idx) => (
-                                <div key={idx} className="flex items-center gap-2.5 min-w-max">
-                                    <div className="w-8 h-8 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 flex items-center justify-center border border-neutral-100 dark:border-neutral-700/30 shrink-0">
-                                        <item.icon className="w-4 h-4 text-neutral-400" />
+                        {/* Bottom Block: Filters, Status & Metadata Badges */}
+                        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                            {/* Left: Status & Filters */}
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-500/5 rounded-full border border-emerald-500/10 shrink-0 hide-in-pdf">
+                                    <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></div>
+                                    <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">Active</span>
+                                </div>
+                                <div className="flex items-center gap-3 hide-in-pdf">
+                                    <div className="flex items-center gap-1.5 text-[9.5px] text-neutral-400 font-bold uppercase tracking-widest">
+                                        Synced: <span className={`tabular-nums font-black ${isSyncing ? 'text-amber-500' : 'text-neutral-700 dark:text-neutral-300'}`}>
+                                            {isSyncing ? 'Syncing...' : ga4?.ga4LastSyncedAt ? formatDistanceToNow(new Date(ga4.ga4LastSyncedAt), { addSuffix: true }) : 'Never'}
+                                        </span>
+                                        <button onClick={handleManualRefresh} className="hover:text-brand-500 transition-all active:rotate-180 ml-1">
+                                            <ArrowPathIcon className={`w-3 h-3 ${(loading || isSyncing) ? 'animate-spin' : ''}`} />
+                                        </button>
                                     </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[9px] font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-widest leading-none mb-1">{item.label}</span>
-                                        <span className="text-[13px] font-semibold text-neutral-500 dark:text-neutral-400 tracking-tight" title={item.value}>{item.value}</span>
+
+                                    {/* Date Selector Integration */}
+                                    <div className="h-4 w-px bg-neutral-200 dark:bg-neutral-800 hidden sm:block"></div>
+
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => { setIsDateMenuOpen(!isDateMenuOpen); setIsDeviceMenuOpen(false); }}
+                                            className={`flex items-center gap-2 px-3 py-1 transition-all active:scale-95 group/date rounded-full border shadow-sm ${isDateMenuOpen
+                                                ? 'bg-brand-600 border-brand-500 text-white'
+                                                : 'bg-white/50 dark:bg-dark-surface/50 border-neutral-200/50 dark:border-neutral-800/60'
+                                                }`}
+                                        >
+                                            <CalendarIcon className={`w-3.5 h-3.5 ${isDateMenuOpen ? 'text-white' : 'text-brand-600'}`} />
+                                            <span className={`text-[9.5px] font-black uppercase tracking-widest ${isDateMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
+                                                Date: {preset === 'custom' ? 'Custom' : (presetLabels[preset] || preset)}
+                                            </span>
+                                            <ChevronDownIcon className={`w-3 h-3 transition-transform ${isDateMenuOpen ? 'rotate-180 opacity-100' : 'opacity-40'}`} />
+                                        </button>
+
+                                        {isDateMenuOpen && (
+                                            <div className="absolute top-full left-0 mt-2 z-[100] bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl p-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200 normal-case tracking-normal">
+                                                {!isCustomDateMode ? (
+                                                    <>
+                                                        {[
+                                                            { label: 'Today', value: 'today', days: 0 },
+                                                            { label: 'Yesterday', value: 'yesterday', days: 1 },
+                                                            { label: 'Last 7 Days', value: '7d', days: 7 },
+                                                            { label: 'Last 28 Days', value: '28d', days: 28 },
+                                                            { label: 'Last 90 Days', value: '90d', days: 90 },
+                                                            { label: 'Last Year', value: '1y', days: 365 },
+                                                            { label: 'Custom Range', value: 'custom', icon: CalendarIcon },
+                                                        ].map((p) => (
+                                                            <button
+                                                                key={p.value}
+                                                                onClick={() => handleDatePresetSelect(p)}
+                                                                className={`w-full text-left px-3 py-2 rounded-xl text-[10px] font-bold transition-all flex items-center justify-between ${preset === p.value
+                                                                    ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20'
+                                                                    : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                                                    }`}
+                                                            >
+                                                                {p.label}
+                                                                {p.value === 'custom' && <ChevronRightIcon className="w-3 h-3 opacity-50" />}
+                                                            </button>
+                                                        ))}
+                                                    </>
+                                                ) : (
+                                                    <div className="p-2 space-y-3">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[10px] font-black uppercase text-neutral-400">Custom</span>
+                                                            <button onClick={() => setIsCustomDateMode(false)} className="text-[10px] font-bold text-brand-600 hover:underline">Back</button>
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <div>
+                                                                <label className="text-[8px] font-black text-neutral-400 uppercase ml-1">Start</label>
+                                                                <input
+                                                                    type="date"
+                                                                    value={tempDateRange.start}
+                                                                    onChange={(e) => setTempDateRange({ ...tempDateRange, start: e.target.value })}
+                                                                    className="w-full bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg px-2 py-1.5 text-[10px] font-bold outline-none text-neutral-900 dark:text-white"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-[8px] font-black text-neutral-400 uppercase ml-1">End</label>
+                                                                <input
+                                                                    type="date"
+                                                                    value={tempDateRange.end}
+                                                                    onChange={(e) => setTempDateRange({ ...tempDateRange, end: e.target.value })}
+                                                                    className="w-full bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg px-2 py-1.5 text-[10px] font-bold outline-none text-neutral-900 dark:text-white"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={handleApplyCustomDate}
+                                                            className="w-full py-2 bg-brand-600 text-white text-[10px] font-black rounded-lg shadow-lg shadow-brand-500/20 active:scale-95 transition-all"
+                                                        >
+                                                            APPLY RANGE
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="h-4 w-px bg-neutral-200 dark:bg-neutral-800 hidden sm:block"></div>
+
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => { setIsDeviceMenuOpen(!isDeviceMenuOpen); setIsDateMenuOpen(false); }}
+                                            className={`flex items-center gap-2 px-3 py-1 transition-all active:scale-95 group/device rounded-full border shadow-sm ${isDeviceMenuOpen
+                                                ? 'bg-amber-500 border-amber-400 text-white'
+                                                : 'bg-white/50 dark:bg-dark-surface/50 border-neutral-200/50 dark:border-neutral-800/60'
+                                                }`}
+                                        >
+                                            <ComputerDesktopIcon className={`w-3.5 h-3.5 ${isDeviceMenuOpen ? 'text-white' : 'text-amber-500'}`} />
+                                            <span className={`text-[9.5px] font-black uppercase tracking-widest ${isDeviceMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
+                                                Device: {device ? {
+                                                    mobile: 'Mobile',
+                                                    desktop: 'Desktop',
+                                                    tablet: 'Tablet'
+                                                }[device] || device : 'All'}
+                                            </span>
+                                            <ChevronDownIcon className={`w-3 h-3 transition-transform ${isDeviceMenuOpen ? 'rotate-180 opacity-100' : 'opacity-40'}`} />
+                                        </button>
+
+                                        {isDeviceMenuOpen && (
+                                            <div className="absolute top-full left-0 mt-2 z-[100] bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl p-1.5 min-w-[120px] animate-in fade-in zoom-in-95 duration-200 normal-case tracking-normal">
+                                                {[
+                                                    { label: 'All Devices', value: 'all', icon: FunnelIcon },
+                                                    { label: 'Mobile', value: 'mobile', icon: DevicePhoneMobileIcon },
+                                                    { label: 'Desktop', value: 'desktop', icon: ComputerDesktopIcon },
+                                                    { label: 'Tablet', value: 'tablet', icon: DeviceTabletIcon },
+                                                ].map((d) => (
+                                                    <button
+                                                        key={d.value}
+                                                        onClick={() => handleDeviceSelect(d.value)}
+                                                        className={`w-full text-left px-3 py-2 rounded-xl text-[10px] font-bold transition-all flex items-center gap-2 ${device === d.value
+                                                            ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
+                                                            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                                            }`}
+                                                    >
+                                                        <d.icon className="w-3 h-3" />
+                                                        {d.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                            ))}
+                            </div>
+
+                            {/* Right: Property Metadata Badges */}
+                            <div className="flex flex-wrap items-center gap-3">
+                                {[
+                                    { 
+                                        label: 'PROPERTY NAME', 
+                                        value: ga4?.ga4PropertyName || 'Unknown', 
+                                        icon: GlobeAltIcon,
+                                        iconBg: 'bg-blue-50 dark:bg-blue-950/40',
+                                        iconBorder: 'border-blue-100/80 dark:border-blue-900/30',
+                                        iconColor: 'text-blue-500 dark:text-blue-400',
+                                        badgeBg: 'bg-blue-50/40 dark:bg-blue-950/10',
+                                        badgeBorder: 'border-blue-100/50 dark:border-blue-900/20 hover:border-blue-500/30'
+                                    },
+                                    { 
+                                        label: 'PROPERTY ID', 
+                                        value: ga4?.ga4PropertyId ? '#' + ga4.ga4PropertyId.replace('properties/', '') : 'Unknown', 
+                                        icon: ChartBarIcon,
+                                        iconBg: 'bg-amber-50 dark:bg-amber-950/40',
+                                        iconBorder: 'border-amber-100/80 dark:border-amber-900/30',
+                                        iconColor: 'text-amber-500 dark:text-amber-400',
+                                        badgeBg: 'bg-amber-50/40 dark:bg-amber-950/10',
+                                        badgeBorder: 'border-amber-100/50 dark:border-amber-900/20 hover:border-amber-500/30'
+                                    },
+                                    { 
+                                        label: 'SYNC ACCOUNT', 
+                                        value: ga4?.ga4TokenEmail || 'Unknown', 
+                                        icon: EnvelopeIcon,
+                                        iconBg: 'bg-indigo-50 dark:bg-indigo-950/40',
+                                        iconBorder: 'border-indigo-100/80 dark:border-indigo-900/30',
+                                        iconColor: 'text-indigo-500 dark:text-indigo-400',
+                                        badgeBg: 'bg-indigo-50/40 dark:bg-indigo-950/10',
+                                        badgeBorder: 'border-indigo-100/50 dark:border-indigo-900/20 hover:border-indigo-500/30'
+                                    }
+                                ].map((item, idx) => (
+                                    <div 
+                                        key={idx} 
+                                        className={`flex items-center gap-3 px-3.5 py-1.5 rounded-2xl ${item.badgeBg} border ${item.badgeBorder} shadow-[0_1px_4px_rgba(0,0,0,0.01)] transition-all duration-300 hover:scale-[1.02] hover:shadow-sm min-w-max group`}
+                                    >
+                                        <div className={`w-7.5 h-7.5 rounded-xl ${item.iconBg} flex items-center justify-center border ${item.iconBorder} shrink-0 transition-transform duration-300 group-hover:scale-105`}>
+                                            <item.icon className={`w-3.5 h-3.5 ${item.iconColor}`} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-widest leading-none mb-1">{item.label}</span>
+                                            <span className="text-[12px] font-bold text-neutral-700 dark:text-neutral-300 tracking-tight" title={item.value}>{item.value}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
-                        {/* 4. Action Buttons */}
-                        <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-                            <button
-                                onClick={() => {
-                                    const fullPrompt = `Act as my elite Marketing Coach and Growth Strategist. I want you to perform a deep-dive, professional marketing audit of my Google Analytics 4 (GA4) dashboard for the period ${startDate} to ${endDate}.
- 
-                                        Here is the COMPLETE raw analytical dataset of my site's GA4 integration:
- 
-                                        📊 [CORE PERFORMANCE METRICS]
-                                        - Active Users: ${formatNumber(data?.activeUsers?.value)} (${data?.activeUsers?.change}% vs prior period)
-                                        - Total Sessions: ${formatNumber(data?.totalSessions?.value)} (${data?.totalSessions?.change}% vs prior period)
-                                        - Total Page Views: ${formatNumber(data?.pageViews)}
-                                        - Engagement Rate: ${data?.engagementRates?.engagementRate || '0'}% (${data?.engagementRate?.change}% vs prior period)
-                                        - Average Session Duration: ${data?.avgSessionDuration?.value}
-                                        - Bounce Rate: ${(data?.thisPeriodVsLastPeriod?.thisPeriod?.bounceRate || 0).toFixed(1)}%
- 
-                                        📈 [PERIOD VS PERIOD TRAJECTORY METRICS]
-                                        - Users: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.users)} vs Prior Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.users)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.users}%)
-                                        - Sessions: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.sessions)} vs Prior Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.sessions)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.sessions}%)
-                                        - Page Views: This Period ${formatNumber(data?.thisPeriodVsLastPeriod?.thisPeriod?.pageViews)} vs Prior Period ${formatNumber(data?.thisPeriodVsLastPeriod?.lastPeriod?.pageViews)} (Change: ${data?.thisPeriodVsLastPeriod?.change?.pageViews}%)
-                                        - Bounce Rate: This Period ${(data?.thisPeriodVsLastPeriod?.thisPeriod?.bounceRate || 0).toFixed(1)}% vs Prior Period ${(data?.thisPeriodVsLastPeriod?.lastPeriod?.bounceRate || 0).toFixed(1)}% (Change: ${data?.thisPeriodVsLastPeriod?.change?.bounceRate}%)
-                                        - Avg Session Duration: This Period ${data?.thisPeriodVsLastPeriod?.thisPeriod?.avgSessionDuration} vs Prior Period ${data?.thisPeriodVsLastPeriod?.lastPeriod?.avgSessionDuration} (Change: ${data?.thisPeriodVsLastPeriod?.change?.avgSessionDuration}%)
- 
-                                        📣 [USER ACQUISITION BY TRAFFIC CHANNEL]
-                                        ${(data?.topTrafficSources || []).map((t, idx) => `${idx + 1}. Source: ${t.source} | Sessions: ${formatNumber(t.sessions)} | Users: ${formatNumber(t.users)}`).join('\n')}
- 
-                                        📝 [TOP RESOUNDING PAGES & CONTENT PATHS]
-                                        ${(data?.topPages || []).map((p, idx) => `${idx + 1}. Path: ${p.path} | Title: "${p.title || 'Untitled'}" | Views: ${formatNumber(p.views)} | Users: ${formatNumber(p.users)} | Bounce Rate: ${(p.bounceRate || 0).toFixed(1)}%`).join('\n')}
- 
-                                        👥 [AUDIENCE PERSONA & DEMOGRAPHICS]
-                                        - New Visitors: ${data?.newVsReturningUsers?.newUsersPercentage || '0'}% of users
-                                        - Returning Visitors: ${data?.newVsReturningUsers?.returningUsersPercentage || '0'}% of users
- 
-                                        📱 [DEVICE & EXPERIENCE CHANNELS]
-                                        ${(data?.deviceBreakdown?.devices || []).map(d => `- ${d.name}: ${d.percentage}% of traffic (${formatNumber(d.value)} sessions)`).join('\n')}
- 
-                                        ---
- 
-                                        Based on this complete, granular dataset, please deliver:
-                                        1. A **Comprehensive Executive Health Check** summarizing the overall trajectory and identifying any hidden anomalies.
-                                        2. A **Traffic-to-Content Correlation Audit** explaining which channels drive high-quality traffic (low bounce, high duration) and which pages suffer from friction.
-                                        3. A **3-Part Actionable Growth Blueprint** containing step-by-step strategies for conversion rate optimization (CRO) and organic acquisition scaling.`;
-                                    openWithQuestion(fullPrompt, '📊 Full GA4 Dashboard Analysis');
-                                }}
-                                className="h-8 px-4 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-sm"
-                            >
-                                <SparklesIcon className="w-3.5 h-3.5" />
-                                AI SUMMARY
-                            </button>
-                            <button
-                                onClick={handlePdfExport}
-                                disabled={isExportingPdf}
-                                className={`h-8 px-3 bg-white dark:bg-neutral-800/20 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-2 hover:bg-neutral-50 transition-all ${isExportingPdf ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                                {isExportingPdf ? (
-                                    <div className="w-3.5 h-3.5 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
-                                ) : (
-                                    <ArrowDownTrayIcon className="w-3.5 h-3.5" />
-                                )}
-                                {isExportingPdf ? 'GENERATING' : 'PDF REPORT'}
-                            </button>
-                        </div>
                     </div>
                 </div>
 
