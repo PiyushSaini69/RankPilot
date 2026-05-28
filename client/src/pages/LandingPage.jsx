@@ -52,7 +52,7 @@ const LandingPage = () => {
                     {/* Subheadline */}
                     <p className="text-lg md:text-xl text-neutral-500 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed font-medium">
                         Stop switching between GA4, Search Console, Google Ads, and Facebook Ads.
-                        RankPilot unifies your entire marketing stack — then lets your AI analyst explain it in plain English.
+                        RankPilot unifies your entire marketing stack — then lets your AI analyst explain it in simple, actionable insights.
                     </p>
 
                     {/* CTA buttons */}
@@ -162,87 +162,11 @@ const LandingPage = () => {
                 </div>
             </section>
 
-            {/* 6. PRICING SECTION — simplified */}
-            <section id="pricing" className="py-28 bg-white dark:bg-slate-950 transition-colors">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="text-center mb-20">
-                        <p className="text-brand-600 dark:text-brand-500 font-bold text-xs tracking-[0.3em] uppercase mb-4">Pricing</p>
-                        <h2 className="text-4xl md:text-5xl font-black text-neutral-900 dark:text-white tracking-tight mb-4">Simple, transparent pricing.</h2>
-                        <p className="text-neutral-500 dark:text-slate-400 text-lg font-medium">Free for individuals. Scale as you grow.</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                        {[
-                            { 
-                                name: 'Individual', 
-                                price: '0', 
-                                desc: 'Perfect for exploring your data.',
-                                features: ['1 Platform connection', 'Basic AI insights', 'Weekly updates', '7-day history'],
-                                cta: 'Get Started Free',
-                                popular: false
-                            },
-                            { 
-                                name: 'Pro', 
-                                price: '29', 
-                                desc: 'For growing marketing teams.',
-                                features: ['All Platform connections', 'Advanced AI analytics', 'Real-time sync', '90-day history', 'Email reports'],
-                                cta: 'Start 14-day Trial',
-                                popular: true
-                            },
-                            { 
-                                name: 'Business', 
-                                price: '99', 
-                                desc: 'For agencies and large scale.',
-                                features: ['Unlimited connections', 'Custom AI models', 'White-label reports', 'Unlimited history', 'Priority support'],
-                                cta: 'Contact Sales',
-                                popular: false
-                            },
-                        ].map((plan, i) => (
-                            <div key={i} className={`relative flex flex-col p-8 rounded-3xl border transition-all duration-300 ${
-                                plan.popular 
-                                    ? 'bg-neutral-900 dark:bg-white border-neutral-900 dark:border-white shadow-2xl scale-105 z-10' 
-                                    : 'bg-white dark:bg-slate-900 border-neutral-200 dark:border-white/10 hover:border-brand-500/30'
-                            }`}>
-                                {plan.popular && (
-                                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Most Popular</div>
-                                )}
-                                <div className="mb-8">
-                                    <h3 className={`text-xl font-black mb-2 ${plan.popular ? 'text-white dark:text-slate-950' : 'text-neutral-900 dark:text-white'}`}>{plan.name}</h3>
-                                    <div className="flex items-baseline gap-1">
-                                        <span className={`text-4xl font-black ${plan.popular ? 'text-white dark:text-slate-950' : 'text-neutral-900 dark:text-white'}`}>${plan.price}</span>
-                                        <span className={`text-sm font-medium ${plan.popular ? 'text-neutral-400 dark:text-slate-500' : 'text-neutral-500'}`}>/month</span>
-                                    </div>
-                                    <p className={`mt-4 text-sm font-medium ${plan.popular ? 'text-neutral-400 dark:text-slate-500' : 'text-neutral-500'}`}>{plan.desc}</p>
-                                </div>
-                                <div className="flex-1 space-y-4 mb-8">
-                                    {plan.features.map((feat, j) => (
-                                        <div key={j} className="flex items-center gap-3">
-                                            <div className={`w-5 h-5 rounded-full flex items-center justify-center ${plan.popular ? 'bg-brand-500 text-white' : 'bg-brand-500/10 text-brand-500'}`}>
-                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                                            </div>
-                                            <span className={`text-sm font-semibold ${plan.popular ? 'text-neutral-300 dark:text-slate-600' : 'text-neutral-600 dark:text-slate-300'}`}>{feat}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                                <button className={`w-full py-4 rounded-2xl font-black text-sm transition-all ${
-                                    plan.popular 
-                                        ? 'bg-brand-600 text-white hover:bg-brand-500 shadow-xl shadow-brand-500/25' 
-                                        : 'bg-neutral-100 dark:bg-white/5 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/10'
-                                }`}>
-                                    {plan.cta}
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
             {/* 7. FAQ SECTION — accordion style */}
             <section className="py-28 bg-neutral-50 dark:bg-slate-900 transition-colors">
                 <div className="max-w-3xl mx-auto px-6">
                     <div className="text-center mb-16">
-                        <p className="text-brand-600 dark:text-brand-500 font-bold text-xs tracking-[0.3em] uppercase mb-4">FAQ</p>
-                        <h2 className="text-4xl font-black text-neutral-900 dark:text-white tracking-tight">Common Questions</h2>
+                        <h2 className="text-4xl font-black text-neutral-900 dark:text-white tracking-tight">Frequently Asked Questions</h2>
                     </div>
                     <div className="space-y-4">
                         {[
