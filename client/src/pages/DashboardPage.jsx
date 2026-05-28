@@ -603,7 +603,7 @@ const DashboardPage = () => {
                     <div className="flex-1 space-y-4">
                       <div className="space-y-0.5">
                         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white leading-none">
-                          Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'},
+                          Bad {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'},
                           <span className="block sm:inline ml-0 sm:ml-2 bg-gradient-to-r from-brand-600 to-accent-500 bg-clip-text text-transparent capitalize">
                             {user?.name || 'Pilot'}
                           </span>
