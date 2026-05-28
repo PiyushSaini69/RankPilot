@@ -603,7 +603,7 @@ const DashboardPage = () => {
             </div>
           ) : (
             <>
-              <div className={`bg-white/60 dark:bg-dark-card/60 backdrop-blur-xl border border-neutral-200/60 dark:border-neutral-800/60 rounded-[2rem] shadow-sm relative group flex flex-col animate-in fade-in slide-in-from-bottom-5 duration-1000 ${(isDateMenuOpen || isDeviceMenuOpen) ? 'z-40' : 'z-10'}`}>
+              <div className={`bg-gradient-to-br from-indigo-50/90 via-white to-brand-50/90 dark:from-indigo-950/20 dark:via-dark-card dark:to-brand-950/20 backdrop-blur-xl border-2 border-brand-200/50 dark:border-brand-500/20 rounded-[2rem] shadow-[0_10px_30px_rgba(99,102,241,0.05)] relative group flex flex-col animate-in fade-in slide-in-from-bottom-5 duration-1000 ${(isDateMenuOpen || isDeviceMenuOpen) ? 'z-40' : 'z-10'}`}>
                 <div className="absolute inset-x-0 top-0 h-32 rounded-t-[2.5rem] overflow-hidden pointer-events-none">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-[100px] -mr-32 -mt-32 group-hover:bg-brand-500/10 transition-colors"></div>
                 </div>
@@ -621,7 +621,7 @@ const DashboardPage = () => {
                       </div>
 
                         <div className="space-y-1 border-l-2 border-brand-500/20 pl-4">
-                          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 shrink-0">Overview</p>
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 shrink-0">Overview</p>
                           <div className="flex flex-wrap items-center gap-3">
                             <h2 className="text-lg lg:text-2xl font-black text-neutral-900 dark:text-white tracking-tight leading-none">{activeSiteName || 'RankPilot'}</h2>
                             {activeSiteUrl && (
@@ -629,28 +629,41 @@ const DashboardPage = () => {
                                 href={activeSiteUrl.startsWith('http') ? activeSiteUrl : `https://${activeSiteUrl}`} 
                                 target="_blank" 
                                 rel="noopener noreferrer" 
-                                className="text-xs font-bold text-neutral-400 hover:text-brand-500 transition-colors underline decoration-dotted underline-offset-4"
+                                className="group flex items-center gap-1.5 px-2.5 py-1 bg-neutral-100/50 hover:bg-brand-50/80 dark:bg-neutral-800/30 dark:hover:bg-brand-500/10 border border-neutral-200/40 hover:border-brand-500/20 dark:border-neutral-800/60 dark:hover:border-brand-500/20 rounded-full transition-all duration-300"
                               >
-                                {activeSiteUrl.replace(/https?:\/\//, '')}
+                                <GlobeAltIcon className="w-3.5 h-3.5 text-neutral-400 group-hover:text-brand-500 transition-colors" />
+                                <span className="text-[11px] font-bold text-neutral-500 group-hover:text-brand-600 dark:text-neutral-400 dark:group-hover:text-brand-400 transition-colors lowercase tracking-tight">
+                                  {activeSiteUrl.replace(/https?:\/\//, '').replace(/\/$/, '')}
+                                </span>
+                                <svg className="w-3 h-3 text-neutral-400 group-hover:text-brand-500 dark:text-neutral-500 dark:group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                                </svg>
                               </a>
                             )}
-                          </div>
-                          <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-sm mt-1 line-clamp-2">
-                            {overviewData.intelligence?.websiteSummary || `Monitoring ${activeSiteName || 'your website'} performance across your marketing channels.`}
-                          </p>
+                           </div>
+                           {(loading || !overviewData.intelligence?.websiteSummary) ? (
+                             <div className="space-y-1.5 animate-pulse mt-2.5 max-w-md">
+                               <div className="h-2 bg-neutral-200/60 dark:bg-neutral-800/60 rounded-full w-[95%]" />
+                               <div className="h-2 bg-neutral-200/60 dark:bg-neutral-800/60 rounded-full w-[75%]" />
+                             </div>
+                           ) : (
+                             <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-md mt-1.5 line-clamp-2">
+                               {overviewData.intelligence?.websiteSummary}
+                             </p>
+                           )}
                         </div>
 
-                      <div className="flex flex-wrap items-center gap-3 pt-2">
+                      <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-neutral-200/40 dark:border-neutral-800/40 mt-3.5">
                         <div className="flex items-center gap-3">
-                          <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full border hide-in-pdf ${syncStatus === 'syncing' ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-100/50 dark:border-blue-500/20' : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100/50 dark:border-emerald-500/20'}`}>
+                          <div className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border hide-in-pdf ${syncStatus === 'syncing' ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-100/50 dark:border-blue-500/20' : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100/50 dark:border-emerald-500/20'}`}>
                             <div className={`w-1 h-1 rounded-full ${syncStatus === 'syncing' ? 'bg-blue-500 animate-spin' : 'bg-emerald-500 animate-pulse'}`}></div>
-                            <span className={`text-[8px] font-black uppercase tracking-widest ${syncStatus === 'syncing' ? 'text-blue-600 dark:text-blue-500' : 'text-emerald-600 dark:text-emerald-500'}`}>
+                            <span className={`text-[9px] font-black uppercase tracking-widest ${syncStatus === 'syncing' ? 'text-blue-600 dark:text-blue-500' : 'text-emerald-600 dark:text-emerald-500'}`}>
                               {syncStatus === 'syncing' ? 'Syncing...' : 'Active'}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 border-l border-neutral-200 dark:border-neutral-800 pl-3 hide-in-pdf">
-                            <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">Synced:</span>
-                            <span className="text-[9px] font-black text-neutral-600 dark:text-neutral-300 uppercase">
+                            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Synced:</span>
+                            <span className="text-[10px] font-black text-neutral-600 dark:text-neutral-300 uppercase">
                               {(() => {
                                 const dates = [
                                   ga4?.ga4LastSyncedAt,
@@ -672,19 +685,19 @@ const DashboardPage = () => {
                             </button>
                           </div>
                         </div>
+                      </div>
 
-                        <div className="h-4 w-px bg-neutral-200 dark:bg-neutral-800 mx-1 hidden sm:block hide-in-pdf"></div>
-
+                      <div className="flex items-center gap-2.5 mt-3">
                         <div className="relative">
                           <button
                             onClick={() => { setIsDateMenuOpen(!isDateMenuOpen); setIsDeviceMenuOpen(false); }}
                             className={`flex items-center gap-2 px-2.5 py-1 transition-all active:scale-95 group/date rounded-full border shadow-sm ${isDateMenuOpen
                               ? 'bg-brand-600 border-brand-500 text-white'
-                              : 'bg-white/50 dark:bg-dark-surface/50 border-neutral-200/50 dark:border-neutral-800'
+                              : 'bg-white/50 dark:bg-dark-surface/50 border-neutral-200/50 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 hover:border-neutral-300 dark:hover:border-neutral-700'
                               }`}
                           >
                             <CalendarIcon className={`w-3.5 h-3.5 ${isDateMenuOpen ? 'text-white' : 'text-brand-600'}`} />
-                             <span className={`text-[9px] font-black uppercase tracking-widest ${isDateMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
+                             <span className={`text-[9.5px] font-black uppercase tracking-wider ${isDateMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
                               Date: {{
                                 today: 'Today',
                                 yesterday: 'Yesterday',
@@ -762,18 +775,16 @@ const DashboardPage = () => {
                           )}
                         </div>
 
-                        <div className="h-4 w-px bg-neutral-200 dark:bg-neutral-800 mx-1 hidden sm:block hide-in-pdf"></div>
-
                         <div className="relative">
                           <button
                             onClick={() => { setIsDeviceMenuOpen(!isDeviceMenuOpen); setIsDateMenuOpen(false); }}
                             className={`flex items-center gap-2 px-2.5 py-1 transition-all active:scale-95 group/device rounded-full border shadow-sm ${isDeviceMenuOpen
                               ? 'bg-amber-500 border-amber-400 text-white'
-                              : 'bg-white/50 dark:bg-dark-surface/50 border-neutral-200/50 dark:border-neutral-800'
+                              : 'bg-white/50 dark:bg-dark-surface/50 border-neutral-200/50 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 hover:border-neutral-300 dark:hover:border-neutral-700'
                               }`}
                           >
                             <ComputerDesktopIcon className={`w-3.5 h-3.5 ${isDeviceMenuOpen ? 'text-white' : 'text-amber-500'}`} />
-                            <span className={`text-[9px] font-black uppercase tracking-widest ${isDeviceMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
+                            <span className={`text-[9.5px] font-black uppercase tracking-wider ${isDeviceMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
                               Device: {device ? {
                                 mobile: 'Mobile',
                                 desktop: 'Desktop',
@@ -810,79 +821,140 @@ const DashboardPage = () => {
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-6 lg:items-center">
-                      <div className="grid grid-cols-2 gap-2.5 shrink-0">
+                      <div className="grid grid-cols-2 gap-2.5 p-2 bg-neutral-100/40 dark:bg-neutral-900/25 rounded-[1.5rem] border border-neutral-200/50 dark:border-neutral-800/80 shadow-inner shrink-0">
                         {[
                           { 
                             id: 'ga4', 
                             active: !!activeGa4PropertyId, 
                             label: 'GA4 Analytics', 
-                            logo: <Ga4Logo className="w-5 h-5" />, 
-                            color: 'bg-orange-50', 
+                            logo: <Ga4Logo className="w-4 h-4" />, 
+                            accentGradient: 'from-orange-500 to-orange-400',
+                            bgColor: 'bg-gradient-to-b from-orange-50/50 via-orange-50/5 to-white dark:from-orange-950/15 dark:via-dark-surface dark:to-dark-surface',
+                            borderColor: 'border-orange-500/20 dark:border-orange-500/10',
+                            activeShadow: 'shadow-orange-500/5',
+                            color: 'bg-orange-50 dark:bg-orange-950/20', 
                             details: activeGa4PropertyId ? [
                               `Name: ${ga4?.ga4PropertyName || (activeSiteUrl ? activeSiteUrl.replace(/https?:\/\//, '').replace(/\/$/, '') : 'Property')}`,
                               `ID: ${activeGa4PropertyId}`
                             ] : null,
-                            tooltip: `Property: ${ga4?.ga4PropertyName || 'N/A'}\nID: ${activeGa4PropertyId || 'N/A'}\nEmail: ${ga4?.ga4TokenEmail || 'N/A'}`
+                            tooltip: `Property: ${ga4?.ga4PropertyName || 'N/A'}\nID: ${activeGa4PropertyId || 'N/A'}\nEmail: ${ga4?.ga4TokenEmail || 'N/A'}`,
+                            route: !!activeGa4PropertyId ? '/dashboard/ga4' : '/connect-accounts'
                           },
                           { 
                             id: 'google-ads', 
                             active: !!activeGoogleAdsCustomerId, 
                             label: 'Google Ads', 
-                            logo: <GoogleAdsLogo className="w-5 h-5" />, 
-                            color: 'bg-amber-50', 
+                            logo: <GoogleAdsLogo className="w-4 h-4" />, 
+                            accentGradient: 'from-amber-500 to-yellow-400',
+                            bgColor: 'bg-gradient-to-b from-amber-50/50 via-amber-50/5 to-white dark:from-amber-950/15 dark:via-dark-surface dark:to-dark-surface',
+                            borderColor: 'border-amber-500/20 dark:border-amber-500/10',
+                            activeShadow: 'shadow-amber-500/5',
+                            color: 'bg-amber-50 dark:bg-amber-950/20', 
                             details: activeGoogleAdsCustomerId ? [
                               `Name: ${googleAds?.googleAdsAccountName || (activeSiteUrl ? activeSiteUrl.replace(/https?:\/\//, '').replace(/\/$/, '') : 'Connected')}`,
                               `ID: ${activeGoogleAdsCustomerId}`
                             ] : null,
-                            tooltip: `Account: ${googleAds?.googleAdsAccountName || 'N/A'}\nID: ${activeGoogleAdsCustomerId || 'N/A'}\nEmail: ${googleAds?.googleAdsTokenEmail || 'N/A'}`
+                            tooltip: `Account: ${googleAds?.googleAdsAccountName || 'N/A'}\nID: ${activeGoogleAdsCustomerId || 'N/A'}\nEmail: ${googleAds?.googleAdsTokenEmail || 'N/A'}`,
+                            route: !!activeGoogleAdsCustomerId ? '/dashboard/google-ads' : '/connect-accounts'
                           },
                           { 
                             id: 'gsc', 
                             active: !!activeGscSite, 
                             label: 'Search Console', 
-                            logo: <GscLogo className="w-5 h-5" />, 
-                            color: 'bg-blue-50', 
+                            logo: <GscLogo className="w-4 h-4" />, 
+                            accentGradient: 'from-blue-500 to-sky-400',
+                            bgColor: 'bg-gradient-to-b from-blue-50/50 via-blue-50/5 to-white dark:from-blue-950/15 dark:via-dark-surface dark:to-dark-surface',
+                            borderColor: 'border-blue-500/20 dark:border-blue-500/10',
+                            activeShadow: 'shadow-blue-500/5',
+                            color: 'bg-blue-50 dark:bg-blue-950/20', 
                             details: activeGscSite ? [
                               `Site: ${activeGscSite.replace(/https?:\/\//, '')}`
                             ] : null,
-                            tooltip: `Site: ${activeGscSite || 'N/A'}\nEmail: ${gsc?.gscTokenEmail || 'N/A'}`
+                            tooltip: `Site: ${activeGscSite || 'N/A'}\nEmail: ${gsc?.gscTokenEmail || 'N/A'}`,
+                            route: !!activeGscSite ? '/dashboard/gsc' : '/connect-accounts'
                           },
                           { 
                             id: 'facebook', 
                             active: !!activeFacebookAdAccountId, 
                             label: 'Facebook Ads', 
-                            logo: <FacebookAdsLogo className="w-5 h-5" />, 
-                            color: 'bg-blue-50', 
+                            logo: <FacebookAdsLogo className="w-4 h-4" />, 
+                            accentGradient: 'from-indigo-600 to-blue-500',
+                            bgColor: 'bg-gradient-to-b from-indigo-50/50 via-indigo-50/5 to-white dark:from-indigo-950/15 dark:via-dark-surface dark:to-dark-surface',
+                            borderColor: 'border-indigo-500/20 dark:border-indigo-500/10',
+                            activeShadow: 'shadow-indigo-500/5',
+                            color: 'bg-blue-50 dark:bg-indigo-950/20', 
                             details: activeFacebookAdAccountId ? [
                               `Name: ${facebook?.facebookAdAccountName || (activeSiteUrl ? activeSiteUrl.replace(/https?:\/\//, '').replace(/\/$/, '') : 'Connected')}`,
                               `ID: ${activeFacebookAdAccountId.replace('act_', '')}`
                             ] : null,
-                            tooltip: `Account: ${facebook?.facebookAdAccountName || 'N/A'}\nID: ${activeFacebookAdAccountId || 'N/A'}\nUser: ${facebook?.facebookTokenName || 'N/A'}`
+                            tooltip: `Account: ${facebook?.facebookAdAccountName || 'N/A'}\nID: ${activeFacebookAdAccountId || 'N/A'}\nUser: ${facebook?.facebookTokenName || 'N/A'}`,
+                            route: !!activeFacebookAdAccountId ? '/dashboard/facebook-ads' : '/connect-accounts'
                           }
                         ].map((card) => (
-                          <div key={card.id} className="flex flex-col gap-2 p-3 bg-white dark:bg-dark-surface border border-neutral-100 dark:border-neutral-800 rounded-2xl w-[180px] shadow-sm transition-all hover:shadow-md group/item">
+                          <div 
+                            key={card.id} 
+                            onClick={() => navigate(card.route)}
+                            className={`flex flex-col gap-3 p-3.5 border rounded-2xl w-[182px] transition-all duration-300 hover:-translate-y-0.5 cursor-pointer group/item relative overflow-hidden ${
+                              card.active 
+                                ? `${card.bgColor} ${card.borderColor} shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:shadow-lg hover:${card.activeShadow}`
+                                : 'border-dashed border-neutral-300/80 dark:border-neutral-800 bg-neutral-50/40 dark:bg-neutral-900/10 hover:bg-neutral-50/80 dark:hover:bg-neutral-900/20 hover:border-brand-500/30 dark:hover:border-brand-500/20 shadow-sm hover:shadow-md'
+                            }`}
+                          >
+                            {card.active && (
+                              <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${card.accentGradient}`} />
+                            )}
                             <div className="flex items-center justify-between">
-                              <div className={`w-7 h-7 rounded-xl ${card.color} dark:bg-opacity-10 flex items-center justify-center shrink-0 border border-neutral-100/50 dark:border-white/5`}>{card.logo}</div>
-                              <div className={`w-1.5 h-1.5 rounded-full ${card.active ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-neutral-300 dark:bg-neutral-600'}`}></div>
+                              <div className={`w-8 h-8 rounded-xl ${card.color} flex items-center justify-center shrink-0 border border-neutral-200/10 dark:border-white/5 shadow-sm ${!card.active ? 'grayscale opacity-60' : ''}`}>
+                                {card.logo}
+                              </div>
+                              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border transition-all ${
+                                card.active
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                                  : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 border-neutral-200/40 dark:border-neutral-800/40 shadow-sm'
+                              }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${card.active ? 'bg-emerald-500 animate-pulse' : 'bg-neutral-400 dark:bg-neutral-600'}`}></span>
+                                {card.active ? 'Linked' : 'Offline'}
+                              </span>
                             </div>
-                            <div>
-                              <p className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 leading-none mb-1 group-hover/item:text-neutral-500 dark:group-hover/item:text-neutral-400 transition-colors">{card.label}</p>
-                              <div className="flex flex-col gap-0.5">
-                                <p className={`font-extrabold uppercase tracking-tighter text-[10px] ${card.active ? 'text-emerald-500 dark:text-emerald-400' : 'text-neutral-300 dark:text-neutral-600'}`}>
-                                  {card.active ? 'Connected' : 'Disconnected'}
+                            
+                            <div className="space-y-1.5 min-h-[52px] flex flex-col justify-between">
+                              <div>
+                                <p className={`text-[9px] font-black uppercase tracking-widest leading-none transition-colors ${
+                                  card.active 
+                                    ? 'text-neutral-400 dark:text-neutral-500 group-hover/item:text-neutral-500 dark:group-hover/item:text-neutral-400' 
+                                    : 'text-neutral-450 dark:text-neutral-550'
+                                }`}>
+                                  {card.label}
                                 </p>
-                                {card.active && card.details && card.details.map((detailText, idx) => (
-                                  <p key={idx} className="text-[11px] font-black text-neutral-800 dark:text-neutral-100 truncate max-w-[160px] transition-colors group-hover/item:text-neutral-950 dark:group-hover/item:text-white mt-0.5" title={card.tooltip}>
-                                    {detailText}
-                                  </p>
-                                ))}
+                                {card.active && card.details ? (
+                                  <div className="flex flex-col gap-0.5 mt-1.5">
+                                    {card.details.map((detailText, idx) => (
+                                      <p 
+                                        key={idx} 
+                                        className="text-[10px] font-black text-neutral-700 dark:text-neutral-200 truncate max-w-[155px] transition-colors group-hover/item:text-neutral-950 dark:group-hover/item:text-white" 
+                                        title={card.tooltip}
+                                      >
+                                        {detailText}
+                                      </p>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col gap-0.5 mt-2">
+                                    <p className="text-[10px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-tighter">
+                                      Not Connected
+                                    </p>
+                                    <span className="text-[9px] font-black text-brand-600 dark:text-brand-400 transition-colors flex items-center gap-1 mt-0.5 group-hover/item:text-brand-700 dark:group-hover/item:text-brand-300">
+                                      Connect now <ArrowRightIcon className="w-2.5 h-2.5 transition-transform group-hover/item:translate-x-0.5" />
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
                         ))}
                       </div>
 
-                      <div className="flex flex-col gap-2 min-w-[180px] self-stretch justify-center pl-4 border-l border-neutral-100 dark:border-neutral-800 ml-2 hide-in-pdf">
+                      <div className="flex flex-col gap-2.5 min-w-[185px] self-stretch justify-center pl-6 border-l border-neutral-200/60 dark:border-neutral-800/80 ml-2 hide-in-pdf">
                         <button
                           onClick={() => openWithQuestion(`Analyze complete brand dashboard for ${startDate} to ${endDate}. 
                             - Total Web Traffic (GA4 Sessions): ${formatNumber(overviewData.ga4?.sessions || 0)}
@@ -890,20 +962,20 @@ const DashboardPage = () => {
                             - Total Ad Spend (Meta + Google): ${formatCurrency((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0))}
                             - Total Ad Conversions: ${formatNumber((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0))}
                             Strategic review: Brand Performance, Efficiency, Strategy.`, '📊 Complete Brand Performance Analysis')}
-                          className="h-10 px-4 bg-brand-50 hover:bg-brand-100 dark:bg-brand-500/10 dark:hover:bg-brand-500/20 text-brand-600 dark:text-brand-400 rounded-2xl text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95"
+                          className="h-10 px-4 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white rounded-2xl text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all duration-300 shadow-md shadow-brand-500/10 hover:shadow-lg hover:shadow-brand-500/25 hover:-translate-y-0.5 active:scale-95"
                         >
-                          <SparklesIcon className="w-3.5 h-3.5" />
+                          <SparklesIcon className="w-4 h-4 text-white/95 animate-pulse" />
                           AI SUMMARY
                         </button>
                         <button
                           onClick={handlePdfExport}
                           disabled={isExportingPdf}
-                          className={`h-10 px-4 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 rounded-2xl text-[10px] font-black tracking-widest flex items-center justify-center gap-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all shadow-sm active:scale-95 ${isExportingPdf ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          className={`h-10 px-4 bg-white hover:bg-neutral-50 dark:bg-neutral-900/60 dark:hover:bg-neutral-800/80 text-neutral-600 dark:text-neutral-400 border border-neutral-200/80 dark:border-neutral-800/80 rounded-2xl text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 ${isExportingPdf ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           {isExportingPdf ? (
                             <div className="w-3.5 h-3.5 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
                           ) : (
-                            <ArrowDownTrayIcon className="w-3.5 h-3.5" />
+                            <ArrowDownTrayIcon className="w-4 h-4 text-neutral-400 dark:text-neutral-500" />
                           )}
                           {isExportingPdf ? 'GENERATING' : 'PDF REPORT'}
                         </button>
