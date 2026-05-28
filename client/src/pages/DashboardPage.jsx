@@ -941,7 +941,7 @@ const DashboardPage = () => {
                                     <p className="text-[10px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-tighter">
                                       Not Connected
                                     </p>
-                                    <span className="text-[9px] font-black text-brand-600 dark:text-brand-400 transition-colors flex items-center gap-1 mt-0.5 group-hover/item:text-brand-700 dark:group-hover/item:text-brand-300">
+                                    <span className="text-[11px] font-black text-brand-600 dark:text-brand-400 transition-colors flex items-center gap-1 mt-0.5 group-hover/item:text-brand-700 dark:group-hover/item:text-brand-300">
                                       Connect now <ArrowRightIcon className="w-2.5 h-2.5 transition-transform group-hover/item:translate-x-0.5" />
                                     </span>
                                   </div>
