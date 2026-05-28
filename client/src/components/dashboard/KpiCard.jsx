@@ -1,7 +1,7 @@
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
 
-const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Icon, loading = false, chartData = [], disconnected = false, onClick, insight, contextPrompt }) => {
+const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Icon, loading = false, chartData = [], disconnected = false, onClick, insight, contextPrompt, platform }) => {
 
   // Loading state matching the updated dimensions
   if (loading) return (
@@ -35,10 +35,85 @@ const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Ic
   const gradientId = isPositive ? 'sparkGreen' : 'sparkRed';
   const strokeColor = disconnected ? '#94A3B8' : (isPositive ? '#10B981' : '#EF4444');
 
+  // Dynamic brand styles based on platform
+  const getBrandStyles = () => {
+    if (disconnected) {
+      return {
+        container: 'bg-neutral-50/50 dark:bg-neutral-800/30 border-neutral-200/45 dark:border-neutral-700/40',
+        iconClass: 'text-neutral-400 dark:text-neutral-500 w-[18px] h-[18px]'
+      };
+    }
+    
+    switch (platform) {
+      case 'ga4':
+        return {
+          container: 'bg-rose-50/70 border-rose-100/80 dark:bg-rose-950/20 dark:border-rose-900/30',
+          iconClass: 'text-rose-500 dark:text-rose-400 w-[18px] h-[18px]'
+        };
+      case 'gsc':
+        return {
+          container: 'bg-sky-50/70 border-sky-100/80 dark:bg-sky-950/20 dark:border-sky-900/30',
+          iconClass: 'text-sky-500 dark:text-sky-400 w-[18px] h-[18px]'
+        };
+      case 'google-ads':
+        return {
+          container: 'bg-amber-50/70 border-amber-100/80 dark:bg-amber-950/20 dark:border-amber-900/30',
+          iconClass: 'text-amber-500 dark:text-amber-400 w-[18px] h-[18px]'
+        };
+      case 'facebook':
+        return {
+          container: 'bg-indigo-50/70 border-indigo-100/80 dark:bg-indigo-950/20 dark:border-indigo-900/30',
+          iconClass: 'text-indigo-500 dark:text-indigo-400 w-[18px] h-[18px]'
+        };
+      case 'conversions':
+        return {
+          container: 'bg-emerald-50/70 border-emerald-100/80 dark:bg-emerald-950/20 dark:border-emerald-900/30',
+          iconClass: 'text-emerald-500 dark:text-emerald-400 w-[18px] h-[18px]'
+        };
+      case 'efficiency':
+        return {
+          container: 'bg-purple-50/70 border-purple-100/80 dark:bg-purple-950/20 dark:border-purple-900/30',
+          iconClass: 'text-purple-500 dark:text-purple-450 w-[18px] h-[18px]'
+        };
+      default:
+        return {
+          container: isPositive
+            ? 'bg-green-50/70 border-green-100/80 dark:bg-emerald-900/20 dark:border-emerald-800/30'
+            : 'bg-red-50/70 border-red-100/80 dark:bg-red-900/20 dark:border-red-800/30',
+          iconClass: `w-[18px] h-[18px] ${isPositive ? 'text-green-500 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`
+        };
+    }
+  };
+
+  const brand = getBrandStyles();
+
+  const getPlatformFriendlyName = () => {
+    switch (platform) {
+      case 'ga4': return 'Google Analytics';
+      case 'gsc': return 'Search Console';
+      case 'google-ads': return 'Google Ads';
+      case 'facebook': return 'Facebook Ads';
+      case 'conversions': return 'Ad Platforms';
+      case 'efficiency': return 'Marketing Accounts';
+      default: return 'Platform';
+    }
+  };
+
+  const getPlatformDescription = () => {
+    switch (platform) {
+      case 'ga4': return 'Link Google Analytics to track real-time traffic, user sessions, and website page engagement.';
+      case 'gsc': return 'Link Google Search Console to monitor organic search clicks, search impressions, and keywords rankings.';
+      case 'google-ads': return 'Connect Google Ads to track pay-per-click budget spend, campaign conversions, and ROI.';
+      case 'facebook': return 'Connect Facebook Ads to measure social ad spend, campaign reach, and target impressions.';
+      case 'conversions': return 'Connect advertising channels to track lead submissions and conversion actions in one place.';
+      case 'efficiency': return 'Connect Google & Facebook Ads to measure click-through rate, cost-per-click, and ROAS.';
+      default: return 'Link your analytics and advertising integrations to unlock automated tracking and AI analytics.';
+    }
+  };
+
   return (
     <div
-      onClick={onClick}
-      className={`group relative bg-white dark:bg-dark-card rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 p-5 overflow-hidden flex flex-col justify-between min-h-[190px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 ${(disconnected || onClick) ? 'cursor-pointer' : 'cursor-default'} ${disconnected ? 'hover:border-brand-500/50 hide-in-pdf' : ''}`}
+      className={`group relative bg-white dark:bg-dark-card rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 p-5 overflow-hidden flex flex-col justify-between min-h-[190px] shadow-sm transition-all duration-300 cursor-default ${disconnected ? 'hide-in-pdf' : ''}`}
     >
 
       {/* Subtle background glow on hover */}
@@ -47,37 +122,37 @@ const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Ic
 
       {/* Header section: title + value + icon */}
       <div className="relative z-10 flex justify-between items-start mb-2">
-        <div className="mb-1">
+        <div className="mb-1 flex-1">
           <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-800 dark:text-neutral-200 leading-none">
             {title}
           </span>
-          <div className="flex items-baseline gap-2 mt-2">
+          <div className="flex flex-col gap-1.5 mt-2.5">
             {disconnected ? (
-              <p className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 leading-relaxed mt-1 pr-10 italic">
-                {insight}
-              </p>
+              <div className="space-y-1 pr-6">
+                <div className="text-3xl font-black text-neutral-300 dark:text-neutral-700 tracking-tight leading-none select-none">
+                  —
+                </div>
+                <p className="text-[12px] font-bold text-neutral-400/90 dark:text-neutral-500/90 leading-relaxed">
+                  {getPlatformDescription()}
+                </p>
+              </div>
             ) : (
-              <>
+              <div className="flex items-baseline gap-2">
                 <h3 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tabular-nums tracking-tight leading-none">
                   {value}
                 </h3>
                 {valueSuffix && (
                   <span className="text-sm font-bold text-neutral-400 dark:text-neutral-500 ml-1">{valueSuffix}</span>
                 )}
-              </>
+              </div>
             )}
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {Icon && (
-            <div className={`w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm ${disconnected ? 'bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-700/50' : (
-                isPositive
-                  ? 'bg-green-50 dark:bg-emerald-900/20 border border-green-100 dark:border-emerald-800/50'
-                  : 'bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50'
-              )
-              }`}>
-              <Icon className={`w-[18px] h-[18px] ${disconnected ? 'text-neutral-300' : (isPositive ? 'text-green-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400')}`} />
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm border ${brand.container}`}>
+              <Icon className={`${brand.iconClass} w-5 h-5 stroke-[1.8]`} />
             </div>
           )}
         </div>
@@ -111,7 +186,7 @@ const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Ic
 
       {/* AI Insight Snippet */}
       {insight && !disconnected && (
-        <p className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 leading-relaxed mb-3">
+        <p className="text-[12px] font-semibold text-neutral-500 dark:text-neutral-400 leading-relaxed mb-3">
           {insight}
         </p>
       )}
@@ -121,8 +196,11 @@ const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Ic
 
         {/* Change Badge / Action */}
         {disconnected ? (
-          <div className="text-[10px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest flex items-center gap-1.5 group-hover:gap-2.5 transition-all">
-            Unlock Insights <ArrowUpIcon className="w-3 h-3 rotate-45" />
+          <div 
+            onClick={onClick}
+            className="text-[10px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest flex items-center gap-1 hover:gap-1.5 cursor-pointer hover:underline active:scale-95 transition-all"
+          >
+            Connect {getPlatformFriendlyName()} <ArrowUpIcon className="w-3 h-3 rotate-45 stroke-[2.5]" />
           </div>
         ) : change !== undefined ? (
           <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black border ${isPositive
