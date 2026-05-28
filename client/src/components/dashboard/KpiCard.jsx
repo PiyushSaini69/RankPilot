@@ -160,7 +160,7 @@ const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Ic
 
       {/* AreaChart for gradient fill effect */}
       <div className={`relative z-10 w-full ${disconnected ? 'opacity-20 grayscale' : ''}`} style={{ height: '52px', marginTop: '4px', marginBottom: '4px' }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <AreaChart data={sparkData} margin={{ top: 3, right: 0, left: 0, bottom: 3 }}>
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">

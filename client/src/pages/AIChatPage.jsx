@@ -444,6 +444,7 @@ const AIChatPage = () => {
 
     const [conversations, setConversations] = useState([]);
     const [activeConversationId, setActiveConversationId] = useState(null);
+    const [selectedSources, setSelectedSources] = useState([]);
 
     const [weeklyInsight, setWeeklyInsight] = useState(null);
     const [insightLoading, setInsightLoading] = useState(false);

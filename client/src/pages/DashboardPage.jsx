@@ -146,6 +146,10 @@ const DashboardPage = () => {
   };
 
   const loadDashboardData = useCallback(async () => {
+    if (!activeSiteId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const query = new URLSearchParams({
@@ -154,7 +158,7 @@ const DashboardPage = () => {
         device: device || 'all',
         ...(campaign && { campaign }),
         ...(channel && { channel }),
-        ...(activeSiteId && { siteId: activeSiteId })
+        siteId: activeSiteId
       }).toString();
 
       const res = await api.get(`/analytics/dashboard-summary?${query}`);
@@ -603,7 +607,7 @@ const DashboardPage = () => {
                     <div className="flex-1 space-y-4">
                       <div className="space-y-0.5">
                         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white leading-none">
-                          Hello Sir {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'},
+                          Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'},
                           <span className="block sm:inline ml-0 sm:ml-2 bg-gradient-to-r from-brand-600 to-accent-500 bg-clip-text text-transparent capitalize">
                             {user?.name || 'Pilot'}
                           </span>
@@ -1412,7 +1416,7 @@ const DashboardPage = () => {
                       ))}
                     </div>
                   ) : (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <AreaChart data={chartDataToUse}>
                         <defs>
                           <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={metricColor} stopOpacity={0.25} /><stop offset="95%" stopColor={metricColor} stopOpacity={0} /></linearGradient>
