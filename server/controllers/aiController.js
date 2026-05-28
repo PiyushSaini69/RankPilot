@@ -49,10 +49,10 @@ Examples:
             properties: {
                 startDate: { type: "STRING", description: "Start date in YYYY-MM-DD format." },
                 endDate: { type: "STRING", description: "End date in YYYY-MM-DD format." },
-                sources: {
-                    type: "ARRAY",
-                    items: { type: "STRING" },
-                    description: "Platforms to fetch: 'ga4', 'gsc', 'google-ads', 'facebook-ads'. Pass only what's needed. Empty = all platforms."
+                sources: { 
+                    type: "ARRAY", 
+                    items: { type: "STRING" }, 
+                    description: "Platforms to fetch: 'ga4', 'gsc', 'google-ads', 'facebook-ads'. Pass only what's needed. Empty = all platforms." 
                 },
                 fields: {
                     type: "ARRAY",
@@ -63,9 +63,13 @@ Examples:
                     type: "STRING",
                     description: "Fetch depth: 'summary' (totals only, fastest), 'standard' (totals + daily + top lists), 'full' (everything including countries, ad groups, page titles). Default: 'standard'"
                 },
-                device: {
+                device: { 
+                    type: "STRING", 
+                    description: "Filter by device: 'mobile', 'desktop', or 'tablet'. Leave empty for all." 
+                },
+                channelFilter: {
                     type: "STRING",
-                    description: "Filter by device: 'mobile', 'desktop', or 'tablet'. Leave empty for all."
+                    description: "Filter GA4 data by traffic channel. Use when user asks about specific traffic type. Values: 'Organic Search' (organic/SEO users), 'Paid Search' (paid/ad users), 'Direct' (direct visitors), 'Organic Social' (social traffic), 'Referral' (referral traffic). Leave empty for all channels."
                 }
             },
             required: ["startDate", "endDate"]
@@ -73,18 +77,19 @@ Examples:
     }
 ];
 
-const executeTool = async (name, args, userId, siteId, userTimezone) => {
+const executeTool = async (name, args, userId, siteId) => {
     if (name === "get_market_data") {
         return await fetchPlatformData(
-            userId,
-            args.startDate,
-            args.endDate,
-            siteId,
-            args.sources || [],
+            userId, 
+            args.startDate, 
+            args.endDate, 
+            siteId, 
+            args.sources || [], 
             args.device || null,
-            userTimezone,
+            'UTC', // replace with user timezone if available
             args.fields || [],
-            args.mode || 'standard'
+            args.mode || 'standard',
+            args.channelFilter || null
         );
     }
     return { error: "Unknown tool" };
@@ -99,7 +104,8 @@ export const fetchPlatformData = async (
     device = null,
     userTimezone = 'UTC',
     fields = [],
-    mode = 'standard'
+    mode = 'standard',
+    channelFilter = null  // NEW: "Organic Search" | "Paid Search" | "Direct" | "Organic Social"
 ) => {
 
     const sourceList = Array.isArray(activeSources) ? activeSources : (activeSources ? [activeSources] : []);
@@ -128,6 +134,7 @@ export const fetchPlatformData = async (
         endDate,
         mode,
         device: device || 'all',
+        channelFilter: channelFilter || 'all',
         today: nowLocal.toISOString().split('T')[0]
     };
 
@@ -152,6 +159,7 @@ export const fetchPlatformData = async (
     };
 
     const deviceFilter = device ? { 'metadata.dimensions.device': device.toLowerCase() } : {};
+    const channelFilterQuery = channelFilter ? { 'metadata.dimensions.channel': channelFilter } : {};
 
     const ALL_METRICS = {
         'ga4': ['users', 'newUsers', 'sessions', 'engagedSessions', 'pageViews', 'avgSessionDuration', 'engagementRate', 'bounceRate', 'revenue', 'transactions', 'conversions'],
@@ -179,13 +187,13 @@ export const fetchPlatformData = async (
     const AVG_METRICS = ['position', 'avgSessionDuration', 'frequency', 'searchImpressionShare', 'ctr', 'bounceRate', 'engagementRate', 'cpc', 'cpm'];
 
     const sourceConfigs = [
-        { key: 'ga4', model: Ga4Metric, id: userAcc.ga4PropertyId, type: 'analytics' },
-        { key: 'gsc', model: GscMetric, id: userAcc.gscSiteUrl, type: 'search' },
-        { key: 'google-ads', model: GoogleAdsMetric, id: userAcc.googleAdsCustomerId, type: 'ads' },
-        { key: 'facebook-ads', model: FacebookAdsMetric, id: userAcc.facebookAdAccountId, type: 'ads' }
+        { key: 'ga4',          model: Ga4Metric,        id: userAcc.ga4PropertyId,       type: 'analytics' },
+        { key: 'gsc',          model: GscMetric,         id: userAcc.gscSiteUrl,           type: 'search'    },
+        { key: 'google-ads',   model: GoogleAdsMetric,   id: userAcc.googleAdsCustomerId,  type: 'ads'       },
+        { key: 'facebook-ads', model: FacebookAdsMetric, id: userAcc.facebookAdAccountId,  type: 'ads'       }
     ]
-        .filter(s => s.id && (normalizedActiveSources.length === 0 || normalizedActiveSources.includes(s.key)))
-        .map(s => ({ ...s, metrics: expandFields(requestedFields, s.key) }));
+    .filter(s => s.id && (normalizedActiveSources.length === 0 || normalizedActiveSources.includes(s.key)))
+    .map(s => ({ ...s, metrics: expandFields(requestedFields, s.key) }));
 
     const results = {
         totals: [], dailyBreakdown: [],
@@ -201,7 +209,7 @@ export const fetchPlatformData = async (
 
     const aggTasks = sourceConfigs.map(async (config) => {
         try {
-            const baseFilter = { 'metadata.platformAccountId': config.id, ...deviceFilter };
+            const baseFilter = { 'metadata.platformAccountId': config.id, ...deviceFilter, ...channelFilterQuery };
 
             // ── 1. TOTALS (always) ──────────────────────────────────────────
             const totalsAgg = await config.model.aggregate([
@@ -251,23 +259,19 @@ export const fetchPlatformData = async (
                 // Top Pages by pagePath (standard + full)
                 const pages = await Ga4Metric.aggregate([
                     { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
-                    {
-                        $group: {
-                            _id: { path: "$metadata.dimensions.pagePath", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
-                            sessions: { $sum: "$metrics.sessions" },
-                            pageViews: { $sum: "$metrics.pageViews" },
-                            engagedSessions: { $sum: "$metrics.engagedSessions" }
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: "$_id.path",
-                            currentSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$sessions", 0] } },
-                            priorSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$sessions", 0] } },
-                            pageViews: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$pageViews", 0] } },
-                            engagedSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$engagedSessions", 0] } }
-                        }
-                    },
+                    { $group: {
+                        _id: { path: "$metadata.dimensions.pagePath", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
+                        sessions: { $sum: "$metrics.sessions" },
+                        pageViews: { $sum: "$metrics.pageViews" },
+                        engagedSessions: { $sum: "$metrics.engagedSessions" }
+                    }},
+                    { $group: {
+                        _id: "$_id.path",
+                        currentSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$sessions", 0] } },
+                        priorSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$sessions", 0] } },
+                        pageViews: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$pageViews", 0] } },
+                        engagedSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$engagedSessions", 0] } }
+                    }},
                     { $sort: { currentSessions: -1 } }, { $limit: 25 }
                 ]);
                 results.topPages = pages.map(i => ({
@@ -282,21 +286,17 @@ export const fetchPlatformData = async (
                 // Top Channels (standard + full)
                 const channels = await Ga4Metric.aggregate([
                     { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
-                    {
-                        $group: {
-                            _id: { channel: "$metadata.dimensions.channel", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
-                            sessions: { $sum: "$metrics.sessions" },
-                            engagedSessions: { $sum: "$metrics.engagedSessions" }
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: "$_id.channel",
-                            currentSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$sessions", 0] } },
-                            priorSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$sessions", 0] } },
-                            engagedSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$engagedSessions", 0] } }
-                        }
-                    },
+                    { $group: {
+                        _id: { channel: "$metadata.dimensions.channel", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
+                        sessions: { $sum: "$metrics.sessions" },
+                        engagedSessions: { $sum: "$metrics.engagedSessions" }
+                    }},
+                    { $group: {
+                        _id: "$_id.channel",
+                        currentSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$sessions", 0] } },
+                        priorSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$sessions", 0] } },
+                        engagedSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$engagedSessions", 0] } }
+                    }},
                     { $sort: { currentSessions: -1 } }, { $limit: 15 }
                 ]);
                 results.topChannels = channels.map(i => ({
@@ -310,13 +310,11 @@ export const fetchPlatformData = async (
                 // Devices (standard + full)
                 const devices = await Ga4Metric.aggregate([
                     { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                    {
-                        $group: {
-                            _id: "$metadata.dimensions.device",
-                            sessions: { $sum: "$metrics.sessions" },
-                            engagedSessions: { $sum: "$metrics.engagedSessions" }
-                        }
-                    },
+                    { $group: {
+                        _id: "$metadata.dimensions.device",
+                        sessions: { $sum: "$metrics.sessions" },
+                        engagedSessions: { $sum: "$metrics.engagedSessions" }
+                    }},
                     { $sort: { sessions: -1 } }
                 ]);
                 results.topDevices = devices.map(i => ({
@@ -330,25 +328,19 @@ export const fetchPlatformData = async (
                     // Top Sources — FIX: split "source / medium" into separate fields
                     const sources = await Ga4Metric.aggregate([
                         { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
-                        {
-                            $addFields: {
-                                sourceName: { $trim: { input: { $arrayElemAt: [{ $split: ["$metadata.dimensions.source", " / "] }, 0] } } },
-                                mediumName: { $trim: { input: { $arrayElemAt: [{ $split: ["$metadata.dimensions.source", " / "] }, 1] } } }
-                            }
-                        },
-                        {
-                            $group: {
-                                _id: { source: "$sourceName", medium: "$mediumName", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
-                                sessions: { $sum: "$metrics.sessions" }
-                            }
-                        },
-                        {
-                            $group: {
-                                _id: { source: "$_id.source", medium: "$_id.medium" },
-                                currentSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$sessions", 0] } },
-                                priorSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$sessions", 0] } }
-                            }
-                        },
+                        { $addFields: {
+                            sourceName: { $trim: { input: { $arrayElemAt: [{ $split: ["$metadata.dimensions.source", " / "] }, 0] } } },
+                            mediumName: { $trim: { input: { $arrayElemAt: [{ $split: ["$metadata.dimensions.source", " / "] }, 1] } } }
+                        }},
+                        { $group: {
+                            _id: { source: "$sourceName", medium: "$mediumName", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
+                            sessions: { $sum: "$metrics.sessions" }
+                        }},
+                        { $group: {
+                            _id: { source: "$_id.source", medium: "$_id.medium" },
+                            currentSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$sessions", 0] } },
+                            priorSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$sessions", 0] } }
+                        }},
                         { $sort: { currentSessions: -1 } }, { $limit: 25 }
                     ]);
                     results.topSources = sources.map(i => ({
@@ -362,21 +354,17 @@ export const fetchPlatformData = async (
                     // Top Landing Pages
                     const landingPages = await Ga4Metric.aggregate([
                         { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
-                        {
-                            $group: {
-                                _id: { page: "$metadata.dimensions.landingPage", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
-                                sessions: { $sum: "$metrics.sessions" },
-                                engagedSessions: { $sum: "$metrics.engagedSessions" }
-                            }
-                        },
-                        {
-                            $group: {
-                                _id: "$_id.page",
-                                currentSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$sessions", 0] } },
-                                priorSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$sessions", 0] } },
-                                engagedSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$engagedSessions", 0] } }
-                            }
-                        },
+                        { $group: {
+                            _id: { page: "$metadata.dimensions.landingPage", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
+                            sessions: { $sum: "$metrics.sessions" },
+                            engagedSessions: { $sum: "$metrics.engagedSessions" }
+                        }},
+                        { $group: {
+                            _id: "$_id.page",
+                            currentSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$sessions", 0] } },
+                            priorSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$sessions", 0] } },
+                            engagedSessions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$engagedSessions", 0] } }
+                        }},
                         { $sort: { currentSessions: -1 } }, { $limit: 25 }
                     ]);
                     results.topLandingPages = landingPages.map(i => ({
@@ -390,13 +378,11 @@ export const fetchPlatformData = async (
                     // Top Page Titles
                     const pageTitles = await Ga4Metric.aggregate([
                         { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                        {
-                            $group: {
-                                _id: "$metadata.dimensions.pageTitle",
-                                sessions: { $sum: "$metrics.sessions" },
-                                pageViews: { $sum: "$metrics.pageViews" }
-                            }
-                        },
+                        { $group: {
+                            _id: "$metadata.dimensions.pageTitle",
+                            sessions: { $sum: "$metrics.sessions" },
+                            pageViews: { $sum: "$metrics.pageViews" }
+                        }},
                         { $sort: { sessions: -1 } }, { $limit: 25 }
                     ]);
                     results.topPageTitles = pageTitles.map(i => ({
@@ -408,12 +394,10 @@ export const fetchPlatformData = async (
                     // Top Countries
                     const countries = await Ga4Metric.aggregate([
                         { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                        {
-                            $group: {
-                                _id: "$metadata.dimensions.country",
-                                sessions: { $sum: "$metrics.sessions" }
-                            }
-                        },
+                        { $group: {
+                            _id: "$metadata.dimensions.country",
+                            sessions: { $sum: "$metrics.sessions" }
+                        }},
                         { $sort: { sessions: -1 } }, { $limit: 25 }
                     ]);
                     results.topCountries = countries.map(i => ({
@@ -430,24 +414,20 @@ export const fetchPlatformData = async (
                 // Top Queries with impression-weighted position (standard + full)
                 const queries = await GscMetric.aggregate([
                     { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
-                    {
-                        $group: {
-                            _id: { query: "$metadata.dimensions.query", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
-                            clicks: { $sum: "$metrics.clicks" },
-                            impressions: { $sum: "$metrics.impressions" },
-                            // FIX: impression-weighted position
-                            weightedPosition: { $sum: { $multiply: ["$metrics.position", "$metrics.impressions"] } }
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: "$_id.query",
-                            currentClicks: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$clicks", 0] } },
-                            priorClicks: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$clicks", 0] } },
-                            impressions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$impressions", 0] } },
-                            weightedPosition: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$weightedPosition", 0] } }
-                        }
-                    },
+                    { $group: {
+                        _id: { query: "$metadata.dimensions.query", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
+                        clicks: { $sum: "$metrics.clicks" },
+                        impressions: { $sum: "$metrics.impressions" },
+                        // FIX: impression-weighted position
+                        weightedPosition: { $sum: { $multiply: ["$metrics.position", "$metrics.impressions"] } }
+                    }},
+                    { $group: {
+                        _id: "$_id.query",
+                        currentClicks: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$clicks", 0] } },
+                        priorClicks: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$clicks", 0] } },
+                        impressions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$impressions", 0] } },
+                        weightedPosition: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$weightedPosition", 0] } }
+                    }},
                     { $sort: { impressions: -1 } }, { $limit: 25 }
                 ]);
                 results.topQueries = queries.map(i => ({
@@ -464,23 +444,19 @@ export const fetchPlatformData = async (
                 // Top GSC Pages with impression-weighted position (standard + full)
                 const gscPages = await GscMetric.aggregate([
                     { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
-                    {
-                        $group: {
-                            _id: { page: "$metadata.dimensions.page", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
-                            clicks: { $sum: "$metrics.clicks" },
-                            impressions: { $sum: "$metrics.impressions" },
-                            weightedPosition: { $sum: { $multiply: ["$metrics.position", "$metrics.impressions"] } }
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: "$_id.page",
-                            currentClicks: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$clicks", 0] } },
-                            priorClicks: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$clicks", 0] } },
-                            impressions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$impressions", 0] } },
-                            weightedPosition: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$weightedPosition", 0] } }
-                        }
-                    },
+                    { $group: {
+                        _id: { page: "$metadata.dimensions.page", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
+                        clicks: { $sum: "$metrics.clicks" },
+                        impressions: { $sum: "$metrics.impressions" },
+                        weightedPosition: { $sum: { $multiply: ["$metrics.position", "$metrics.impressions"] } }
+                    }},
+                    { $group: {
+                        _id: "$_id.page",
+                        currentClicks: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$clicks", 0] } },
+                        priorClicks: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$clicks", 0] } },
+                        impressions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$impressions", 0] } },
+                        weightedPosition: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$weightedPosition", 0] } }
+                    }},
                     { $sort: { impressions: -1 } }, { $limit: 25 }
                 ]);
                 results.topGscPages = gscPages.map(i => ({
@@ -497,13 +473,11 @@ export const fetchPlatformData = async (
                     // GSC Countries
                     const gscCountries = await GscMetric.aggregate([
                         { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                        {
-                            $group: {
-                                _id: "$metadata.dimensions.country",
-                                clicks: { $sum: "$metrics.clicks" },
-                                impressions: { $sum: "$metrics.impressions" }
-                            }
-                        },
+                        { $group: {
+                            _id: "$metadata.dimensions.country",
+                            clicks: { $sum: "$metrics.clicks" },
+                            impressions: { $sum: "$metrics.impressions" }
+                        }},
                         { $sort: { impressions: -1 } }, { $limit: 25 }
                     ]);
                     results.topGscCountries = gscCountries.map(i => ({
@@ -516,13 +490,11 @@ export const fetchPlatformData = async (
                     // GSC Devices
                     const gscDevices = await GscMetric.aggregate([
                         { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                        {
-                            $group: {
-                                _id: "$metadata.dimensions.device",
-                                clicks: { $sum: "$metrics.clicks" },
-                                impressions: { $sum: "$metrics.impressions" }
-                            }
-                        },
+                        { $group: {
+                            _id: "$metadata.dimensions.device",
+                            clicks: { $sum: "$metrics.clicks" },
+                            impressions: { $sum: "$metrics.impressions" }
+                        }},
                         { $sort: { impressions: -1 } }
                     ]);
                     results.topGscDevices = gscDevices.map(i => ({
@@ -541,29 +513,25 @@ export const fetchPlatformData = async (
                 // Top Campaigns (standard + full)
                 const campaigns = await config.model.aggregate([
                     { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
-                    {
-                        $group: {
-                            _id: { campaign: "$metadata.dimensions.campaign", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
-                            spend: { $sum: "$metrics.spend" },
-                            clicks: { $sum: "$metrics.clicks" },
-                            impressions: { $sum: "$metrics.impressions" },
-                            conversions: { $sum: "$metrics.conversions" },
-                            conversionValue: { $sum: convValueField },
-                            status: { $first: "$metadata.dimensions.campaignStatus" }
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: "$_id.campaign",
-                            currentSpend: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$spend", 0] } },
-                            priorSpend: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$spend", 0] } },
-                            clicks: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$clicks", 0] } },
-                            impressions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$impressions", 0] } },
-                            conversions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$conversions", 0] } },
-                            conversionValue: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$conversionValue", 0] } },
-                            status: { $first: "$status" }
-                        }
-                    },
+                    { $group: {
+                        _id: { campaign: "$metadata.dimensions.campaign", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
+                        spend: { $sum: "$metrics.spend" },
+                        clicks: { $sum: "$metrics.clicks" },
+                        impressions: { $sum: "$metrics.impressions" },
+                        conversions: { $sum: "$metrics.conversions" },
+                        conversionValue: { $sum: convValueField },
+                        status: { $first: "$metadata.dimensions.campaignStatus" }
+                    }},
+                    { $group: {
+                        _id: "$_id.campaign",
+                        currentSpend: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$spend", 0] } },
+                        priorSpend: { $sum: { $cond: [{ $eq: ["$_id.period", "previous"] }, "$spend", 0] } },
+                        clicks: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$clicks", 0] } },
+                        impressions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$impressions", 0] } },
+                        conversions: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$conversions", 0] } },
+                        conversionValue: { $sum: { $cond: [{ $eq: ["$_id.period", "current"] }, "$conversionValue", 0] } },
+                        status: { $first: "$status" }
+                    }},
                     { $sort: { currentSpend: -1 } }, { $limit: 25 }
                 ]);
                 results.topCampaigns.push(...campaigns.map(i => ({
@@ -585,14 +553,12 @@ export const fetchPlatformData = async (
                     if (config.key === 'google-ads') {
                         const adGroups = await config.model.aggregate([
                             { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                            {
-                                $group: {
-                                    _id: "$metadata.dimensions.adGroup",
-                                    spend: { $sum: "$metrics.spend" },
-                                    conversions: { $sum: "$metrics.conversions" },
-                                    status: { $first: "$metadata.dimensions.adGroupStatus" }
-                                }
-                            },
+                            { $group: {
+                                _id: "$metadata.dimensions.adGroup",
+                                spend: { $sum: "$metrics.spend" },
+                                conversions: { $sum: "$metrics.conversions" },
+                                status: { $first: "$metadata.dimensions.adGroupStatus" }
+                            }},
                             { $sort: { spend: -1 } }, { $limit: 25 }
                         ]);
                         results.topAdGroups = adGroups.map(i => ({
@@ -604,7 +570,7 @@ export const fetchPlatformData = async (
 
                         const networks = await config.model.aggregate([
                             { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                            { $group: { _id: "$metadata.dimensions.network", spend: { $sum: "$metrics.spend" } } },
+                            { $group: { _id: "$metadata.dimensions.network", spend: { $sum: "$metrics.spend" } }},
                             { $sort: { spend: -1 } }
                         ]);
                         results.topNetworks = networks.map(i => ({
@@ -616,13 +582,11 @@ export const fetchPlatformData = async (
                     if (config.key === 'facebook-ads') {
                         const adsets = await config.model.aggregate([
                             { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
-                            {
-                                $group: {
-                                    _id: "$metadata.dimensions.adset",
-                                    spend: { $sum: "$metrics.spend" },
-                                    conversions: { $sum: "$metrics.conversions" }
-                                }
-                            },
+                            { $group: {
+                                _id: "$metadata.dimensions.adset",
+                                spend: { $sum: "$metrics.spend" },
+                                conversions: { $sum: "$metrics.conversions" }
+                            }},
                             { $sort: { spend: -1 } }, { $limit: 25 }
                         ]);
                         results.topAdsets = adsets.map(i => ({
@@ -776,24 +740,6 @@ export const askAi = async (req, res) => {
     let { question, conversationId, siteId, history, timezone } = req.body;
     const userId = req.user._id;
 
-    // Check if historical sync is running
-    const userAcc = await UserAccounts.findOne(siteId ? { _id: siteId, userId } : { userId }).sort({ updatedAt: -1 });
-    const isSyncingHistorical = !!(userAcc && (
-        (userAcc.ga4PropertyId && !userAcc.ga4HistoricalComplete) ||
-        (userAcc.gscSiteUrl && !userAcc.gscHistoricalComplete) ||
-        (userAcc.googleAdsCustomerId && !userAcc.googleAdsHistoricalComplete) ||
-        (userAcc.facebookAdAccountId && !userAcc.facebookAdsHistoricalComplete)
-    ));
-
-    if (isSyncingHistorical) {
-        res.setHeader('Content-Type', 'text/event-stream');
-        res.setHeader('Cache-Control', 'no-cache');
-        res.setHeader('Connection', 'keep-alive');
-        res.write(`data: ${JSON.stringify({ error: "RankPilot AI is paused while importing historical data. Your assistant will be fully active as soon as the historical sync completes." })}\n\n`);
-        res.end();
-        return;
-    }
-
     // FIX 1: Track start time correctly for latency calculation
     const startTime = Date.now();
 
@@ -805,7 +751,7 @@ export const askAi = async (req, res) => {
     for (const msg of rawHistory) {
         const role = msg.role === 'user' ? 'user' : 'model';
         const text = String(msg.content || "").substring(0, 4000);
-
+        
         if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === role) {
             // Combine consecutive messages of same role (Gemini strict alternation rule)
             chatHistory[chatHistory.length - 1].parts[0].text += "\n\n" + text;
@@ -829,14 +775,57 @@ export const askAi = async (req, res) => {
 
     // FIX 3: Use user's timezone from request body (fallback to UTC)
     const userTimezone = timezone || 'UTC';
+
+    // FIX 4: Fetch connection status and inject into prompt
+    let connectionContext = "";
+    try {
+        const accQuery = siteId ? { _id: siteId, userId } : { userId };
+        const userAcc = await UserAccounts.findOne(accQuery)
+            .select('ga4PropertyId gscSiteUrl googleAdsCustomerId facebookAdAccountId');
+
+        const conn = {
+            ga4: !!userAcc?.ga4PropertyId,
+            gsc: !!userAcc?.gscSiteUrl,
+            googleAds: !!userAcc?.googleAdsCustomerId,
+            facebookAds: !!userAcc?.facebookAdAccountId
+        };
+
+        connectionContext = `\n\n[CONNECTION STATUS]:
+- Google Analytics (GA4): ${conn.ga4 ? 'CONNECTED' : 'NOT CONNECTED'}
+- Google Search Console (GSC): ${conn.gsc ? 'CONNECTED' : 'NOT CONNECTED'}
+- Google Ads: ${conn.googleAds ? 'CONNECTED' : 'NOT CONNECTED'}
+- Meta Ads (Facebook): ${conn.facebookAds ? 'CONNECTED' : 'NOT CONNECTED'}
+
+CRITICAL RULES:
+- ONLY recommend or mention platforms marked as CONNECTED.
+- If a platform is NOT CONNECTED, never suggest the user to check it.
+- Instead, use data from CONNECTED platforms to give the best possible answer.
+- Example: If GSC is NOT CONNECTED and organic traffic drops — use GA4 channel and page data to analyze, not GSC.`;
+    } catch (e) {
+        console.error("Connection status fetch error:", e.message);
+        // Non-blocking — continue without connection context
+    }
     const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
     const todayStr = nowLocal.toISOString().split('T')[0];
-    const dateContext = `\n\n[REAL-TIME CONTEXT]: Today's date is ${todayStr}. User timezone: ${userTimezone}. Use this for all relative date calculations.`;
 
-    // Persist timezone to UserAccounts for cron jobs (fire-and-forget)
-    if (userTimezone !== 'UTC' && siteId) {
-        UserAccounts.findByIdAndUpdate(siteId, { timezone: userTimezone }).catch(() => {});
-    }
+    // Pre-calculate common date ranges — ensures AI matches dashboard exactly
+    const getDateStr = (daysBack) => {
+        const d = new Date(nowLocal);
+        d.setDate(d.getDate() - daysBack);
+        return d.toISOString().split('T')[0];
+    };
+
+    const dateContext = `\n\n[REAL-TIME CONTEXT]:
+- Today: ${todayStr}
+- User Timezone: ${userTimezone}
+- "Last 7 days" = ${getDateStr(7)} to ${todayStr}
+- "Last 28 days" = ${getDateStr(28)} to ${todayStr}
+- "Last 30 days" = ${getDateStr(30)} to ${todayStr}
+- "Last 90 days" = ${getDateStr(90)} to ${todayStr}
+- "This week" = ${getDateStr(7)} to ${todayStr}
+- "This month" = ${getDateStr(30)} to ${todayStr}
+- "Last quarter" = ${getDateStr(90)} to ${todayStr}
+ALWAYS use these exact date ranges. Never calculate differently.`;
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -860,15 +849,15 @@ export const askAi = async (req, res) => {
         // Send conversationId immediately so UI can use it during streaming
         res.write(`data: ${JSON.stringify({ conversationId: convId })}\n\n`);
 
-        const chat = await startAgenticChat(chatHistory, aiTools, systemIns + dateContext);
-
+        const chat = await startAgenticChat(chatHistory, aiTools, systemIns + dateContext + connectionContext);
+        
         // --- STREAMING LOOP ---
         let result = await chat.sendMessageStream(question);
-
+        
         let iteration = 0;
         while (iteration < 5) {
             iteration++;
-
+            
             // 1. Stream text tokens
             for await (const chunk of result.stream) {
                 try {
@@ -888,7 +877,7 @@ export const askAi = async (req, res) => {
             // 2. Check for Function Calls
             const response = await result.response;
             const calls = response.functionCalls();
-
+            
             if (!calls || calls.length === 0) break;
 
             // 3. Execute Tools
@@ -902,7 +891,7 @@ export const askAi = async (req, res) => {
                     }
                 });
             }
-
+            
             // 4. Send tool results back to model
             result = await chat.sendMessageStream(toolResponses);
         }
@@ -928,33 +917,32 @@ export const askAi = async (req, res) => {
 
     } catch (err) {
         console.error("Agentic AI Loop Error:", err);
-
+        
         const getFriendlyError = (err) => {
             const msg = err?.message || "";
             if (msg.includes('429') || msg.includes('Quota')) {
-                const retryMatch = msg.match(/retry in (\d+)/i);
-                const wait = retryMatch?.[1];
-                return wait
-                    ? `Request limit reached. Please try again in ${wait} seconds.`
-                    : "Request limit reached. Please try again shortly.";
+                return "AI is busy. Please try again in 60 seconds.";
+            }
+            if (msg.includes('503') || msg.includes('Service Unavailable') || msg.includes('high demand')) {
+                return "AI is busy due to high demand. Please try again later.";
             }
             if (msg.includes('getaddrinfo') || msg.includes('ENOTFOUND') || msg.includes('redis') || msg.includes('connect')) {
-                return "We're having trouble connecting. Please try again shortly.";
+                return "Connection glitch. Please try again in 2-3 minutes.";
             }
             if (msg.includes('API_KEY_INVALID') || msg.includes('auth')) {
-                return "Service configuration issue detected. Please contact support.";
+                return "Configuration error. Please contact support.";
             }
             if (msg.includes('safety') || msg.includes('blocked')) {
-                return "Your request couldn't be processed. Please try rewording it..";
+                return "Question blocked for safety. Please rephrase.";
             }
-            return "We couldn't complete your request. Please try again";
+            return "Something went wrong. Please refresh the page.";
         };
 
         const friendlyMsg = getFriendlyError(err);
-        const errorMessage = finalContent
-            ? `${finalContent}\n\n**⚠️ AI Interrupted:** ${friendlyMsg}`
+        const errorMessage = finalContent 
+            ? `${finalContent}\n\n**⚠️ AI Interrupted:** ${friendlyMsg}` 
             : friendlyMsg;
-
+        
         if (convId) {
             await Message.create({
                 conversationId: convId,

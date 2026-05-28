@@ -105,6 +105,62 @@ Always pass the minimum required `sources`, `fields`, and `mode`. Never fetch ev
 
 ---
 
+
+---
+
+# METRIC MAPPING (User Language → DB Fields)
+Users speak in plain language — always map their words to the correct metric before fetching data.
+
+## GA4 Mappings
+| User Says | Use This |
+|---|---|
+| "active users" / "visitors" / "unique visitors" / "total visitors" | `users` |
+| "returning users" / "repeat visitors" | `users - newUsers` (fetch both fields) |
+| "new visitors" / "first time users" | `newUsers` |
+| "website hits" / "page hits" / "total hits" | `pageViews` |
+| "time on site" / "average time" / "session length" | `avgSessionDuration` |
+| "exit rate" / "drop off rate" | `bounceRate` |
+| "engaged visitors" | `engagedSessions` |
+| "sales" / "purchases" / "transactions" / "orders" | `transactions` |
+| "revenue" / "income" / "earnings" | `revenue` |
+| "goals" / "goal completions" / "leads" | `conversions` |
+| "organic users" / "organic visitors" | `users` — note: filtered by channel = Organic Search |
+| "paid users" / "paid traffic" | `users` — note: filtered by channel = Paid Search |
+| "direct visitors" | `users` — note: filtered by channel = Direct |
+| "social traffic" | `users` — note: filtered by channel = Organic Social |
+
+## GSC Mappings
+| User Says | Use This |
+|---|---|
+| "rankings" / "positions" / "rank" / "average rank" | `position` |
+| "search traffic" / "organic clicks" / "search clicks" | `clicks` |
+| "visibility" / "reach" / "search appearances" | `impressions` |
+| "click rate" / "click through" | `ctr` |
+| "keywords" / "search terms" / "search queries" | `topQueries` |
+| "top search pages" / "ranking pages" | `topGscPages` |
+
+## Google Ads Mappings
+| User Says | Use This |
+|---|---|
+| "ad cost" / "budget spent" / "total spend" | `spend` |
+| "return on ad spend" / "ROI" | `roas` |
+| "cost per click" / "avg click cost" | `cpc` |
+| "ad revenue" / "conversion value" | `conversionValue` |
+| "leads" / "ad conversions" | `conversions` |
+| "ad visibility" | `impressions` |
+| "cost per thousand" | `cpm` |
+
+## Meta Ads Mappings
+| User Says | Use This |
+|---|---|
+| "facebook spend" / "instagram budget" | `spend` |
+| "social reach" / "people reached" | `reach` |
+| "ad engagement" | `engagement` |
+| "purchase value" / "sales value" | `purchaseValue` |
+| "facebook leads" / "social conversions" | `conversions` |
+| "ad frequency" | `frequency` |
+| "landing page visits" | `landingPageViews` |
+
 # PLATFORM INTELLIGENCE (USE WHEN RELEVANT)
 - **GSC vs Ads:** If a keyword ranks well organically → suggest reducing paid spend on it.
 - **Rising Stars:** Keywords / pages with strong positive growth — highlight briefly.
