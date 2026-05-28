@@ -23,6 +23,18 @@ const clearUserCache = (userId) => {
     if (userKeys.length > 0) analyticsCache.del(userKeys);
 };
 
+const calculateGrowth = (current, previous) => {
+    if (!previous || previous === 0) return current > 0 ? 100 : 0;
+    const growth = ((current - previous) / previous) * 100;
+    return Math.round(growth);
+};
+
+const calculateGrowthFloat = (current, previous) => {
+    if (!previous || previous === 0) return current > 0 ? 100 : 0;
+    const growth = ((current - previous) / previous) * 100;
+    return parseFloat(growth.toFixed(1));
+};
+
 export const buildMatchFilter = async (userId, query) => {
     const { startDate, endDate, device, siteId } = query;
 
@@ -52,11 +64,6 @@ export const getDashboardSummary = async (req, res) => {
     if (cachedData) return res.status(200).json(cachedData);
 
     try {
-        const calculateGrowth = (current, previous) => {
-            if (!previous || previous === 0) return current > 0 ? 100 : 0;
-            const growth = ((current - previous) / previous) * 100;
-            return Math.round(growth);
-        };
 
         const acc = await UserAccounts.findOne({ _id: siteId, userId })
             .select('siteName syncStatus ga4HistoricalComplete gscHistoricalComplete googleAdsHistoricalComplete facebookAdsHistoricalComplete ga4PropertyId gscSiteUrl googleAdsCustomerId facebookAdAccountId ga4LastSyncedAt gscLastSyncedAt googleAdsLastSyncedAt facebookAdsLastSyncedAt');
@@ -461,30 +468,53 @@ export const getGa4Summary = async (req, res) => {
             ])
         ]);
 
+        const ov = overview[0] || {
+            users: 0,
+            newUsers: 0,
+            sessions: 0,
+            engagedSessions: 0,
+            bounceRate: 0,
+            avgSessionDuration: 0,
+            pageViews: 0
+        };
+
+        const priorOv = priorOverview[0] || {
+            users: 0,
+            newUsers: 0,
+            sessions: 0,
+            engagedSessions: 0,
+            bounceRate: 0,
+            avgSessionDuration: 0,
+            pageViews: 0
+        };
+
+        const currentEngRate = ov.sessions > 0 ? (ov.engagedSessions / ov.sessions) * 100 : 0;
+        const priorEngRate = priorOv.sessions > 0 ? (priorOv.engagedSessions / priorOv.sessions) * 100 : 0;
+
         const result = {
-            activeUsers: { value: overview[0].users || 0, change: parseFloat((((overview[0].users - priorOverview[0].users) / priorOverview[0].users) * 100 || 0).toFixed(1)), isPositive: (overview[0].users || 0) >= (priorOverview[0].users || 0), timeseries: timeseries.map(d => ({ users: d.users })) },
-            totalSessions: { value: overview[0].sessions || 0, change: parseFloat((((overview[0].sessions - priorOverview[0].sessions) / priorOverview[0].sessions) * 100 || 0).toFixed(1)), isPositive: (overview[0].sessions || 0) >= (priorOverview[0].sessions || 0), timeseries: timeseries.map(d => ({ sessions: d.sessions })) },
-            engagementRate: { value: parseFloat(((overview[0].engagedSessions / overview[0].sessions) * 100 || 0).toFixed(1)), change: parseFloat((((overview[0].engagedSessions / overview[0].sessions) - (priorOverview[0].engagedSessions / priorOverview[0].sessions)) / (priorOverview[0].engagedSessions / priorOverview[0].sessions) * 100 || 0).toFixed(1)), isPositive: ((overview[0].engagedSessions / overview[0].sessions) || 0) >= ((priorOverview[0].engagedSessions / priorOverview[0].sessions) || 0), timeseries: timeseries.map(d => ({ engagementRate: parseFloat(((d.engagedSessions / (d.sessions || 1)) * 100 || 0).toFixed(1)) })) },
-            avgSessionDuration: { value: formatTime(overview[0].avgSessionDuration), change: parseFloat((((overview[0].avgSessionDuration - priorOverview[0].avgSessionDuration) / priorOverview[0].avgSessionDuration) * 100 || 0).toFixed(1)), isPositive: (overview[0].avgSessionDuration || 0) >= (priorOverview[0].avgSessionDuration || 0), timeseries: timeseries.map(d => ({ avgSessionDuration: d.avgSessionDuration || 0 })) },
-            pageViews: overview[0].pageViews || 0,
-            newUsers: overview[0].newUsers || 0,
-            pagesPerSession: parseFloat(((overview[0].pageViews / overview[0].sessions) || 0).toFixed(2)),
+            activeUsers: { value: ov.users || 0, change: calculateGrowthFloat(ov.users, priorOv.users), isPositive: (ov.users || 0) >= (priorOv.users || 0), timeseries: timeseries.map(d => ({ users: d.users || 0 })) },
+            totalSessions: { value: ov.sessions || 0, change: calculateGrowthFloat(ov.sessions, priorOv.sessions), isPositive: (ov.sessions || 0) >= (priorOv.sessions || 0), timeseries: timeseries.map(d => ({ sessions: d.sessions || 0 })) },
+            engagementRate: { value: parseFloat(currentEngRate.toFixed(1)), change: calculateGrowthFloat(currentEngRate, priorEngRate), isPositive: currentEngRate >= priorEngRate, timeseries: timeseries.map(d => ({ engagementRate: parseFloat(((d.engagedSessions / (d.sessions || 1)) * 100 || 0).toFixed(1)) })) },
+            avgSessionDuration: { value: formatTime(ov.avgSessionDuration), change: calculateGrowthFloat(ov.avgSessionDuration, priorOv.avgSessionDuration), isPositive: (ov.avgSessionDuration || 0) >= (priorOv.avgSessionDuration || 0), timeseries: timeseries.map(d => ({ avgSessionDuration: d.avgSessionDuration || 0 })) },
+            pageViews: ov.pageViews || 0,
+            newUsers: ov.newUsers || 0,
+            pagesPerSession: ov.sessions > 0 ? parseFloat((ov.pageViews / ov.sessions).toFixed(2)) : 0,
 
             sessionsOverTime: timeseries.map(d => ({
                 date: d._id,
-                sessions: d.sessions
+                sessions: d.sessions || 0
             })),
             newVsReturningUsers: {
-                totalUsers: overview[0].users || 0,
-                totalNewUsers: overview[0].newUsers || 0,
-                newUsersPercentage: parseFloat(((overview[0].newUsers / overview[0].users) * 100 || 0).toFixed(1)),
-                totalReturningUsers: overview[0].users - overview[0].newUsers || 0,
-                returningUsersPercentage: parseFloat(((overview[0].users - overview[0].newUsers) / overview[0].users * 100 || 0).toFixed(1)),
+                totalUsers: ov.users || 0,
+                totalNewUsers: ov.newUsers || 0,
+                newUsersPercentage: ov.users > 0 ? parseFloat(((ov.newUsers / ov.users) * 100 || 0).toFixed(1)) : 0,
+                totalReturningUsers: ov.users - ov.newUsers || 0,
+                returningUsersPercentage: ov.users > 0 ? parseFloat(((ov.users - ov.newUsers) / ov.users * 100 || 0).toFixed(1)) : 0,
             },
             engagementRates: {
-                engagementRate: parseFloat(((overview[0].engagedSessions / overview[0].sessions) * 100 || 0).toFixed(1)),
-                engagedSessions: overview[0].engagedSessions || 0,
-                avgEngagedTime: formatTime(overview[0].avgSessionDuration),
+                engagementRate: ov.sessions > 0 ? parseFloat(((ov.engagedSessions / ov.sessions) * 100 || 0).toFixed(1)) : 0,
+                engagedSessions: ov.engagedSessions || 0,
+                avgEngagedTime: formatTime(ov.avgSessionDuration),
             },
             bounceRateOverTime: timeseries.map(d => ({
                 date: d._id,
@@ -494,37 +524,37 @@ export const getGa4Summary = async (req, res) => {
                 date: d._id,
                 pageViews: d.pageViews || 0,
             })),
-            topTrafficSources: traffic.map(d => ({ channel: d._id.channel, source: d._id.source, sessions: d.sessions, users: d.users })),
-            topPages: pages.map(d => ({ title: d._id.title, path: d._id.path, views: d.views, users: d.users, bounceRate: parseFloat((d.bounceRate || 0).toFixed(1)) })),
+            topTrafficSources: traffic.map(d => ({ channel: d._id?.channel || 'Direct', source: d._id?.source || '(direct)', sessions: d.sessions || 0, users: d.users || 0 })),
+            topPages: pages.map(d => ({ title: d._id?.title || 'Untitled', path: d._id?.path || '/', views: d.views || 0, users: d.users || 0, bounceRate: parseFloat((d.bounceRate || 0).toFixed(1)) })),
             deviceBreakdown: {
-                totalSessions: overview[0].sessions || 0,
-                devices: (ga4BreakdownsDevices || []).map(d => ({ name: d._id || 'unknown', value: d.value, percentage: parseFloat((d.value / overview[0].sessions * 100 || 0).toFixed(1)) }))
+                totalSessions: ov.sessions || 0,
+                devices: (ga4BreakdownsDevices || []).map(d => ({ name: d._id || 'unknown', value: d.value, percentage: ov.sessions > 0 ? parseFloat((d.value / ov.sessions * 100 || 0).toFixed(1)) : 0 }))
             },
-            topLocations: (ga4BreakdownsLocations || []).map(d => ({ name: d._id || 'unknown', value: d.value, percentage: parseFloat((d.value / overview[0].sessions * 100 || 0).toFixed(1)) })),
+            topLocations: (ga4BreakdownsLocations || []).map(d => ({ name: d._id || 'unknown', value: d.value, percentage: ov.sessions > 0 ? parseFloat((d.value / ov.sessions * 100 || 0).toFixed(1)) : 0 })),
             thisPeriodVsLastPeriod: {
                 thisPeriod: {
-                    users: overview[0].users || 0,
-                    sessions: overview[0].sessions || 0,
-                    pageViews: overview[0].pageViews || 0,
-                    bounceRate: parseFloat(((overview[0].bounceRate || 0)).toFixed(1)),
-                    avgSessionDuration: formatTime(overview[0].avgSessionDuration),
-                    newUsers: overview[0].newUsers || 0,
+                    users: ov.users || 0,
+                    sessions: ov.sessions || 0,
+                    pageViews: ov.pageViews || 0,
+                    bounceRate: parseFloat(((ov.bounceRate || 0)).toFixed(1)),
+                    avgSessionDuration: formatTime(ov.avgSessionDuration),
+                    newUsers: ov.newUsers || 0,
                 },
                 lastPeriod: {
-                    users: priorOverview[0].users || 0,
-                    sessions: priorOverview[0].sessions || 0,
-                    pageViews: priorOverview[0].pageViews || 0,
-                    bounceRate: parseFloat(((priorOverview[0].bounceRate || 0)).toFixed(1)),
-                    avgSessionDuration: formatTime(priorOverview[0].avgSessionDuration),
-                    newUsers: priorOverview[0].newUsers || 0,
+                    users: priorOv.users || 0,
+                    sessions: priorOv.sessions || 0,
+                    pageViews: priorOv.pageViews || 0,
+                    bounceRate: parseFloat(((priorOv.bounceRate || 0)).toFixed(1)),
+                    avgSessionDuration: formatTime(priorOv.avgSessionDuration),
+                    newUsers: priorOv.newUsers || 0,
                 },
                 change: {
-                    users: parseFloat((((overview[0].users - priorOverview[0].users) / priorOverview[0].users) * 100 || 0).toFixed(1)),
-                    sessions: parseFloat((((overview[0].sessions - priorOverview[0].sessions) / priorOverview[0].sessions) * 100 || 0).toFixed(1)),
-                    pageViews: parseFloat((((overview[0].pageViews - priorOverview[0].pageViews) / priorOverview[0].pageViews) * 100 || 0).toFixed(1)),
-                    bounceRate: parseFloat((((overview[0].bounceRate - priorOverview[0].bounceRate) / priorOverview[0].bounceRate) * 100 || 0).toFixed(1)),
-                    avgSessionDuration: parseFloat((((overview[0].avgSessionDuration - priorOverview[0].avgSessionDuration) / priorOverview[0].avgSessionDuration) * 100 || 0).toFixed(1)),
-                    newUsers: parseFloat((((overview[0].newUsers - priorOverview[0].newUsers) / priorOverview[0].newUsers) * 100 || 0).toFixed(1)),
+                    users: calculateGrowthFloat(ov.users, priorOv.users),
+                    sessions: calculateGrowthFloat(ov.sessions, priorOv.sessions),
+                    pageViews: calculateGrowthFloat(ov.pageViews, priorOv.pageViews),
+                    bounceRate: calculateGrowthFloat(ov.bounceRate, priorOv.bounceRate),
+                    avgSessionDuration: calculateGrowthFloat(ov.avgSessionDuration, priorOv.avgSessionDuration),
+                    newUsers: calculateGrowthFloat(ov.newUsers, priorOv.newUsers),
                 }
             },
         };
@@ -859,7 +889,7 @@ export const getGoogleAdsSummary = async (req, res) => {
         const filter = await buildMatchFilter(userId, req.query);
         const prevFilter = await buildMatchFilter(userId, { ...req.query, startDate: prevStartDate, endDate: prevEndDate });
 
-        const [overview, priorOverview, timeseries, campaigns, keywords, deviceBreakdown] = await Promise.all([
+        const [overview, timeseries, priorOverview, campaigns, keywords, deviceBreakdown] = await Promise.all([
             GoogleAdsMetric.aggregate([
                 { $match: filter },
                 {
@@ -1019,7 +1049,7 @@ export const getFacebookAdsSummary = async (req, res) => {
         const filter = await buildMatchFilter(userId, req.query);
         const prevFilter = await buildMatchFilter(userId, { ...req.query, startDate: prevStartDate, endDate: prevEndDate });
 
-        const [overview, priorOverview, timeseries, campaigns, adsets, deviceBreakdown] = await Promise.all([
+        const [overview, timeseries, priorOverview, campaigns, adsets, deviceBreakdown] = await Promise.all([
             FacebookAdsMetric.aggregate([
                 { $match: filter },
                 {
