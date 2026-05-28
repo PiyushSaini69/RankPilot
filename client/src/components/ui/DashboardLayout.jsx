@@ -48,6 +48,14 @@ const DashboardLayout = ({ children, noScroll = false, title }) => {
         googleAds?.googleAdsCustomerId && 'google-ads',
         facebook?.facebookAdAccountId && 'facebook-ads'
     ].filter(Boolean);
+
+    const activeSite = userSites?.find?.(s => s._id === activeSiteId);
+    const isSyncingHistorical = !!(activeSite && (
+        (activeSite.ga4PropertyId && !activeSite.ga4HistoricalComplete) ||
+        (activeSite.gscSiteUrl && !activeSite.gscHistoricalComplete) ||
+        (activeSite.googleAdsCustomerId && !activeSite.googleAdsHistoricalComplete) ||
+        (activeSite.facebookAdAccountId && !activeSite.facebookAdsHistoricalComplete)
+    ));
     const {
         notifications,
         unreadCount,
@@ -111,6 +119,86 @@ const DashboardLayout = ({ children, noScroll = false, title }) => {
         }
         return () => clearInterval(interval);
     }, [user, activeSiteId, syncStatus, setAccounts]);
+
+    // Polling for historical sync status centrally across all subpages
+    useEffect(() => {
+        let interval;
+        if (user && activeSiteId && isSyncingHistorical) {
+            interval = setInterval(async () => {
+                try {
+                    const res = await listSites();
+                    if (res.data && Array.isArray(res.data)) {
+                        const sites = res.data;
+                        setAccounts({ userSites: sites });
+
+                        // Check if sync has completed in the new list
+                        const newActiveSite = sites.find(s => s._id === activeSiteId);
+                        const stillSyncing = !!(newActiveSite && (
+                            (newActiveSite.ga4PropertyId && !newActiveSite.ga4HistoricalComplete) ||
+                            (newActiveSite.gscSiteUrl && !newActiveSite.gscHistoricalComplete) ||
+                            (newActiveSite.googleAdsCustomerId && !newActiveSite.googleAdsHistoricalComplete) ||
+                            (newActiveSite.facebookAdAccountId && !newActiveSite.facebookAdsHistoricalComplete)
+                        ));
+
+                        // If completed, fetch full active accounts to sync all modular integration states
+                        if (!stillSyncing) {
+                            const accountsRes = await getActiveAccounts(activeSiteId);
+                            const data = accountsRes.data || {};
+                            setAccounts({
+                                gsc: {
+                                    gscSiteUrl: data.gscSiteUrl || null,
+                                    gscPermission: data.gscPermission || null,
+                                    gscHistoricalComplete: data.gscHistoricalComplete || false,
+                                    gscSyncStatus: data.gscSyncStatus || 'idle',
+                                    gscSyncProgress: data.gscSyncProgress || 0,
+                                    gscLastSyncedAt: data.gscLastSyncedAt || null,
+                                    gscHistoricalChunkIndex: data.gscHistoricalChunkIndex || 0,
+                                    gscTokenEmail: data.gscTokenId?.email || null
+                                },
+                                ga4: {
+                                    ga4PropertyId: data.ga4PropertyId || null,
+                                    ga4PropertyName: data.ga4PropertyName || null,
+                                    ga4AccountId: data.ga4AccountId || null,
+                                    ga4HistoricalComplete: data.ga4HistoricalComplete || false,
+                                    ga4SyncStatus: data.ga4SyncStatus || 'idle',
+                                    ga4SyncProgress: data.ga4SyncProgress || 0,
+                                    ga4LastSyncedAt: data.ga4LastSyncedAt || null,
+                                    ga4HistoricalChunkIndex: data.ga4HistoricalChunkIndex || 0,
+                                    ga4TokenEmail: data.ga4TokenId?.email || null
+                                },
+                                googleAds: {
+                                    googleAdsCustomerId: data.googleAdsCustomerId || null,
+                                    googleAdsAccountName: data.googleAdsAccountName || null,
+                                    googleAdsCurrencyCode: data.googleAdsCurrencyCode || null,
+                                    googleAdsHistoricalComplete: data.googleAdsHistoricalComplete || false,
+                                    googleAdsSyncStatus: data.googleAdsSyncStatus || 'idle',
+                                    googleAdsSyncProgress: data.googleAdsSyncProgress || 0,
+                                    googleAdsLastSyncedAt: data.googleAdsLastSyncedAt || null,
+                                    googleAdsHistoricalChunkIndex: data.googleAdsHistoricalChunkIndex || 0,
+                                    googleAdsTokenEmail: data.googleAdsTokenId?.email || null
+                                },
+                                facebook: {
+                                    facebookAdAccountId: data.facebookAdAccountId || null,
+                                    facebookAdAccountName: data.facebookAdAccountName || null,
+                                    facebookAdCurrencyCode: data.facebookAdCurrencyCode || null,
+                                    facebookAdsHistoricalComplete: data.facebookAdsHistoricalComplete || false,
+                                    facebookAdsSyncStatus: data.facebookAdsSyncStatus || 'idle',
+                                    facebookAdsSyncProgress: data.facebookAdsSyncProgress || 0,
+                                    facebookAdsLastSyncedAt: data.facebookAdsLastSyncedAt || null,
+                                    facebookAdsHistoricalChunkIndex: data.facebookAdsHistoricalChunkIndex || 0,
+                                    facebookTokenName: data.facebookTokenId?.name || null
+                                },
+                                syncStatus: data.syncStatus || 'idle'
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.error("Central historical polling error:", e);
+                }
+            }, 3000);
+        }
+        return () => clearInterval(interval);
+    }, [user, activeSiteId, isSyncingHistorical, setAccounts]);
 
     useEffect(() => {
         if (user) {

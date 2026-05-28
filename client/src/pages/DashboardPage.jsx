@@ -357,18 +357,7 @@ const DashboardPage = () => {
     }
   }, [isSyncingHistorical, loadDashboardData]);
 
-  useEffect(() => {
-    let interval;
-    if (isSyncingHistorical) {
-      interval = setInterval(async () => {
-        try {
-          const res = await api.get('/accounts/sites');
-          if (res.data && Array.isArray(res.data)) setUserSites(res.data);
-        } catch (e) { console.error("Polling error", e); }
-      }, 3000); // Poll every 3 seconds for live progress updates
-    }
-    return () => clearInterval(interval);
-  }, [isSyncingHistorical, setUserSites]);
+
 
   // Tab focus ya internet wapas aane par refresh
   useEffect(() => {
