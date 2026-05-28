@@ -59,7 +59,7 @@ const SectionAiSummary = ({ insight, loading, title = "AI SUMMARY" }) => (
                 <div className="h-2 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[85%]" />
             </div>
         ) : (
-            <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
+            <p className="text-[12px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
                 {insight || "Analyzing section data for strategic intelligence..."}
             </p>
         )}
@@ -358,7 +358,7 @@ const Ga4Page = () => {
 
     return (
         <DashboardLayout>
-            <div id="ga4-report" className="flex flex-col space-y-8">
+            <div id="ga4-report" className="flex flex-col space-y-8 pb-16">
                 {isSyncing && (
                     <div className="relative overflow-hidden w-full bg-white dark:bg-[#0d0d0d] border border-amber-500/30 dark:border-amber-500/20 rounded-[2rem] p-6 shadow-xl shadow-amber-500/5 animate-in fade-in slide-in-from-top-4 duration-1000 group">
                         {/* Decorative background glows */}
@@ -526,8 +526,8 @@ const Ga4Page = () => {
                                     <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">Active</span>
                                 </div>
                                 <div className="flex items-center gap-3 hide-in-pdf">
-                                    <div className="flex items-center gap-1.5 text-[9.5px] text-neutral-400 font-bold uppercase tracking-widest">
-                                        Synced: <span className={`tabular-nums font-black ${isSyncing ? 'text-amber-500' : 'text-neutral-700 dark:text-neutral-300'}`}>
+                                    <div className="flex items-center gap-1.5 text-[9.5px] text-neutral-700 font-bold uppercase tracking-widest">
+                                        Synced: <span className={`tabular-nums font-black ${isSyncing ? 'text-amber-500' : 'text-neutral-500 dark:text-neutral-300'}`}>
                                             {isSyncing ? 'Syncing...' : ga4?.ga4LastSyncedAt ? formatDistanceToNow(new Date(ga4.ga4LastSyncedAt), { addSuffix: true }) : 'Never'}
                                         </span>
                                         <button onClick={handleManualRefresh} className="hover:text-brand-500 transition-all active:rotate-180 ml-1">
@@ -706,8 +706,8 @@ const Ga4Page = () => {
                                             <item.icon className={`w-3.5 h-3.5 ${item.iconColor}`} />
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-[9px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-widest leading-none mb-1">{item.label}</span>
-                                            <span className="text-[12px] font-bold text-neutral-700 dark:text-neutral-300 tracking-tight" title={item.value}>{item.value}</span>
+                                            <span className="text-[9px] font-black text-neutral-700 dark:text-neutral-500 uppercase tracking-widest leading-none mb-1">{item.label}</span>
+                                            <span className="text-[12px] font-bold text-neutral-500 dark:text-neutral-300 tracking-tight" title={item.value}>{item.value}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -788,8 +788,8 @@ const Ga4Page = () => {
                                 </div>
                             </div>
                             {card.insight && !(loading || isSyncing) && (
-                                <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed italic border-t border-neutral-100 dark:border-neutral-800 pt-2 mt-auto">
-                                    "{card.insight}"
+                                <p className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 leading-relaxed italic border-t border-neutral-100 dark:border-neutral-800 pt-2 mt-auto">
+                                    {card.insight}
                                 </p>
                             )}
                         </div>
@@ -1390,7 +1390,7 @@ const Ga4Page = () => {
                     <div className="flex items-center justify-between mb-5">
                         <div>
                             <h3 className="text-sm font-black text-neutral-900 dark:text-white">This Period vs Last Period</h3>
-                            <p className="text-xs text-neutral-400 mt-0.5">Compare performance with previous period</p>
+                            <p className="text-[12px] font-semibold text-neutral-400 mt-0.5">Compare performance with previous period</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <button
@@ -1418,8 +1418,14 @@ const Ga4Page = () => {
                         <table className="w-full text-sm">
                             <thead className="border-b border-neutral-100 dark:border-neutral-800">
                                 <tr>
-                                    {['Metric', 'This Period', 'Last Period', 'Change'].map(h => (
-                                        <th key={h} className="pb-3 text-left text-[11px] font-black uppercase tracking-wider text-neutral-400 whitespace-nowrap">{h}</th>
+                                    {['Metric', 'This Period', 'Last Period', 'Change'].map((h, i) => (
+                                        <th 
+                                            key={h} 
+                                            className={`pb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400 whitespace-nowrap ${i === 0 ? 'text-left' : 'text-right'} ${i === 3 ? 'pr-4' : ''}`}
+                                            style={i > 0 ? { width: i === 3 ? '18%' : '16%' } : {}}
+                                        >
+                                            {h}
+                                        </th>
                                     ))}
                                 </tr>
                             </thead>
@@ -1475,21 +1481,21 @@ const Ga4Page = () => {
                                                         <span>{metricLabel}</span>
                                                     </div>
                                                 </td>
-                                                <td className="py-3 text-xs font-black text-neutral-900 dark:text-white tabular-nums">
+                                                <td className="py-3 text-xs font-black text-neutral-900 dark:text-white tabular-nums text-right">
                                                     {formatVal(thisVal)}
                                                 </td>
-                                                <td className="py-3 text-xs font-black text-neutral-900 dark:text-white tabular-nums">
+                                                <td className="py-3 text-xs font-black text-neutral-900 dark:text-white tabular-nums text-right">
                                                     {formatVal(lastVal)}
                                                 </td>
-                                                <td className="py-3">
+                                                <td className="py-3 text-right pr-4">
                                                     <span className={`inline-flex items-center gap-1 text-[11px] font-black px-2 py-0.5 rounded-full ${isGood
                                                         ? 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400'
                                                         : 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400'
                                                         }`}>
                                                         {up ? '▲' : '▼'} {Math.abs(changeVal)}%
                                                         {key === 'bounceRate' && (
-                                                            <span className="ml-1 text-[9px] font-bold">
-                                                                {up ? '(worse)' : '(better)'}
+                                                            <span className="ml-1 text-[11px] font-bold">
+                                                                {up ? '(WORSE)' : '(BETTER)'}
                                                             </span>
                                                         )}
                                                     </span>
