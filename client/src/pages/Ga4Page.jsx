@@ -519,12 +519,12 @@ const Ga4Page = () => {
                         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                             {/* Left: Status & Filters */}
                             <div className="flex flex-wrap items-center gap-3">
-                                <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-500/5 rounded-full border border-emerald-500/10 shrink-0 hide-in-pdf">
-                                    <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></div>
-                                    <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">Active</span>
-                                </div>
                                 <div className="flex items-center gap-3 hide-in-pdf">
-                                    <div className="flex items-center gap-1.5 text-[9.5px] text-neutral-700 font-bold uppercase tracking-widest">
+                                    <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-500/5 rounded-full border border-emerald-500/10 shrink-0">
+                                        <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></div>
+                                        <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">Active</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-[9.5px] text-neutral-700 font-bold uppercase tracking-widest shrink-0">
                                         Synced: <span className={`tabular-nums font-black ${isSyncing ? 'text-amber-500' : 'text-neutral-500 dark:text-neutral-300'}`}>
                                             {isSyncing ? 'Syncing...' : ga4?.ga4LastSyncedAt ? formatDistanceToNow(new Date(ga4.ga4LastSyncedAt), { addSuffix: true }) : 'Never'}
                                         </span>
