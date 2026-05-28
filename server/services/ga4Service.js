@@ -16,6 +16,24 @@ export const listProperties = async (userId, tokenId = null) => {
             }
         }
     }
+
+    // Fetch website URL for each property in parallel using Promise.all
+    if (properties.length > 0) {
+        await Promise.all(properties.map(async (prop) => {
+            try {
+                const streamsRes = await analyticsadmin.properties.dataStreams.list({ parent: prop.id });
+                if (streamsRes.data.dataStreams && streamsRes.data.dataStreams.length > 0) {
+                    const webStream = streamsRes.data.dataStreams.find(s => s.type === 'WEB_DATA_STREAM');
+                    if (webStream && webStream.webStreamData && webStream.webStreamData.defaultUri) {
+                        prop.websiteUrl = webStream.webStreamData.defaultUri;
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching data streams for property:', prop.id, error.message);
+            }
+        }));
+    }
+
     return properties;
 };
 
@@ -54,5 +72,3 @@ export const runReport = async (userId, propertyId, reportType, startDate, endDa
 
     return { rows: allRows };
 };
-
-

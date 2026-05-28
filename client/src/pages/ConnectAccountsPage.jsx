@@ -207,6 +207,75 @@ const ConnectAccountsPage = () => {
         }
     }, [facebookTokenId]);
 
+    // Auto-fill website details from Google Search Console (GSC)
+    useEffect(() => {
+        if (selectedGsc) {
+            let url = selectedGsc.trim();
+            // Handle sc-domain: format from GSC
+            if (url.startsWith('sc-domain:')) {
+                url = 'https://' + url.replace('sc-domain:', '');
+            }
+            // Remove trailing slash if present
+            if (url.endsWith('/')) {
+                url = url.slice(0, -1);
+            }
+            
+            setSiteUrl(url);
+            if (showUrlError) setShowUrlError(false);
+
+            // Try to extract a clean name if siteName is empty
+            if (!siteName.trim()) {
+                try {
+                    const parsedUrl = url.replace('https://', '').replace('http://', '');
+                    const cleanDomain = parsedUrl.replace('www.', '').split('/')[0].split('.')[0];
+                    const capitalized = cleanDomain.charAt(0).toUpperCase() + cleanDomain.slice(1);
+                    setSiteName(capitalized);
+                    if (showNameError) setShowNameError(false);
+                    toast.success('Website URL & Name auto-filled from Search Console!');
+                } catch (err) {
+                    toast.success('Website URL auto-filled from Search Console!');
+                }
+            } else {
+                toast.success('Website URL updated from Search Console!');
+            }
+        }
+    }, [selectedGsc]);
+
+    // Auto-fill website details from Google Analytics 4 (GA4)
+    useEffect(() => {
+        if (selectedGa4 && ga4Props.length > 0) {
+            const matchedProperty = ga4Props.find(p => p.id === selectedGa4);
+            if (matchedProperty && matchedProperty.name) {
+                let nameFilled = false;
+                if (!siteName.trim()) {
+                    setSiteName(matchedProperty.name);
+                    if (showNameError) setShowNameError(false);
+                    nameFilled = true;
+                }
+
+                // If GA4 property list pre-fetched default website URL, auto-fill it
+                if (matchedProperty.websiteUrl) {
+                    let url = matchedProperty.websiteUrl.trim();
+                    if (url.endsWith('/')) {
+                        url = url.slice(0, -1);
+                    }
+                    setSiteUrl(url);
+                    if (showUrlError) setShowUrlError(false);
+                    
+                    if (nameFilled) {
+                        toast.success('Website Name & URL auto-filled from Google Analytics!');
+                    } else {
+                        toast.success('Website URL auto-filled from Google Analytics!');
+                    }
+                } else {
+                    if (nameFilled) {
+                        toast.success('Website Name auto-filled from Google Analytics!');
+                    }
+                }
+            }
+        }
+    }, [selectedGa4, ga4Props]);
+
     const handleSave = async (e) => {
         if (e) e.preventDefault();
         
