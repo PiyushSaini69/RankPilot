@@ -225,10 +225,6 @@ const GlobalAiChat = () => {
         (activeSite.facebookAdAccountId && !activeSite.facebookAdsHistoricalComplete)
     ));
 
-    if (isSyncingHistorical) {
-        return null;
-    }
-
     const allowedPaths = [
         '/dashboard',
         '/dashboard/gsc',
@@ -236,10 +232,6 @@ const GlobalAiChat = () => {
         '/dashboard/google-ads',
         '/dashboard/facebook-ads'
     ];
-
-    if (!allowedPaths.includes(location.pathname)) {
-        return null;
-    }
 
     // Check if the relevant data source is connected for the current page
     let isSourceConnected = true;
@@ -253,10 +245,6 @@ const GlobalAiChat = () => {
         isSourceConnected = !!googleAds?.googleAdsCustomerId;
     } else if (location.pathname === '/dashboard/facebook-ads') {
         isSourceConnected = !!facebook?.facebookAdAccountId;
-    }
-
-    if (!isSourceConnected) {
-        return null;
     }
 
     const { isOpen, setIsOpen, initialQuestion, initialDisplayLabel, clearInitialQuestion } = useAiChatStore();
@@ -712,7 +700,10 @@ const GlobalAiChat = () => {
         setInput('');
     };
 
-    // Don't render if not logged in
+    // Don't render under certain routes/conditions or if not logged in
+    if (isSyncingHistorical) return null;
+    if (!allowedPaths.includes(location.pathname)) return null;
+    if (!isSourceConnected) return null;
     if (!user) return null;
 
     return (

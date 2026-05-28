@@ -39,10 +39,10 @@ const defaultConfigs = [
     { key: 'REDIS_PASSWORD', label: 'Redis Password', group: 'redis', isSecret: true },
     { key: 'QUEUE_CONCURRENCY', label: 'Queue Concurrency', group: 'redis', isSecret: false },
 
-    { key: 'SYNC_LIMIT_GSC', label: 'GSC Sync Months', group: 'sync', isSecret: false },
-    { key: 'SYNC_LIMIT_GA4', label: 'GA4 Sync Months', group: 'sync', isSecret: false },
-    { key: 'SYNC_LIMIT_GOOGLE_ADS', label: 'Google Ads Sync Months', group: 'sync', isSecret: false },
-    { key: 'SYNC_LIMIT_FACEBOOK_ADS', label: 'Facebook Ads Sync Months', group: 'sync', isSecret: false }
+    { key: 'SYNC_LIMIT_GSC', label: 'GSC Sync Days', group: 'sync', isSecret: false },
+    { key: 'SYNC_LIMIT_GA4', label: 'GA4 Sync Days', group: 'sync', isSecret: false },
+    { key: 'SYNC_LIMIT_GOOGLE_ADS', label: 'Google Ads Sync Days', group: 'sync', isSecret: false },
+    { key: 'SYNC_LIMIT_FACEBOOK_ADS', label: 'Facebook Ads Sync Days', group: 'sync', isSecret: false }
 ];
 
 export const initConfig = async () => {

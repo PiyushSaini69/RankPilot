@@ -102,20 +102,19 @@ export const syncHistoricalData = async (accountId, source) => {
     }
 
     const limits = { 
-        'gsc': parseInt(await getConfig('SYNC_LIMIT_GSC') || 3), 
-        'ga4': parseInt(await getConfig('SYNC_LIMIT_GA4') || 3), 
-        'google-ads': parseInt(await getConfig('SYNC_LIMIT_GOOGLE_ADS') || 3), 
-        'facebook-ads': parseInt(await getConfig('SYNC_LIMIT_FACEBOOK_ADS') || 3) 
+        'gsc': parseInt(await getConfig('SYNC_LIMIT_GSC') || 28), 
+        'ga4': parseInt(await getConfig('SYNC_LIMIT_GA4') || 28), 
+        'google-ads': parseInt(await getConfig('SYNC_LIMIT_GOOGLE_ADS') || 28), 
+        'facebook-ads': parseInt(await getConfig('SYNC_LIMIT_FACEBOOK_ADS') || 28) 
     };
-    const targetMonths = limits[source] || 3;
-    const periodLabel = `${targetMonths} Month${targetMonths > 1 ? 's' : ''}`;
+    const targetDays = limits[source] || 28;
+    const periodLabel = `${targetDays} Day${targetDays > 1 ? 's' : ''}`;
     console.log(`[Historical Sync] 🔄 Starting [${source.toUpperCase()}] for "${acc.siteName}" | Target: ${periodLabel}`);
 
     try {
         const now = new Date();
         const startIndex = acc[indexField] || 0;
         
-        const targetDays = targetMonths * 30; 
         const chunkSize = 1;
         const totalChunks = Math.ceil(targetDays / chunkSize);
 
@@ -169,7 +168,7 @@ export const syncHistoricalData = async (accountId, source) => {
             actionPath: '/dashboard'
         });
 
-        console.log(`[Historical Sync] ✅ Completed [${source.toUpperCase()}] for "${acc.siteName}" | Total Months: ${targetMonths}`);
+        console.log(`[Historical Sync] ✅ Completed [${source.toUpperCase()}] for "${acc.siteName}" | Total Days: ${targetDays}`);
     } catch (err) {
         console.error(`[Historical Sync] ❌ Failed [${source.toUpperCase()}] for "${acc.siteName}" | Error: ${err.message}`);
         const updatedAcc = await UserAccounts.findByIdAndUpdate(accountId, { 

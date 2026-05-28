@@ -16,24 +16,18 @@ const getDatesForPreset = (preset) => {
             return { startDate: fmt(subDays(today, 7)), endDate: fmt(today) };
         case '28d':
             return { startDate: fmt(subDays(today, 28)), endDate: fmt(today) };
-        case '30d':
-            return { startDate: fmt(subDays(today, 30)), endDate: fmt(today) };
-        case '90d':
-            return { startDate: fmt(subDays(today, 90)), endDate: fmt(today) };
-        case '1y':
-            return { startDate: fmt(subDays(today, 365)), endDate: fmt(today) };
         default:
             return null;
     }
 };
 
-const initial = getDatesForPreset('30d');
+const initial = getDatesForPreset('7d');
 
 export const useDateRangeStore = create(
     persist(
         (set) => ({
-            preset: '30d',
-            startDate: initial?.startDate || format(subDays(new Date(), 30), 'yyyy-MM-dd'),
+            preset: '7d',
+            startDate: initial?.startDate || format(subDays(new Date(), 7), 'yyyy-MM-dd'),
             endDate: initial?.endDate || format(new Date(), 'yyyy-MM-dd'),
             setPreset: (preset, startDate, endDate) => set({ preset, startDate, endDate }),
             setCustomRange: (startDate, endDate) => set({ preset: 'custom', startDate, endDate }),

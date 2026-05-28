@@ -433,17 +433,6 @@ const DashboardPage = () => {
     Conversions: '#EF4444',
   }[selectedMetric] || '#3B82F6';
 
-  const getOverallProgress = () => {
-    if (!activeSite) return 0;
-    const items = [];
-    if (activeSite.ga4PropertyId) items.push(activeSite.ga4SyncProgress || 0);
-    if (activeSite.gscSiteUrl) items.push(activeSite.gscSyncProgress || 0);
-    if (activeSite.googleAdsCustomerId) items.push(activeSite.googleAdsSyncProgress || 0);
-    if (activeSite.facebookAdAccountId) items.push(activeSite.facebookAdsSyncProgress || 0);
-    if (items.length === 0) return 0;
-    return Math.round(items.reduce((a, b) => a + b, 0) / items.length);
-  };
-
   return (
     <DashboardLayout>
       <div className="flex flex-col space-y-8 max-w-[1600px] mx-auto pb-20">
@@ -456,7 +445,7 @@ const DashboardPage = () => {
               syncStatus: activeSite.ga4SyncStatus,
               syncProgress: activeSite.ga4SyncProgress || 0,
               syncedDays: activeSite.ga4HistoricalChunkIndex || 0,
-              totalDays: 90,
+              totalDays: 28,
               desc: 'We are importing your historical Google Analytics data. Your dashboard metrics, performance charts, and AI insights will automatically populate and update as the sync progresses.',
             },
             activeSite.gscSiteUrl && !activeSite.gscHistoricalComplete && {
@@ -466,7 +455,7 @@ const DashboardPage = () => {
               syncStatus: activeSite.gscSyncStatus,
               syncProgress: activeSite.gscSyncProgress || 0,
               syncedDays: activeSite.gscHistoricalChunkIndex || 0,
-              totalDays: 90,
+              totalDays: 28,
               desc: 'We are importing your historical Google Search Console data. Your search trends and AI insights will automatically populate and update as the sync progresses.',
             },
             activeSite.googleAdsCustomerId && !activeSite.googleAdsHistoricalComplete && {
@@ -476,7 +465,7 @@ const DashboardPage = () => {
               syncStatus: activeSite.googleAdsSyncStatus,
               syncProgress: activeSite.googleAdsSyncProgress || 0,
               syncedDays: activeSite.googleAdsHistoricalChunkIndex || 0,
-              totalDays: 90,
+              totalDays: 28,
               desc: 'We are importing your historical Google Ads data. Your campaign metrics and AI insights will automatically populate and update as the sync progresses.',
             },
             activeSite.facebookAdAccountId && !activeSite.facebookAdsHistoricalComplete && {
@@ -486,7 +475,7 @@ const DashboardPage = () => {
               syncStatus: activeSite.facebookAdsSyncStatus,
               syncProgress: activeSite.facebookAdsSyncProgress || 0,
               syncedDays: activeSite.facebookAdsHistoricalChunkIndex || 0,
-              totalDays: 90,
+              totalDays: 28,
               desc: 'We are importing your historical Meta Ads data. Your ad performance metrics and AI insights will automatically populate and update as the sync progresses.',
             },
           ].filter(Boolean);

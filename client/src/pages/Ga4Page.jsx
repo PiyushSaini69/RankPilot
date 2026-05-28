@@ -352,9 +352,7 @@ const Ga4Page = () => {
     const isSyncing = ga4?.ga4HistoricalComplete === false;
     const syncedDays = ga4?.ga4HistoricalChunkIndex || 0;
     const syncProgress = ga4?.ga4SyncProgress || 0;
-    const totalSyncDays = syncProgress > 0
-        ? Math.min(90, Math.round(syncedDays / (syncProgress / 100) / 10) * 10)
-        : 90;
+    const totalSyncDays = 28;
 
     return (
         <DashboardLayout>
@@ -562,8 +560,6 @@ const Ga4Page = () => {
                                                             { label: 'Yesterday', value: 'yesterday', days: 1 },
                                                             { label: 'Last 7 Days', value: '7d', days: 7 },
                                                             { label: 'Last 28 Days', value: '28d', days: 28 },
-                                                            { label: 'Last 90 Days', value: '90d', days: 90 },
-                                                            { label: 'Last Year', value: '1y', days: 365 },
                                                             { label: 'Custom Range', value: 'custom', icon: CalendarIcon },
                                                         ].map((p) => (
                                                             <button

@@ -281,7 +281,7 @@ import { formatDistanceToNow } from 'date-fns';
         const isSyncing = gsc?.gscHistoricalComplete === false;
         const syncedDays = gsc?.gscHistoricalChunkIndex || 0;
         const syncProgress = gsc?.gscSyncProgress || 0;
-        const totalSyncDays = 90;
+        const totalSyncDays = 28;
 
         const isConnected = !!ga4?.ga4PropertyId || !!activeGscSite;
         const hasSite = !!activeGscSite;
@@ -472,8 +472,6 @@ import { formatDistanceToNow } from 'date-fns';
                                                                     { label: 'Yesterday', value: 'yesterday', days: 1 },
                                                                     { label: 'Last 7 Days', value: '7d', days: 7 },
                                                                     { label: 'Last 28 Days', value: '28d', days: 28 },
-                                                                    { label: 'Last 90 Days', value: '90d', days: 90 },
-                                                                    { label: 'Last Year', value: '1y', days: 365 },
                                                                     { label: 'Custom Range', value: 'custom', icon: CalendarIcon },
                                                                 ].map((p) => (
                                                                     <button
