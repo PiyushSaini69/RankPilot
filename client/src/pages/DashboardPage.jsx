@@ -413,11 +413,11 @@ const DashboardPage = () => {
     {
       header: 'Traffic Share',
       cell: (row) => (
-        <div className="flex items-center justify-end gap-3 min-w-[120px]">
-          <div className="flex-1 h-2 bg-neutral-100 dark:bg-dark-bg rounded-full overflow-hidden max-w-[80px]">
-            <div className="h-full bg-brand-500 rounded-full" style={{ width: `${row.share}%` }}></div>
+        <div className="flex items-center gap-3 w-full max-w-[160px]">
+          <div className="flex-1 h-2 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+            <div className="h-full bg-brand-500 rounded-full transition-all duration-500" style={{ width: `${row.share}%` }}></div>
           </div>
-          <span className="text-xs font-black text-neutral-400">{row.share}%</span>
+          <span className="text-xs font-black text-neutral-500 dark:text-neutral-400 tabular-nums shrink-0 min-w-[36px] text-right">{row.share}%</span>
         </div>
       )
     },
@@ -446,7 +446,7 @@ const DashboardPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col space-y-8 max-w-[1600px] mx-auto">
+      <div className="flex flex-col space-y-8 max-w-[1600px] mx-auto pb-20">
         {isSyncingHistorical && (() => {
           const platforms = [
             activeSite.ga4PropertyId && !activeSite.ga4HistoricalComplete && {
@@ -556,7 +556,7 @@ const DashboardPage = () => {
               {/* Premium Background Elements */}
               <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-brand-500/5 rounded-full blur-[100px] -mr-32 -mt-32 transition-colors group-hover/empty:bg-brand-500/10"></div>
               <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-accent-500/5 rounded-full blur-[100px] -ml-32 -mb-32 transition-colors group-hover/empty:bg-accent-500/10"></div>
-              
+
               <div className="relative z-10 max-w-2xl w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-5 duration-1000">
                 <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-brand-600 to-accent-500 flex items-center justify-center mb-6 shadow-2xl shadow-brand-500/30 group-hover/empty:scale-110 group-hover/empty:rotate-6 transition-all duration-500 relative">
                   <div className="absolute inset-0 rounded-3xl bg-brand-500/20 blur-lg -z-10"></div>
@@ -569,7 +569,7 @@ const DashboardPage = () => {
                     Link your site to unlock AI insights
                   </span>
                 </h2>
-                
+
                 <p className="text-neutral-500 dark:text-neutral-400 font-bold leading-normal mb-8 max-w-sm mx-auto text-xs md:text-sm">
                   Connect your search, analytics, and advertising channels to track multi-channel marketing performance and unlock real-time AI-powered insights.
                 </p>
@@ -582,8 +582,8 @@ const DashboardPage = () => {
                     { id: 'ad', name: 'Ads', logo: <GoogleAdsLogo className="w-5 h-5" /> },
                     { id: 'meta', name: 'Meta', logo: <FacebookAdsLogo className="w-5 h-5" /> },
                   ].map((plat, idx) => (
-                    <div key={plat.id} 
-                         className="flex flex-col items-center gap-2 p-3 bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-100 dark:border-neutral-800 rounded-2xl grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
+                    <div key={plat.id}
+                      className="flex flex-col items-center gap-2 p-3 bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-100 dark:border-neutral-800 rounded-2xl grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
                     >
                       <div className="w-8 h-8 flex items-center justify-center">{plat.logo}</div>
                       <span className="text-[8px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">{plat.name}</span>
@@ -592,8 +592,8 @@ const DashboardPage = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full justify-center">
-                  <button 
-                    onClick={() => navigate('/connect-accounts')} 
+                  <button
+                    onClick={() => navigate('/connect-accounts')}
                     className="w-full sm:w-auto px-8 py-3.5 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-[.2em] shadow-lg shadow-brand-500/20 hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2"
                   >
                     <span>Connect Website</span>
@@ -621,38 +621,38 @@ const DashboardPage = () => {
                         </h1>
                       </div>
 
-                        <div className="space-y-1 border-l-2 border-brand-500/20 pl-4">
-                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 shrink-0">Overview</p>
-                          <div className="flex flex-wrap items-center gap-3">
-                            <h2 className="text-lg lg:text-2xl font-black text-neutral-900 dark:text-white tracking-tight leading-none">{activeSiteName || 'RankPilot'}</h2>
-                            {activeSiteUrl && (
-                              <a  
-                                href={activeSiteUrl.startsWith('http') ? activeSiteUrl : `https://${activeSiteUrl}`} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className="group flex items-center gap-1.5 px-2.5 py-1 bg-neutral-100/50 hover:bg-brand-50/80 dark:bg-neutral-800/30 dark:hover:bg-brand-500/10 border border-neutral-200/40 hover:border-brand-500/20 dark:border-neutral-800/60 dark:hover:border-brand-500/20 rounded-full transition-all duration-300"
-                              >
-                                <GlobeAltIcon className="w-3.5 h-3.5 text-neutral-400 group-hover:text-brand-500 transition-colors" />
-                                <span className="text-[11px] font-bold text-neutral-500 group-hover:text-brand-600 dark:text-neutral-400 dark:group-hover:text-brand-400 transition-colors lowercase tracking-tight">
-                                  {activeSiteUrl.replace(/https?:\/\//, '').replace(/\/$/, '')}
-                                </span>
-                                <svg className="w-3 h-3 text-neutral-400 group-hover:text-brand-500 dark:text-neutral-500 dark:group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                                </svg>
-                              </a>
-                            )}
-                           </div>
-                           {(loading || !overviewData.intelligence?.websiteSummary) ? (
-                             <div className="space-y-1.5 animate-pulse mt-2.5 max-w-md">
-                               <div className="h-2 bg-neutral-200/60 dark:bg-neutral-800/60 rounded-full w-[95%]" />
-                               <div className="h-2 bg-neutral-200/60 dark:bg-neutral-800/60 rounded-full w-[75%]" />
-                             </div>
-                           ) : (
-                             <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-md mt-1.5 line-clamp-2">
-                               {overviewData.intelligence?.websiteSummary}
-                             </p>
-                           )}
+                      <div className="space-y-1 border-l-2 border-brand-500/20 pl-4">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 shrink-0">Overview</p>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h2 className="text-lg lg:text-2xl font-black text-neutral-900 dark:text-white tracking-tight leading-none">{activeSiteName || 'RankPilot'}</h2>
+                          {activeSiteUrl && (
+                            <a
+                              href={activeSiteUrl.startsWith('http') ? activeSiteUrl : `https://${activeSiteUrl}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group flex items-center gap-1.5 px-2.5 py-1 bg-neutral-100/50 hover:bg-brand-50/80 dark:bg-neutral-800/30 dark:hover:bg-brand-500/10 border border-neutral-200/40 hover:border-brand-500/20 dark:border-neutral-800/60 dark:hover:border-brand-500/20 rounded-full transition-all duration-300"
+                            >
+                              <GlobeAltIcon className="w-3.5 h-3.5 text-neutral-400 group-hover:text-brand-500 transition-colors" />
+                              <span className="text-[11px] font-bold text-neutral-500 group-hover:text-brand-600 dark:text-neutral-400 dark:group-hover:text-brand-400 transition-colors lowercase tracking-tight">
+                                {activeSiteUrl.replace(/https?:\/\//, '').replace(/\/$/, '')}
+                              </span>
+                              <svg className="w-3 h-3 text-neutral-400 group-hover:text-brand-500 dark:text-neutral-500 dark:group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                              </svg>
+                            </a>
+                          )}
                         </div>
+                        {(loading || !overviewData.intelligence?.websiteSummary) ? (
+                          <div className="space-y-1.5 animate-pulse mt-2.5 max-w-md">
+                            <div className="h-2 bg-neutral-200/60 dark:bg-neutral-800/60 rounded-full w-[95%]" />
+                            <div className="h-2 bg-neutral-200/60 dark:bg-neutral-800/60 rounded-full w-[75%]" />
+                          </div>
+                        ) : (
+                          <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-md mt-1.5 line-clamp-2">
+                            {overviewData.intelligence?.websiteSummary}
+                          </p>
+                        )}
+                      </div>
 
                       <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-neutral-200/40 dark:border-neutral-800/40 mt-3.5">
                         <div className="flex items-center gap-3">
@@ -698,7 +698,7 @@ const DashboardPage = () => {
                               }`}
                           >
                             <CalendarIcon className={`w-3.5 h-3.5 ${isDateMenuOpen ? 'text-white' : 'text-brand-600'}`} />
-                             <span className={`text-[9.5px] font-black uppercase tracking-wider ${isDateMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
+                            <span className={`text-[9.5px] font-black uppercase tracking-wider ${isDateMenuOpen ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
                               Date: {{
                                 today: 'Today',
                                 yesterday: 'Yesterday',
@@ -824,16 +824,16 @@ const DashboardPage = () => {
                     <div className="flex flex-col md:flex-row gap-6 lg:items-center">
                       <div className="grid grid-cols-2 gap-2.5 p-2 bg-neutral-100/40 dark:bg-neutral-900/25 rounded-[1.5rem] border border-neutral-200/50 dark:border-neutral-800/80 shadow-inner shrink-0">
                         {[
-                          { 
-                            id: 'ga4', 
-                            active: !!activeGa4PropertyId, 
-                            label: 'GA4 Analytics', 
-                            logo: <Ga4Logo className="w-4 h-4" />, 
+                          {
+                            id: 'ga4',
+                            active: !!activeGa4PropertyId,
+                            label: 'GA4 Analytics',
+                            logo: <Ga4Logo className="w-4 h-4" />,
                             accentGradient: 'from-orange-500 to-orange-400',
                             bgColor: 'bg-gradient-to-b from-orange-50/50 via-orange-50/5 to-white dark:from-orange-950/15 dark:via-dark-surface dark:to-dark-surface',
                             borderColor: 'border-orange-500/20 dark:border-orange-500/10',
                             activeShadow: 'shadow-orange-500/5',
-                            color: 'bg-orange-50 dark:bg-orange-950/20', 
+                            color: 'bg-orange-50 dark:bg-orange-950/20',
                             details: activeGa4PropertyId ? [
                               `Name: ${ga4?.ga4PropertyName || (activeSiteUrl ? activeSiteUrl.replace(/https?:\/\//, '').replace(/\/$/, '') : 'Property')}`,
                               `ID: ${activeGa4PropertyId}`
@@ -841,16 +841,16 @@ const DashboardPage = () => {
                             tooltip: `Property: ${ga4?.ga4PropertyName || 'N/A'}\nID: ${activeGa4PropertyId || 'N/A'}\nEmail: ${ga4?.ga4TokenEmail || 'N/A'}`,
                             route: !!activeGa4PropertyId ? '/dashboard/ga4' : '/connect-accounts'
                           },
-                          { 
-                            id: 'google-ads', 
-                            active: !!activeGoogleAdsCustomerId, 
-                            label: 'Google Ads', 
-                            logo: <GoogleAdsLogo className="w-4 h-4" />, 
+                          {
+                            id: 'google-ads',
+                            active: !!activeGoogleAdsCustomerId,
+                            label: 'Google Ads',
+                            logo: <GoogleAdsLogo className="w-4 h-4" />,
                             accentGradient: 'from-amber-500 to-yellow-400',
                             bgColor: 'bg-gradient-to-b from-amber-50/50 via-amber-50/5 to-white dark:from-amber-950/15 dark:via-dark-surface dark:to-dark-surface',
                             borderColor: 'border-amber-500/20 dark:border-amber-500/10',
                             activeShadow: 'shadow-amber-500/5',
-                            color: 'bg-amber-50 dark:bg-amber-950/20', 
+                            color: 'bg-amber-50 dark:bg-amber-950/20',
                             details: activeGoogleAdsCustomerId ? [
                               `Name: ${googleAds?.googleAdsAccountName || (activeSiteUrl ? activeSiteUrl.replace(/https?:\/\//, '').replace(/\/$/, '') : 'Connected')}`,
                               `ID: ${activeGoogleAdsCustomerId}`
@@ -858,32 +858,32 @@ const DashboardPage = () => {
                             tooltip: `Account: ${googleAds?.googleAdsAccountName || 'N/A'}\nID: ${activeGoogleAdsCustomerId || 'N/A'}\nEmail: ${googleAds?.googleAdsTokenEmail || 'N/A'}`,
                             route: !!activeGoogleAdsCustomerId ? '/dashboard/google-ads' : '/connect-accounts'
                           },
-                          { 
-                            id: 'gsc', 
-                            active: !!activeGscSite, 
-                            label: 'Search Console', 
-                            logo: <GscLogo className="w-4 h-4" />, 
+                          {
+                            id: 'gsc',
+                            active: !!activeGscSite,
+                            label: 'Search Console',
+                            logo: <GscLogo className="w-4 h-4" />,
                             accentGradient: 'from-blue-500 to-sky-400',
                             bgColor: 'bg-gradient-to-b from-blue-50/50 via-blue-50/5 to-white dark:from-blue-950/15 dark:via-dark-surface dark:to-dark-surface',
                             borderColor: 'border-blue-500/20 dark:border-blue-500/10',
                             activeShadow: 'shadow-blue-500/5',
-                            color: 'bg-blue-50 dark:bg-blue-950/20', 
+                            color: 'bg-blue-50 dark:bg-blue-950/20',
                             details: activeGscSite ? [
                               `Site: ${activeGscSite.replace(/https?:\/\//, '')}`
                             ] : null,
                             tooltip: `Site: ${activeGscSite || 'N/A'}\nEmail: ${gsc?.gscTokenEmail || 'N/A'}`,
                             route: !!activeGscSite ? '/dashboard/gsc' : '/connect-accounts'
                           },
-                          { 
-                            id: 'facebook', 
-                            active: !!activeFacebookAdAccountId, 
-                            label: 'Facebook Ads', 
-                            logo: <FacebookAdsLogo className="w-4 h-4" />, 
+                          {
+                            id: 'facebook',
+                            active: !!activeFacebookAdAccountId,
+                            label: 'Facebook Ads',
+                            logo: <FacebookAdsLogo className="w-4 h-4" />,
                             accentGradient: 'from-indigo-600 to-blue-500',
                             bgColor: 'bg-gradient-to-b from-indigo-50/50 via-indigo-50/5 to-white dark:from-indigo-950/15 dark:via-dark-surface dark:to-dark-surface',
                             borderColor: 'border-indigo-500/20 dark:border-indigo-500/10',
                             activeShadow: 'shadow-indigo-500/5',
-                            color: 'bg-blue-50 dark:bg-indigo-950/20', 
+                            color: 'bg-blue-50 dark:bg-indigo-950/20',
                             details: activeFacebookAdAccountId ? [
                               `Name: ${facebook?.facebookAdAccountName || (activeSiteUrl ? activeSiteUrl.replace(/https?:\/\//, '').replace(/\/$/, '') : 'Connected')}`,
                               `ID: ${activeFacebookAdAccountId.replace('act_', '')}`
@@ -892,14 +892,13 @@ const DashboardPage = () => {
                             route: !!activeFacebookAdAccountId ? '/dashboard/facebook-ads' : '/connect-accounts'
                           }
                         ].map((card) => (
-                          <div 
-                            key={card.id} 
+                          <div
+                            key={card.id}
                             onClick={() => navigate(card.route)}
-                            className={`flex flex-col gap-3 p-3.5 border rounded-2xl w-[182px] transition-all duration-300 hover:-translate-y-0.5 cursor-pointer group/item relative overflow-hidden ${
-                              card.active 
+                            className={`flex flex-col gap-3 p-3.5 border rounded-2xl w-[182px] transition-all duration-300 hover:-translate-y-0.5 cursor-pointer group/item relative overflow-hidden ${card.active
                                 ? `${card.bgColor} ${card.borderColor} shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:shadow-lg hover:${card.activeShadow}`
                                 : 'border-dashed border-neutral-300/80 dark:border-neutral-800 bg-neutral-50/40 dark:bg-neutral-900/10 hover:bg-neutral-50/80 dark:hover:bg-neutral-900/20 hover:border-brand-500/30 dark:hover:border-brand-500/20 shadow-sm hover:shadow-md'
-                            }`}
+                              }`}
                           >
                             {card.active && (
                               <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${card.accentGradient}`} />
@@ -908,31 +907,29 @@ const DashboardPage = () => {
                               <div className={`w-8 h-8 rounded-xl ${card.color} flex items-center justify-center shrink-0 border border-neutral-200/10 dark:border-white/5 shadow-sm ${!card.active ? 'grayscale opacity-60' : ''}`}>
                                 {card.logo}
                               </div>
-                              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border transition-all ${
-                                card.active
+                              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border transition-all ${card.active
                                   ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                                   : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 border-neutral-200/40 dark:border-neutral-800/40 shadow-sm'
-                              }`}>
+                                }`}>
                                 <span className={`w-1.5 h-1.5 rounded-full ${card.active ? 'bg-emerald-500 animate-pulse' : 'bg-neutral-400 dark:bg-neutral-600'}`}></span>
                                 {card.active ? 'Linked' : 'Offline'}
                               </span>
                             </div>
-                            
+
                             <div className="space-y-1.5 min-h-[52px] flex flex-col justify-between">
                               <div>
-                                <p className={`text-[9px] font-black uppercase tracking-widest leading-none transition-colors ${
-                                  card.active 
-                                    ? 'text-neutral-400 dark:text-neutral-500 group-hover/item:text-neutral-500 dark:group-hover/item:text-neutral-400' 
+                                <p className={`text-[9px] font-black uppercase tracking-widest leading-none transition-colors ${card.active
+                                    ? 'text-neutral-400 dark:text-neutral-500 group-hover/item:text-neutral-500 dark:group-hover/item:text-neutral-400'
                                     : 'text-neutral-450 dark:text-neutral-550'
-                                }`}>
+                                  }`}>
                                   {card.label}
                                 </p>
                                 {card.active && card.details ? (
                                   <div className="flex flex-col gap-0.5 mt-1.5">
                                     {card.details.map((detailText, idx) => (
-                                      <p 
-                                        key={idx} 
-                                        className="text-[10px] font-black text-neutral-700 dark:text-neutral-200 truncate max-w-[155px] transition-colors group-hover/item:text-neutral-950 dark:group-hover/item:text-white" 
+                                      <p
+                                        key={idx}
+                                        className="text-[10px] font-black text-neutral-700 dark:text-neutral-200 truncate max-w-[155px] transition-colors group-hover/item:text-neutral-950 dark:group-hover/item:text-white"
                                         title={card.tooltip}
                                       >
                                         {detailText}
@@ -1044,7 +1041,7 @@ const DashboardPage = () => {
 
                   {activeGa4PropertyId && (
                     <div className="mt-6 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                      <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
+                      <h4 className="text-[10.5px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
                       {(loading || isSyncingHistorical) ? (
                         <div className="space-y-1.5 animate-pulse">
                           <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
@@ -1052,7 +1049,7 @@ const DashboardPage = () => {
                         </div>
                       ) : (
                         <div className="flex flex-col items-start gap-2.5">
-                          <p className="text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                          <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                             {overviewData.intelligence?.overviewGA4 || "Analyzing high-volume traffic across user engagement."}
                           </p>
                         </div>
@@ -1108,7 +1105,7 @@ const DashboardPage = () => {
 
                   {activeGscSite && (
                     <div className="mt-6 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                      <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
+                      <h4 className="text-[10.5px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
                       {(loading || isSyncingHistorical) ? (
                         <div className="space-y-1.5 animate-pulse">
                           <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
@@ -1116,7 +1113,7 @@ const DashboardPage = () => {
                         </div>
                       ) : (
                         <div className="flex flex-col items-start gap-2.5">
-                          <p className="text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                          <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                             {overviewData.intelligence?.overviewGSC || "SEO visibility is showing stable organic growth."}
                           </p>
                         </div>
@@ -1171,7 +1168,7 @@ const DashboardPage = () => {
 
                   {activeGoogleAdsCustomerId && (
                     <div className="mt-6 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                      <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
+                      <h4 className="text-[10.5px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
                       {(loading || isSyncingHistorical) ? (
                         <div className="space-y-1.5 animate-pulse">
                           <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
@@ -1179,7 +1176,7 @@ const DashboardPage = () => {
                         </div>
                       ) : (
                         <div className="flex flex-col items-start gap-2.5">
-                          <p className="text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                          <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                             {overviewData.intelligence?.overviewGAds || "Google Ads campaigns are actively spending."}
                           </p>
                         </div>
@@ -1234,7 +1231,7 @@ const DashboardPage = () => {
 
                   {activeFacebookAdAccountId && (
                     <div className="mt-6 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                      <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
+                      <h4 className="text-[10.5px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
                       {(loading || isSyncingHistorical) ? (
                         <div className="space-y-1.5 animate-pulse">
                           <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
@@ -1242,7 +1239,7 @@ const DashboardPage = () => {
                         </div>
                       ) : (
                         <div className="flex flex-col items-start gap-2.5">
-                          <p className="text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                          <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                             {overviewData.intelligence?.overviewFAds || "Facebook ad reach is expanding profitably."}
                           </p>
                         </div>
@@ -1253,53 +1250,53 @@ const DashboardPage = () => {
               </div>
 
               <div className={`bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5 mb-6 shadow-sm overflow-hidden ${(!overviewData.connectionStatus?.googleAds && !overviewData.connectionStatus?.facebookAds) ? 'hide-in-pdf' : ''}`}>
-              <div className="flex justify-between items-start gap-4 mb-6">
+                <div className="flex justify-between items-start gap-4 mb-6">
 
-                {/* LEFT: Title + Subtitle */}
-                <div className="flex flex-col">
-                  <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
-                    Ad Platform Comparison
-                  </h3>
-                  <p className="text-xs font-semibold text-neutral-500 mt-1">
-                    See which ad platform is performing better
-                  </p>
-                </div>
+                  {/* LEFT: Title + Subtitle */}
+                  <div className="flex flex-col">
+                    <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
+                      Ad Platform Comparison
+                    </h3>
+                    <p className="text-xs font-semibold text-neutral-500 mt-1">
+                      See which ad platform is performing better
+                    </p>
+                  </div>
 
-                {/* RIGHT: Actions / Badges */}
-                <div className="flex items-center gap-2 flex-wrap justify-end">
+                  {/* RIGHT: Actions / Badges */}
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
 
-                  {!loading && (activeGoogleAdsCustomerId || activeFacebookAdAccountId) && (
-                    <button
-                      onClick={() => openWithQuestion(`Based on the Ad Platform Comparison table, which channel should I prioritize? 
+                    {!loading && (activeGoogleAdsCustomerId || activeFacebookAdAccountId) && (
+                      <button
+                        onClick={() => openWithQuestion(`Based on the Ad Platform Comparison table, which channel should I prioritize? 
                         Google Stats: $${formatNumber(overviewData.googleAds?.spend)} spend, ${formatNumber(overviewData.googleAds?.conversions)} conv, ${formatPct((overviewData.googleAds?.ctr || 0) * 100)} CTR.
                         Meta Stats: $${formatNumber(overviewData.facebookAds?.spend)} spend, ${formatNumber(overviewData.facebookAds?.conversions)} conv, ${formatPct((overviewData.facebookAds?.ctr || 0) * 100)} CTR.
                         AI Insight: ${overviewData.intelligence?.adWinnerInsight || 'Comparison analysis needed.'}`, '📊 Cross-Channel Ad Platform Comparison')}
-                      className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-semibold flex items-center gap-1.5"
-                    >
-                      <SparklesIcon className="w-3 h-3" />
-                      Ask AI
-                    </button>
-                  )}
+                        className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-semibold flex items-center gap-1.5"
+                      >
+                        <SparklesIcon className="w-3 h-3" />
+                        Ask AI
+                      </button>
+                    )}
 
-                  {!overviewData.connectionStatus?.googleAds && (
-                    <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-[10px] font-medium">
-                      Google not connected
+                    {!overviewData.connectionStatus?.googleAds && (
+                      <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-[10px] font-medium">
+                        Google not connected
+                      </span>
+                    )}
+
+                    {!overviewData.connectionStatus?.facebookAds && (
+                      <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-medium">
+                        Meta not connected
+                      </span>
+                    )}
+
+                    <span className="px-2.5 py-1 bg-neutral-100 dark:bg-neutral-800 text-neutral-500 rounded-full text-[10px] font-medium">
+                      Cumulative
                     </span>
-                  )}
 
-                  {!overviewData.connectionStatus?.facebookAds && (
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-medium">
-                      Meta not connected
-                    </span>
-                  )}
-
-                  <span className="px-2.5 py-1 bg-neutral-100 dark:bg-neutral-800 text-neutral-500 rounded-full text-[10px] font-medium">
-                    Cumulative
-                  </span>
+                  </div>
 
                 </div>
-
-              </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -1360,7 +1357,7 @@ const DashboardPage = () => {
 
                 {(activeGoogleAdsCustomerId || activeFacebookAdAccountId) && (
                   <div className="mt-4 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                    <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
+                    <h4 className="text-[10.5px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
                     {(loading || isSyncingHistorical) ? (
                       <div className="space-y-1.5 animate-pulse">
                         <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
@@ -1368,7 +1365,7 @@ const DashboardPage = () => {
                       </div>
                     ) : (
                       <div className="flex flex-col items-start gap-2.5">
-                        <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                        <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                           {overviewData.intelligence?.adWinnerInsight || "Platform performance comparison shows clear efficiency leaders."}
                         </p>
                       </div>
@@ -1402,9 +1399,18 @@ const DashboardPage = () => {
                         ASK AI
                       </button>
                     )}
-                    <div className="flex bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1">
+                    <div className="flex bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1 shadow-inner">
                       {['Sessions', 'Clicks', 'Impressions', 'Spend', 'Conversions'].map((m) => (
-                        <button key={m} onClick={() => setSelectedMetric(m)} className={`px-3 py-1.5 rounded-lg text-[9px] font-black transition-all ${selectedMetric === m ? 'bg-white dark:bg-dark-card text-brand-600 shadow-sm' : 'text-neutral-500 hover:text-neutral-400'}`}>{m}</button>
+                        <button
+                          key={m}
+                          onClick={() => setSelectedMetric(m)}
+                          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${selectedMetric === m
+                              ? 'bg-white dark:bg-dark-card text-brand-600 shadow-md scale-100'
+                              : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 hover:bg-white/30 dark:hover:bg-neutral-800/30'
+                            }`}
+                        >
+                          {m}
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -1429,7 +1435,7 @@ const DashboardPage = () => {
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" className="dark:stroke-neutral-800/20" />
                         <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748B' }} tickFormatter={(str) => { const d = new Date(str); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }} minTickGap={30} />
                         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748B' }} />
-                        <Tooltip 
+                        <Tooltip
                           contentStyle={{ borderRadius: '16px', border: 'none', background: '#FFFFFF', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                           itemStyle={{ fontSize: '11px', fontWeight: 'bold' }}
                           labelStyle={{ fontSize: '10px', color: '#64748B', marginBottom: '4px', fontWeight: 'bold' }}
@@ -1453,7 +1459,7 @@ const DashboardPage = () => {
                 </div>
 
                 <div className="mt-4 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                  <h4 className="text-[10px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
+                  <h4 className="text-[10.5px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
                   {(loading || isSyncingHistorical) ? (
                     <div className="space-y-1.5 animate-pulse">
                       <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
@@ -1461,7 +1467,7 @@ const DashboardPage = () => {
                     </div>
                   ) : (
                     <div className="flex flex-col items-start gap-2.5">
-                      <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                      <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                         {overviewData.intelligence?.growthMatrixInsight || "Organic and paid growth trends are being correlated to identify scaling triggers."}
                       </p>
                     </div>
@@ -1472,10 +1478,14 @@ const DashboardPage = () => {
 
 
               <div className={`bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden mb-6 ${topPages.length === 0 ? 'hide-in-pdf' : ''}`}>
-                <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center">
-                  <div className="space-y-0.5">
-                    <h3 className="text-xl font-black text-neutral-900 dark:text-white uppercase tracking-tight">Top Pages Performance</h3>
-                    <p className="text-sm font-bold text-neutral-500 dark:text-neutral-400">See how your top pages are performing</p>
+                <div className="px-5 py-4 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center">
+                  <div className="flex flex-col">
+                    <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
+                      Top Pages Performance
+                    </h3>
+                    <p className="text-xs font-semibold text-neutral-500 mt-1">
+                      See how your top pages are performing
+                    </p>
                   </div>
                   <div className="flex items-center gap-3">
                     {!loading && (
@@ -1488,7 +1498,12 @@ const DashboardPage = () => {
                         ASK AI
                       </button>
                     )}
-                    <button onClick={downloadCSV} className="text-[9px] font-black px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-lg uppercase tracking-wider hide-in-pdf">Export CSV</button>
+                    <button
+                      onClick={downloadCSV}
+                      className="text-[11px] font-black px-4 py-1.5 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-xl uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm shrink-0 hide-in-pdf"
+                    >
+                      Export CSV
+                    </button>
                   </div>
                 </div>
                 <div className="p-2">
@@ -1496,7 +1511,7 @@ const DashboardPage = () => {
                 </div>
 
                 <div className="mx-4 mb-4 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                  <h4 className="text-sm font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
+                  <h4 className="text-[11px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
                   {(loading || isSyncingHistorical) ? (
                     <div className="space-y-1.5 animate-pulse">
                       <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
@@ -1504,7 +1519,7 @@ const DashboardPage = () => {
                     </div>
                   ) : (
                     <div className="flex flex-col items-start gap-2.5">
-                      <p className="text-sm font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                      <p className="text-[12px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                         {overviewData.intelligence?.topPagesInsight || "Landing page performance and growth bottlenecks."}
                       </p>
                     </div>
@@ -1512,11 +1527,13 @@ const DashboardPage = () => {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-800 rounded-2xl p-4 mb-6">
+              <div className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5 mb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-black uppercase tracking-tight">This Period vs Last Period</h3>
-                    <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400">
+                  <div className="flex flex-col">
+                    <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
+                      This Period vs Last Period
+                    </h3>
+                    <p className="text-xs font-semibold text-neutral-500 mt-1">
                       Compare your performance with the previous period
                     </p>
                   </div>
@@ -1553,31 +1570,39 @@ const DashboardPage = () => {
                         ))
                       ) : (
                         [
-                          { logo: <Ga4Logo className="w-3.5 h-3.5" />, s: 'Google Analytics', m: 'Sessions', val: overviewData.ga4?.sessions, prior: overviewData.ga4?.priorSessions, grow: overviewData.ga4?.growthSessions },
-                          { logo: <Ga4Logo className="w-3.5 h-3.5" />, s: 'Google Analytics', m: 'Users', val: overviewData.ga4?.users, prior: overviewData.ga4?.priorUsers, grow: overviewData.ga4?.growthUsers },
-                          { logo: <GscLogo className="w-3.5 h-3.5" />, s: 'Search Console', m: 'Impressions', val: overviewData.gsc?.impressions, prior: overviewData.gsc?.priorImpressions, grow: overviewData.gsc?.growthImpressions },
-                          { logo: <GscLogo className="w-3.5 h-3.5" />, s: 'Search Console', m: 'Clicks', val: overviewData.gsc?.clicks, prior: overviewData.gsc?.priorClicks, grow: overviewData.gsc?.growthClicks },
-                          { logo: <GoogleAdsLogo className="w-3.5 h-3.5" />, s: 'Google Ads', m: 'Spend', val: overviewData.googleAds?.spend, prior: overviewData.googleAds?.priorSpend, grow: overviewData.googleAds?.growthSpend, isCurr: true },
-                          { logo: <GoogleAdsLogo className="w-3.5 h-3.5" />, s: 'Google Ads', m: 'Conversions', val: overviewData.googleAds?.conversions, prior: overviewData.googleAds?.priorConversions, grow: overviewData.googleAds?.growthConversions },
-                          { logo: <FacebookAdsLogo className="w-3.5 h-3.5" />, s: 'Meta Ads', m: 'Spend', val: overviewData.facebookAds?.spend, prior: overviewData.facebookAds?.priorSpend, grow: overviewData.facebookAds?.growthSpend, isCurr: true },
-                          { logo: <FacebookAdsLogo className="w-3.5 h-3.5" />, s: 'Meta Ads', m: 'Reach', val: overviewData.facebookAds?.reach, prior: overviewData.facebookAds?.priorReach, grow: overviewData.facebookAds?.growthReach },
+                          { logo: <Ga4Logo className="w-3.5 h-3.5" />, s: 'Google Analytics', m: 'Sessions', val: overviewData.ga4?.sessions, prior: overviewData.ga4?.priorSessions, grow: overviewData.ga4?.growthSessions, connected: !!activeGa4PropertyId },
+                          { logo: <Ga4Logo className="w-3.5 h-3.5" />, s: 'Google Analytics', m: 'Users', val: overviewData.ga4?.users, prior: overviewData.ga4?.priorUsers, grow: overviewData.ga4?.growthUsers, connected: !!activeGa4PropertyId },
+                          { logo: <GscLogo className="w-3.5 h-3.5" />, s: 'Search Console', m: 'Impressions', val: overviewData.gsc?.impressions, prior: overviewData.gsc?.priorImpressions, grow: overviewData.gsc?.growthImpressions, connected: !!activeGscSite },
+                          { logo: <GscLogo className="w-3.5 h-3.5" />, s: 'Search Console', m: 'Clicks', val: overviewData.gsc?.clicks, prior: overviewData.gsc?.priorClicks, grow: overviewData.gsc?.growthClicks, connected: !!activeGscSite },
+                          { logo: <GoogleAdsLogo className="w-3.5 h-3.5" />, s: 'Google Ads', m: 'Spend', val: overviewData.googleAds?.spend, prior: overviewData.googleAds?.priorSpend, grow: overviewData.googleAds?.growthSpend, isCurr: true, connected: !!activeGoogleAdsCustomerId },
+                          { logo: <GoogleAdsLogo className="w-3.5 h-3.5" />, s: 'Google Ads', m: 'Conversions', val: overviewData.googleAds?.conversions, prior: overviewData.googleAds?.priorConversions, grow: overviewData.googleAds?.growthConversions, connected: !!activeGoogleAdsCustomerId },
+                          { logo: <FacebookAdsLogo className="w-3.5 h-3.5" />, s: 'Meta Ads', m: 'Spend', val: overviewData.facebookAds?.spend, prior: overviewData.facebookAds?.priorSpend, grow: overviewData.facebookAds?.growthSpend, isCurr: true, connected: !!activeFacebookAdAccountId },
+                          { logo: <FacebookAdsLogo className="w-3.5 h-3.5" />, s: 'Meta Ads', m: 'Reach', val: overviewData.facebookAds?.reach, prior: overviewData.facebookAds?.priorReach, grow: overviewData.facebookAds?.growthReach, connected: !!activeFacebookAdAccountId },
                         ].map((row, i) => {
                           const priorValue = row.prior || 0;
                           return (
-                            <tr key={i} className="hover:bg-neutral-50/50 transition-colors">
+                            <tr key={i} className={`hover:bg-neutral-50/50 transition-colors ${!row.connected ? 'opacity-65' : ''}`}>
                               <td className="py-3 px-2 font-black text-neutral-500 text-xs flex items-center gap-2">
-                                <div className="w-7 h-7 flex items-center justify-center bg-neutral-50 dark:bg-neutral-800 rounded-lg shrink-0 border border-neutral-100 dark:border-neutral-700/50">{row.logo}</div>
+                                <div className={`w-7 h-7 flex items-center justify-center bg-neutral-50 dark:bg-neutral-800 rounded-lg shrink-0 border border-neutral-100 dark:border-neutral-700/50 ${!row.connected ? 'grayscale' : ''}`}>{row.logo}</div>
                                 {row.s}
                               </td>
                               <td className="py-3 px-2 font-bold text-neutral-700 dark:text-neutral-300 text-sm">{row.m}</td>
-                              <td className="py-3 px-2 font-black tabular-nums text-sm text-right">{row.isCurr ? formatCurrency(row.val) : formatNumber(row.val)}</td>
-                              <td className="py-3 px-2 font-bold text-neutral-400 tabular-nums text-sm text-right">{row.isCurr ? formatCurrency(priorValue) : formatNumber(priorValue)}</td>
-                              <td className="py-3 px-2 text-right">
-                                <span className={`px-2.5 py-1 rounded-full text-xs font-black inline-flex items-center gap-1 ${row.grow >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                                  {row.grow >= 0 ? <ArrowUpIcon className="w-3 h-3" /> : <ArrowDownIcon className="w-3 h-3" />}
-                                  {Math.abs(row.grow || 0).toFixed(1)}%
-                                </span>
-                              </td>
+                              {row.connected ? (
+                                <>
+                                  <td className="py-3 px-2 font-black tabular-nums text-sm text-right">{row.isCurr ? formatCurrency(row.val) : formatNumber(row.val)}</td>
+                                  <td className="py-3 px-2 font-bold text-neutral-400 tabular-nums text-sm text-right">{row.isCurr ? formatCurrency(priorValue) : formatNumber(priorValue)}</td>
+                                  <td className="py-3 px-2 text-right">
+                                    <span className={`px-2.5 py-1 rounded-full text-xs font-black inline-flex items-center gap-1 ${row.grow >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                                      {row.grow >= 0 ? <ArrowUpIcon className="w-3 h-3" /> : <ArrowDownIcon className="w-3 h-3" />}
+                                      {Math.abs(row.grow || 0).toFixed(1)}%
+                                    </span>
+                                  </td>
+                                </>
+                              ) : (
+                                <td colSpan="3" className="py-3 px-4 text-right text-xs italic font-bold text-neutral-400 dark:text-neutral-600 pr-6">
+                                  Not connected
+                                </td>
+                              )}
                             </tr>
                           );
                         })
@@ -1587,7 +1612,7 @@ const DashboardPage = () => {
                 </div>
 
                 <div className="mt-4 p-4 bg-brand-50/40 dark:bg-brand-500/5 border border-brand-100/30 dark:border-brand-500/10 rounded-2xl">
-                  <h4 className="text-xs font-black text-neutral-900 dark:text-white mb-1">AI Summary</h4>
+                  <h4 className="text-[11px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
                   {(loading || isSyncingHistorical) ? (
                     <div className="space-y-1.5 animate-pulse">
                       <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
@@ -1595,7 +1620,7 @@ const DashboardPage = () => {
                     </div>
                   ) : (
                     <div className="flex flex-col items-start gap-2.5">
-                      <p className="text-sm font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                      <p className="text-[12px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                         {overviewData.intelligence?.comparisonInsight || "Historical performance growth benchmarks."}
                       </p>
                     </div>
