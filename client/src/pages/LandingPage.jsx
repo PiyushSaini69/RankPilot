@@ -69,8 +69,8 @@ const LandingPage = () => {
                     </div>
 
                     {/* Social proof strip */}
-                    <div className="flex flex-wrap items-center justify-center gap-6 text-xs font-bold text-neutral-400 dark:text-slate-500">
-                        {['No credit card required','Setup in 2 minutes','GA4 · GSC · Google Ads · Meta'].map((item,i) => (
+                    <div className="flex flex-wrap items-center justify-center gap-6 text-[12px] font-bold text-neutral-400 dark:text-slate-500">
+                        {['No credit card required','Setup in 2 minutes','GA4 · GSC · Google Ads · Meta Ads'].map((item,i) => (
                             <span key={i} className="flex items-center gap-1.5">
                                 <span className="w-1 h-1 rounded-full bg-brand-500"/>
                                 {item}
@@ -88,7 +88,7 @@ const LandingPage = () => {
 
                     {/* Section header */}
                     <div className="text-center mb-20">
-                        <p className="text-brand-600 dark:text-brand-500 font-bold text-xs tracking-[0.3em] uppercase mb-4">The Platform</p>
+                        <p className="text-brand-600 dark:text-brand-500 font-bold text-[15px] tracking-[0.3em] uppercase mb-4">The Platform</p>
                         <h2 className="text-4xl md:text-5xl font-black text-neutral-900 dark:text-white tracking-tight mb-4">
                             Everything in one place.
                         </h2>
@@ -138,7 +138,7 @@ const LandingPage = () => {
             {/* 5. HOW IT WORKS SECTION — 3 steps */}
             <section id="how-it-works" className="py-28 bg-neutral-100 dark:bg-slate-900 transition-colors">
                 <div className="max-w-5xl mx-auto px-6 text-center">
-                    <p className="text-brand-600 dark:text-brand-500 font-bold text-xs tracking-[0.3em] uppercase mb-4">How It Works</p>
+                    <p className="text-brand-600 dark:text-brand-500 font-bold text-[15px] tracking-[0.3em] uppercase mb-4">How It Works</p>
                     <h2 className="text-4xl md:text-5xl font-black text-neutral-900 dark:text-white tracking-tight mb-16">Up and running in minutes.</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -171,8 +171,8 @@ const LandingPage = () => {
                     <div className="space-y-4">
                         {[
                             { q: 'Is my data safe?', a: 'Absolutely. We use enterprise-grade AES-256 encryption. We never store your account credentials — everything happens through secure OAuth connections directly with Google and Facebook.' },
-                            { q: 'How many platforms can I connect?', a: 'You can connect Google Analytics 4, Search Console, Google Ads, and Facebook Ads. Individual plans support 1 platform, while Pro and Business plans support all connections.' },
-                            { q: 'Do I need a credit card for the trial?', a: 'No. You can start your 14-day Pro trial with just your email. No credit card required up front.' },
+                            { q: 'How many platforms can I connect?', a: 'You can connect Google Analytics 4, Search Console, Google Ads, and Facebook Ads to RankPilot.' },
+                            { q: 'Do I need a credit card for the trial?', a: 'No. You can start your 7-day free trial. No credit card required up front.' },
                             { q: 'How does the AI work?', a: 'Our AI analyst uses advanced Large Language Models trained on marketing data patterns. It queries your live data on-demand to provide accurate, real-time insights.' },
                         ].map((faq, i) => (
                             <details key={i} className="group bg-white dark:bg-slate-800 border border-neutral-200 dark:border-white/5 rounded-2xl p-6 transition-all">
