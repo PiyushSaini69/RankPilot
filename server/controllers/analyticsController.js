@@ -597,6 +597,8 @@ export const getGa4Summary = async (req, res) => {
             }
         }
 
+        result.status = 'success';
+
         // Cache only when GA4 historical sync is complete
         if (ga4HistoricalComplete) analyticsCache.set(cacheKey, result);
         res.status(200).json(result);
