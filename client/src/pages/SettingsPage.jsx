@@ -162,7 +162,7 @@ const SettingsPage = () => {
                 <section className="space-y-4">
                     <div className="space-y-1">
                         <h2 className="text-sm font-black text-neutral-700 dark:text-neutral-300 uppercase tracking-wide">Connected Accounts</h2>
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400">These are the platforms you have authorized RankPilot to access</p>
+                        <p className="text-[14px] text-neutral-500 dark:text-neutral-400">These are the platforms you have authorized RankPilot to access</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -198,7 +198,7 @@ const SettingsPage = () => {
                                         >
                                             Connect Google Account
                                         </Button>
-                                        <p className="text-[10px] text-neutral-400 mt-4 font-medium flex items-center justify-center gap-1.5">
+                                        <p className="text-[12px] text-neutral-400 mt-4 font-medium flex items-center justify-center gap-1.5">
                                             🔒 We use secure OAuth. We never store your password.
                                         </p>
                                     </div>
@@ -267,7 +267,7 @@ const SettingsPage = () => {
                                         >
                                             Connect Meta Account
                                         </Button>
-                                        <p className="text-[10px] text-neutral-400 mt-4 font-medium flex items-center justify-center gap-1.5">
+                                        <p className="text-[12px] text-neutral-400 mt-4 font-medium flex items-center justify-center gap-1.5">
                                             🔒 Secure OAuth connection
                                         </p>
                                     </div>
@@ -331,7 +331,7 @@ const SettingsPage = () => {
                             >
                                 Delete My Account
                             </button>
-                            <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-4 font-medium italic">
+                            <p className="text-[12px] text-neutral-400 dark:text-neutral-500 mt-4 font-medium italic">
                                 You will need to type your email address to confirm
                             </p>
                         </div>
