@@ -37,6 +37,16 @@ const ConnectAccountsPage = () => {
     const isNew = queryParams.get('new') === 'true';
     const isViewOnly = queryParams.get('view') === 'true';
 
+    const connectGoogle = () => {
+        sessionStorage.setItem('oauth_redirect_origin', window.location.pathname + window.location.search);
+        window.location.href = getApiUrl(`/auth/google?token=${encodeURIComponent(token)}`);
+    };
+
+    const connectFacebook = () => {
+        sessionStorage.setItem('oauth_redirect_origin', window.location.pathname + window.location.search);
+        window.location.href = getApiUrl(`/auth/facebook?token=${encodeURIComponent(token)}`);
+    };
+
     const [googleAccounts, setGoogleAccounts] = useState([]);
     const [facebookAccounts, setFacebookAccounts] = useState([]);
     
@@ -563,7 +573,7 @@ const ConnectAccountsPage = () => {
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
                                             <button 
-                                                onClick={() => window.location.href = getApiUrl(`/auth/google?token=${encodeURIComponent(token)}`)}
+                                                onClick={connectGoogle}
                                                 className="text-xs font-black text-brand-600 hover:text-brand-700 border border-brand-200 dark:border-brand-500/30 px-4 py-2.5 rounded-xl bg-white dark:bg-dark-card transition-all shadow-sm active:scale-95 whitespace-nowrap"
                                             >
                                                 + Link Another Account
@@ -771,7 +781,7 @@ const ConnectAccountsPage = () => {
                                     <h3 className="text-xl font-black text-neutral-900 dark:text-white">Facebook Ads</h3>
                                     <p className="text-neutral-500 dark:text-neutral-400 font-bold mt-2 max-w-sm mb-8">Connect to track your Facebook ad performance automatically.</p>
                                     <Button
-                                        onClick={() => window.location.href = getApiUrl(`/auth/facebook?token=${encodeURIComponent(token)}`)}
+                                        onClick={connectFacebook}
                                         className="px-10 py-4 text-base shadow-xl shadow-[#1877F2]/20 bg-[#1877F2] hover:bg-[#1565C0]"
                                     >
                                         Connect Facebook Account
@@ -802,7 +812,7 @@ const ConnectAccountsPage = () => {
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
                                             <button 
-                                                onClick={() => window.location.href = getApiUrl(`/auth/facebook?token=${encodeURIComponent(token)}`)}
+                                                onClick={connectFacebook}
                                                 className="text-xs font-black text-[#1877F2] hover:text-[#1565C0] border border-blue-200 dark:border-blue-500/30 px-4 py-2.5 rounded-xl bg-white dark:bg-dark-card transition-all shadow-sm active:scale-95 whitespace-nowrap"
                                             >
                                                 + Link Another Profile

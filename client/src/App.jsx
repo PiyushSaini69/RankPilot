@@ -222,7 +222,12 @@ const AuthCallback = () => {
           const hasConnectedPlatform = res.data.user?.connectedSources?.some(src => 
             ['ga4', 'gsc', 'google-ads', 'facebook-ads'].includes(src)
           );
-          if (!hasConnectedPlatform) {
+          const redirectOrigin = sessionStorage.getItem('oauth_redirect_origin');
+          sessionStorage.removeItem('oauth_redirect_origin');
+          
+          if (redirectOrigin) {
+            navigate(redirectOrigin, { replace: true });
+          } else if (!hasConnectedPlatform) {
             navigate('/connect-accounts', { replace: true });
           } else {
             navigate('/dashboard', { replace: true });

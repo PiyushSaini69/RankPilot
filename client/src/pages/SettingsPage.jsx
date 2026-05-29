@@ -12,6 +12,16 @@ const SettingsPage = () => {
     const { user, clearAuth, token, setAuth } = useAuthStore();
     const { setAccounts } = useAccountsStore();
 
+    const connectGoogle = () => {
+        sessionStorage.setItem('oauth_redirect_origin', window.location.pathname);
+        window.location.href = getApiUrl(`/auth/google?token=${encodeURIComponent(token)}`);
+    };
+
+    const connectFacebook = () => {
+        sessionStorage.setItem('oauth_redirect_origin', window.location.pathname);
+        window.location.href = getApiUrl(`/auth/facebook?token=${encodeURIComponent(token)}`);
+    };
+
     const [userConnectedSources, setUserConnectedSources] = React.useState([]);
     const [googleAccounts, setGoogleAccounts] = React.useState([]);
     const [facebookAccounts, setFacebookAccounts] = React.useState([]);
@@ -214,7 +224,7 @@ const SettingsPage = () => {
                                             Connect to access Google Analytics, Search Console, and Google Ads
                                         </p>
                                         <Button
-                                            onClick={() => window.location.href = getApiUrl(`/auth/google?token=${encodeURIComponent(token)}`)}
+                                            onClick={connectGoogle}
                                             className="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3"
                                         >
                                             Connect Google Account
@@ -250,7 +260,7 @@ const SettingsPage = () => {
                                         </div>
                                         <Button
                                             variant="secondary"
-                                            onClick={() => window.location.href = getApiUrl(`/auth/google?token=${encodeURIComponent(token)}`)}
+                                            onClick={connectGoogle}
                                             className="w-full text-xs font-bold py-2 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800"
                                         >
                                             + Add Another Google Account
@@ -283,7 +293,7 @@ const SettingsPage = () => {
                                             Connect to track Facebook ad performance
                                         </p>
                                         <Button
-                                            onClick={() => window.location.href = getApiUrl(`/auth/facebook?token=${encodeURIComponent(token)}`)}
+                                            onClick={connectFacebook}
                                             className="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3"
                                         >
                                             Connect Meta Account
@@ -310,7 +320,7 @@ const SettingsPage = () => {
                                         </div>
                                         <Button
                                             variant="secondary"
-                                            onClick={() => window.location.href = getApiUrl(`/auth/facebook?token=${encodeURIComponent(token)}`)}
+                                            onClick={connectFacebook}
                                             className="w-full text-xs font-bold py-2 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800"
                                         >
                                             + Add Another Meta Profile
