@@ -154,9 +154,39 @@ export const login = async (req, res) => {
         return res.status(403).json({ success: false, message: 'Please verify your email before logging in. Check your inbox for the verification link.' });
     }
 
+    const googleToken = await GoogleToken.findOne({ userId: user._id });
+    const facebookToken = await FacebookToken.findOne({ userId: user._id });
+    const accounts = await UserAccounts.findOne({ userId: user._id });
+
+    let connectedSources = [];
+    if (googleToken) {
+        connectedSources.push('google');
+        if (accounts?.ga4PropertyId) connectedSources.push('ga4');
+        if (accounts?.gscSiteUrl) connectedSources.push('gsc');
+        if (accounts?.googleAdsCustomerId) connectedSources.push('google-ads');
+    }
+    if (facebookToken) {
+        connectedSources.push('facebook');
+        if (accounts?.facebookAdAccountId) connectedSources.push('facebook-ads');
+    }
+
+    let isFirstLogin = false;
+    if (user.isFirstLogin) {
+        isFirstLogin = true;
+        user.isFirstLogin = false;
+        await user.save();
+    }
+
     res.status(200).json({
         token: generateToken(user._id, user.email),
-        user: { id: user._id, name: user.displayName, email: user.email, avatar: user.avatar }
+        user: { 
+            id: user._id, 
+            name: user.displayName, 
+            email: user.email, 
+            avatar: user.avatar, 
+            connectedSources,
+            isFirstLogin
+        }
     });
 };
 
@@ -224,8 +254,23 @@ export const getMe = async (req, res) => {
         if (accounts?.facebookAdAccountId) connectedSources.push('facebook-ads');
     }
 
+    let isFirstLogin = false;
+    const dbUser = await User.findById(req.user._id);
+    if (dbUser && dbUser.isFirstLogin) {
+        isFirstLogin = true;
+        dbUser.isFirstLogin = false;
+        await dbUser.save();
+    }
+
     res.status(200).json({
-        user: { id: req.user._id, name: req.user.displayName, email: req.user.email, avatar: req.user.avatar },
+        user: { 
+            id: req.user._id, 
+            name: req.user.displayName, 
+            email: req.user.email, 
+            avatar: req.user.avatar, 
+            connectedSources, 
+            isFirstLogin 
+        },
         connectedSources
     });
 };

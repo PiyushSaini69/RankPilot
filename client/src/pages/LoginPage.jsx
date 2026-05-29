@@ -30,13 +30,6 @@ const LoginPage = () => {
             const res = await loginUser({ email, password });
             setAuth(res.data.token, res.data.user);
             toast.success(`Welcome back, ${res.data.user.name.split(' ')[0]}!`);
-
-            const meRes = await getMe();
-            if (meRes.data.connectedSources.length === 0) {
-                navigate('/connect-accounts');
-            } else {
-                navigate('/dashboard');
-            }
         } catch (err) {
             const msg = err.response?.data?.message || 'Login failed';
             toast.error(msg);

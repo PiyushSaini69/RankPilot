@@ -11,9 +11,9 @@ export const ProtectedRoute = ({ children }) => {
 };
 
 export const AuthRoute = ({ children }) => {
-    const { token } = useAuthStore();
+    const { token, user } = useAuthStore();
     if (token) {
-        return <Navigate to="/dashboard" replace />;
+        return <Navigate to={user?.isFirstLogin ? "/connect-accounts" : "/dashboard"} replace />;
     }
     return children;
 };

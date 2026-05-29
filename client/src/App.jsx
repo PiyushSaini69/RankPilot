@@ -219,7 +219,7 @@ const AuthCallback = () => {
           setAuth(code, res.data.user);
           
           // 3. Client-side navigation (No page reload)
-          if (res.data.connectedSources.length === 0) {
+          if (res.data.user?.isFirstLogin) {
             navigate('/connect-accounts', { replace: true });
           } else {
             navigate('/dashboard', { replace: true });
