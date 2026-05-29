@@ -686,8 +686,6 @@ const DashboardPage = () => {
                                 yesterday: 'Yesterday',
                                 '7d': 'Last 7 Days',
                                 '28d': 'Last 28 Days',
-                                '90d': 'Last 90 Days',
-                                '1y': 'Last Year',
                                 custom: 'Custom'
                               }[preset] || preset}
                             </span>
@@ -703,8 +701,6 @@ const DashboardPage = () => {
                                     { label: 'Yesterday', value: 'yesterday', days: 1 },
                                     { label: 'Last 7 Days', value: '7d', days: 7 },
                                     { label: 'Last 28 Days', value: '28d', days: 28 },
-                                    { label: 'Last 90 Days', value: '90d', days: 90 },
-                                    { label: 'Last Year', value: '1y', days: 365 },
                                     { label: 'Custom Range', value: 'custom', icon: CalendarIcon },
                                   ].map((p) => (
                                     <button
