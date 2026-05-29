@@ -13,6 +13,7 @@ import accountRoutes from './routes/accountRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import supportRoutes from './routes/supportRoutes.js';
 
 const app = express();
 
@@ -49,6 +50,7 @@ app.use('/api/accounts', accountRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/support', supportRoutes);
 app.use('/', (req, res) => res.send('RankPilot Backend is running'));
 
 app.use(errorHandler);

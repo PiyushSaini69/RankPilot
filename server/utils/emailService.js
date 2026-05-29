@@ -131,3 +131,48 @@ export const sendVerificationEmail = async (toEmail, verifyToken) => {
         html: wrapEmail('Verify Your Email', body),
     });
 };
+
+export const sendSupportNotificationEmail = async (contactData) => {
+    const transporter = createTransporter();
+    const { firstName, lastName, email, message, category, priority } = contactData;
+
+    const body = `
+        <h2 style="margin:0 0 12px;font-size:24px;font-weight:800;color:#111827;letter-spacing:-0.5px;">New Support Inquiry &#128229;</h2>
+        <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.7;">
+            A user has submitted a support ticket through the RankPilot contact form. Here are the details:
+        </p>
+        <table cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;margin:0 0 28px;">
+            <tr>
+                <td style="padding:10px 12px;background:#f9fafb;border:1px solid #f3f4f6;font-size:14px;font-weight:700;color:#374151;width:120px;">Name</td>
+                <td style="padding:10px 12px;border:1px solid #f3f4f6;font-size:14px;color:#111827;">${firstName} ${lastName || ''}</td>
+            </tr>
+            <tr>
+                <td style="padding:10px 12px;background:#f9fafb;border:1px solid #f3f4f6;font-size:14px;font-weight:700;color:#374151;">Email</td>
+                <td style="padding:10px 12px;border:1px solid #f3f4f6;font-size:14px;color:#6366F1;font-weight:600;"><a href="mailto:${email}" style="color:#6366F1;text-decoration:none;">${email}</a></td>
+            </tr>
+            <tr>
+                <td style="padding:10px 12px;background:#f9fafb;border:1px solid #f3f4f6;font-size:14px;font-weight:700;color:#374151;">Category</td>
+                <td style="padding:10px 12px;border:1px solid #f3f4f6;font-size:14px;color:#111827;font-weight:600;">${category || 'General Inquiry'}</td>
+            </tr>
+            <tr>
+                <td style="padding:10px 12px;background:#f9fafb;border:1px solid #f3f4f6;font-size:14px;font-weight:700;color:#374151;">Priority</td>
+                <td style="padding:10px 12px;border:1px solid #f3f4f6;font-size:14px;color:#EF4444;font-weight:700;">${priority || 'Standard'}</td>
+            </tr>
+            <tr>
+                <td style="padding:10px 12px;background:#f9fafb;border:1px solid #f3f4f6;font-size:14px;font-weight:700;color:#374151;vertical-align:top;">Message</td>
+                <td style="padding:10px 12px;border:1px solid #f3f4f6;font-size:14px;color:#374151;line-height:1.6;white-space:pre-wrap;">${message}</td>
+            </tr>
+        </table>
+        <hr style="border:none;border-top:1px solid #f3f4f6;margin:32px 0;" />
+        <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.6;">
+            You are receiving this automated alert because you are configured as the support notification recipient for RankPilot.
+        </p>`;
+
+    await transporter.sendMail({
+        from: `"RankPilot Help Desk" <${process.env.EMAIL_FROM}>`,
+        to: process.env.EMAIL_FROM, 
+        subject: `[Support Ticket] Inquiry from ${firstName} ${lastName || ''}`,
+        html: wrapEmail('New Support Inquiry', body),
+    });
+};
+

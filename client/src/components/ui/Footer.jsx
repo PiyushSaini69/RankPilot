@@ -4,121 +4,67 @@ import Logo from './Logo';
 
 const Footer = () => {
   return (
-    <footer className="bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white border-t border-neutral-200 dark:border-white/5 px-8 py-12 font-sans transition-colors duration-500">
-      <div className="max-w-7xl mx-auto">
-        {/* ROW 1 — Brand + Links + Subscribe */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-12">
-          
-          {/* Column 1: Brand Section */}
-          <div className="flex flex-col space-y-5">
-            <NavLink to="/" className="flex items-center gap-2.5">
-              <Logo className="w-8 h-8" />
+    <footer className="w-full bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-200 border-t border-neutral-200 dark:border-white/5 py-8 px-6 sm:px-8 font-sans transition-colors duration-500">
+      <div className="max-w-7xl mx-auto flex flex-col gap-6">
+        
+        {/* Top Row: Logo + Top Links */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 sm:gap-4">
+          {/* Logo Section */}
+          <NavLink to="/" className="flex items-center gap-2.5">
+            <Logo className="w-7 h-7 sm:w-8 sm:h-8" />
+          </NavLink>
+
+          {/* Navigation Links */}
+          <div className="flex items-center gap-6 md:gap-8 flex-wrap">
+            <NavLink 
+              to="/features" 
+              className={({ isActive }) => `text-sm font-semibold transition-colors duration-200 ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
+            >
+              Features
             </NavLink>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">
-              AI-Powered Marketing Intelligence for modern SEO professionals.
-            </p>
-            
-            {/* Integration Badges */}
-            <div className="flex flex-wrap gap-2">
-              {["GA4", "GSC", "Ads", "Meta"].map((badge) => (
-                <span 
-                  key={badge} 
-                  className="px-2 py-0.5 bg-neutral-100 dark:bg-white/5 text-neutral-500 dark:text-neutral-400 text-[10px] font-bold rounded-full border border-neutral-200 dark:border-white/10"
-                >
-                  {badge} ✓
-                </span>
-              ))}
-            </div>
-            <p className="text-xs text-neutral-400 dark:text-neutral-500 font-medium pt-2">
-              © 2026 RankPilot.
-            </p>
-          </div>
-
-          {/* Column 2: Platform */}
-          <div>
-            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-500 mb-6">Platform</h4>
-            <ul className="space-y-3.5">
-              {[
-                { label: "Features Overview", path: "/features" },
-                { label: "Pricing Plans", path: "/pricing" },
-                { label: "Dashboard", path: "/dashboard" },
-                { label: "Customer Stories", path: "#" },
-                { label: "Documentation", path: "#" }
-              ].map((item) => (
-                <li key={item.label}>
-                  <NavLink to={item.path} className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-white transition-colors">
-                    {item.label}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Column 3: Integrations */}
-          <div>
-            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-500 mb-6">Integrations</h4>
-            <ul className="space-y-3.5">
-              {[
-                { label: "Google Analytics", path: "/features/ga4" },
-                { label: "Search Console", path: "/features/gsc" },
-                { label: "Google Ads", path: "/features/ads" },
-                { label: "Facebook Ads", path: "/features/ads" },
-                { label: "AI Assistant", path: "/features/ai" }
-              ].map((item) => (
-                <li key={item.label}>
-                  <NavLink to={item.path} className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-white transition-colors">
-                    {item.label}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Column 4: Company */}
-          <div>
-            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-500 mb-6">Company</h4>
-            <ul className="space-y-3.5">
-              {[
-                { label: "About Us", path: "/about" },
-                { label: "Blog", path: "/blog" },
-                { label: "Careers", path: "/careers" },
-                { label: "Press Kit", path: "/press" },
-                { label: "Contact Us", path: "/contact" }
-              ].map((item) => (
-                <li key={item.label}>
-                  <NavLink to={item.path} className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-white transition-colors">
-                    {item.label}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Column 5: Legal */}
-          <div>
-            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-500 mb-6">Legal</h4>
-            <ul className="space-y-3.5">
-              {[
-                { label: "Privacy Policy", path: "/privacy" },
-                { label: "Terms of Service", path: "/terms" },
-                { label: "Cookie Policy", path: "/cookies" },
-                { label: "GDPR Compliance", path: "/gdpr" },
-                { label: "Data Processing", path: "/privacy" }
-              ].map((item) => (
-                <li key={item.label}>
-                  <NavLink to={item.path} className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-white transition-colors">
-                    {item.label}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
+            <NavLink 
+              to="/about" 
+              className={({ isActive }) => `text-sm font-semibold transition-colors duration-200 ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
+            >
+              About us
+            </NavLink>
+            <NavLink 
+              to="/contact" 
+              className={({ isActive }) => `text-sm font-semibold transition-colors duration-200 ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
+            >
+              Contact us
+            </NavLink>
           </div>
         </div>
+
+        {/* Divider */}
+        <hr className="border-neutral-200 dark:border-neutral-800/80 my-2" />
+
+        {/* Bottom Row: Copyright + Legal Links */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-medium text-neutral-500 dark:text-neutral-400">
+          <p>© 2026 RankPilot. All rights reserved.</p>
+          <div className="flex items-center gap-6">
+            <NavLink 
+              to="/privacy" 
+              className={({ isActive }) => `hover:text-neutral-900 dark:hover:text-white transition-colors ${isActive ? 'text-brand-600 dark:text-brand-400 font-semibold' : ''}`}
+            >
+              Privacy policy
+            </NavLink>
+            <NavLink 
+              to="/terms" 
+              className={({ isActive }) => `hover:text-neutral-900 dark:hover:text-white transition-colors ${isActive ? 'text-brand-600 dark:text-brand-400 font-semibold' : ''}`}
+            >
+              Terms of service
+            </NavLink>
+          </div>
+        </div>
+
       </div>
     </footer>
   );
 };
 
 export default Footer;
+
 
 

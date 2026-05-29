@@ -21,27 +21,15 @@ import FacebookAdsPage from './pages/FacebookAdsPage';
 import SitesPage from './pages/SitesPage';
 import AboutPage from './pages/AboutPage';
 import SupportPage from './pages/SupportPage';
-import PricingPage from './pages/PricingPage';
 import FeaturesPage from './pages/FeaturesPage';
 
 
 // Company Pages
 import ContactPage from './pages/company/ContactPage';
-import BlogPage from './pages/company/BlogPage';
-import CareersPage from './pages/company/CareersPage';
-import PressKitPage from './pages/company/PressKitPage';
 
 // Legal Pages
 import PrivacyPage from './pages/legal/PrivacyPage';
 import TermsPage from './pages/legal/TermsPage';
-import CookiePolicyPage from './pages/legal/CookiePolicyPage';
-import GDPRPage from './pages/legal/GDPRPage';
-
-// Feature Marketing Pages
-import Ga4Feature from './pages/features/Ga4Feature';
-import GscFeature from './pages/features/GscFeature';
-import AdsFeature from './pages/features/AdsFeature';
-import AiAssistantFeature from './pages/features/AiAssistantFeature';
 
 import { ProtectedRoute, AuthRoute, AdminRoute } from './components/ui/RouteWrappers';
 import { getMe } from './api/authApi';
@@ -129,22 +117,11 @@ const App = () => {
         
         {/* Public Marketing/Legal Pages */}
         <Route path="/about" element={<AboutPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/features" element={<FeaturesPage />} />
         <Route path="/contact" element={<ContactPage />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/careers" element={<CareersPage />} />
-        <Route path="/press" element={<PressKitPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
-        <Route path="/cookies" element={<CookiePolicyPage />} />
-        <Route path="/gdpr" element={<GDPRPage />} />
 
-        {/* Feature Landing Pages */}
-        <Route path="/features/ga4" element={<Ga4Feature />} />
-        <Route path="/features/gsc" element={<GscFeature />} />
-        <Route path="/features/ads" element={<AdsFeature />} />
-        <Route path="/features/ai" element={<AiAssistantFeature />} />
 
         {/* Protected Routes */}
         <Route path="/connect-accounts" element={
