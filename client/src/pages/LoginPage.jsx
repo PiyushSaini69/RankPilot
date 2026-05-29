@@ -222,7 +222,7 @@ const LoginPage = () => {
                     {/* Trust badges */}
                     <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t border-neutral-100 dark:border-white/5">
                         {['🔒 Encrypted', '⚡ Instant Setup', '🤖 AI Powered'].map((badge, i) => (
-                            <span key={i} className="text-[10px] font-bold text-neutral-400 dark:text-slate-600">{badge}</span>
+                            <span key={i} className="text-[12px] font-bold text-neutral-400 dark:text-slate-600">{badge}</span>
                         ))}
                     </div>
                 </div>

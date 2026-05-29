@@ -91,17 +91,6 @@ const ResetPasswordPage = () => {
                 </p>
             </div>
 
-            {/* Trust Footer */}
-            <div className="relative z-10 flex items-center gap-4 text-neutral-400 dark:text-slate-600">
-                <div className="flex -space-x-2">
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 bg-neutral-200 dark:bg-slate-800 flex items-center justify-center text-[10px] font-black">
-                            {String.fromCharCode(64 + i)}
-                        </div>
-                    ))}
-                </div>
-                <p className="text-[11px] font-bold uppercase tracking-wider">Trusted by 2,000+ marketers</p>
-            </div>
         </div>
 
         {/* Right Panel — form */}
@@ -182,9 +171,9 @@ const ResetPasswordPage = () => {
               </div>
             </form>
 
-            <div className="mt-12 pt-8 border-t border-neutral-100 dark:border-white/5 flex items-center justify-center gap-6 opacity-40">
+            <div className="mt-12 pt-8 border-t border-neutral-100 dark:border-white/5 flex items-center justify-center gap-6">
                 {['🔒 Secure', '⚡ Fast', '🛠️ Reliable'].map((item, i) => (
-                    <span key={i} className="text-[10px] font-bold text-neutral-500 dark:text-slate-400 uppercase tracking-widest">{item}</span>
+                    <span key={i} className="text-[12px] font-bold text-neutral-500 dark:text-slate-400 uppercase tracking-widest">{item}</span>
                 ))}
             </div>
           </div>

@@ -152,9 +152,9 @@ const VerifyEmailPage = () => {
             )}
 
             {/* Footer badges */}
-            <div className="mt-12 pt-8 border-t border-neutral-100 dark:border-white/5 flex items-center justify-center gap-6 opacity-40">
+            <div className="mt-12 pt-8 border-t border-neutral-100 dark:border-white/5 flex items-center justify-center gap-6">
                 {['🔒 Secure', '⚡ Fast', '🛠️ Reliable'].map((item, i) => (
-                    <span key={i} className="text-[10px] font-bold text-neutral-500 dark:text-slate-400 uppercase tracking-widest">{item}</span>
+                    <span key={i} className="text-[12px] font-bold text-neutral-500 dark:text-slate-400 uppercase tracking-widest">{item}</span>
                 ))}
             </div>
           </div>
