@@ -13,8 +13,10 @@ import {
     XMarkIcon
 } from '@heroicons/react/24/outline';
 import { useAccountsStore } from '../store/accountsStore';
+import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
 import { deleteSite, listSites } from '../api/accountApi';
+import { getMe } from '../api/authApi';
 import toast from 'react-hot-toast';
 
 /* ─── Highly Readable Integration Badge ─── */
@@ -32,6 +34,7 @@ const ToolBadge = ({ connected, label }) => (
 const SitesPage = () => {
     const navigate = useNavigate();
     const { userSites, activeSiteId, setAccounts } = useAccountsStore();
+    const { token, setAuth } = useAuthStore();
     const [loading, setLoading] = useState(false);
 
     const fetchSites = async () => {
@@ -52,6 +55,16 @@ const SitesPage = () => {
         try {
             await deleteSite(id);
             toast.success(`Site "${name}" deleted`);
+            
+            // Refresh user auth state with updated connectedSources
+            try {
+                const meRes = await getMe();
+                if (meRes.data && meRes.data.user) {
+                    setAuth(token, meRes.data.user);
+                }
+            } catch (err) {
+                console.error('Failed to sync auth user state:', err);
+            }
             
             const { addNotification } = useNotificationStore.getState();
             addNotification({

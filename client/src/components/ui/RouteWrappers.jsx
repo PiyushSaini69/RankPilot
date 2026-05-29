@@ -1,19 +1,33 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 
 export const ProtectedRoute = ({ children }) => {
-    const { token } = useAuthStore();
+    const { token, user } = useAuthStore();
+    const location = useLocation();
+
     if (!token) {
         return <Navigate to="/" replace />;
     }
+
+    const hasConnectedPlatform = user?.connectedSources?.some(src => 
+        ['ga4', 'gsc', 'google-ads', 'facebook-ads'].includes(src)
+    );
+
+    if (!hasConnectedPlatform && location.pathname !== '/connect-accounts') {
+        return <Navigate to="/connect-accounts" replace />;
+    }
+
     return children;
 };
 
 export const AuthRoute = ({ children }) => {
     const { token, user } = useAuthStore();
     if (token) {
-        return <Navigate to={user?.isFirstLogin ? "/connect-accounts" : "/dashboard"} replace />;
+        const hasConnectedPlatform = user?.connectedSources?.some(src => 
+            ['ga4', 'gsc', 'google-ads', 'facebook-ads'].includes(src)
+        );
+        return <Navigate to={hasConnectedPlatform ? "/dashboard" : "/connect-accounts"} replace />;
     }
     return children;
 };

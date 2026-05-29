@@ -9,7 +9,7 @@ import api, { getApiUrl } from '../api';
 import toast from 'react-hot-toast';
 
 const SettingsPage = () => {
-    const { user, clearAuth, token } = useAuthStore();
+    const { user, clearAuth, token, setAuth } = useAuthStore();
     const { setAccounts } = useAccountsStore();
 
     const [userConnectedSources, setUserConnectedSources] = React.useState([]);
@@ -63,6 +63,16 @@ const SettingsPage = () => {
         try {
             const res = await disconnectGoogle(tokenId);
             
+            // Refresh user auth state with updated connectedSources
+            try {
+                const meRes = await getMe();
+                if (meRes.data && meRes.data.user) {
+                    setAuth(token, meRes.data.user);
+                }
+            } catch (err) {
+                console.error('Failed to sync auth user state:', err);
+            }
+            
             if (tokenId) {
                 // Remove from local state
                 const remaining = googleAccounts.filter(a => a._id !== tokenId);
@@ -101,6 +111,17 @@ const SettingsPage = () => {
         if (!window.confirm(msg)) return;
         try {
             await disconnectFacebook(tokenId);
+            
+            // Refresh user auth state with updated connectedSources
+            try {
+                const meRes = await getMe();
+                if (meRes.data && meRes.data.user) {
+                    setAuth(token, meRes.data.user);
+                }
+            } catch (err) {
+                console.error('Failed to sync auth user state:', err);
+            }
+            
             if (tokenId) {
                 const remaining = facebookAccounts.filter(a => a._id !== tokenId);
                 setFacebookAccounts(remaining);

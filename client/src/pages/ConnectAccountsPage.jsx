@@ -31,7 +31,7 @@ const ConnectAccountsPage = () => {
 
     const { activeSiteId, setAccounts } = useAccountsStore();
     const [userConnectedSources, setUserConnectedSources] = useState([]);
-    const { token } = useAuthStore();
+    const { token, setAuth } = useAuthStore();
     const navigate = useNavigate();
     const queryParams = new URLSearchParams(window.location.search);
     const isNew = queryParams.get('new') === 'true';
@@ -370,6 +370,17 @@ const ConnectAccountsPage = () => {
             });
 
             toast.success(isNew ? 'New website added!' : 'Integrations updated!');
+            
+            // Refresh user auth state with updated connectedSources
+            try {
+                const meRes = await getMe();
+                if (meRes.data && meRes.data.user) {
+                    setAuth(token, meRes.data.user);
+                }
+            } catch (err) {
+                console.error('Failed to sync auth user state:', err);
+            }
+
             navigate('/dashboard');
         } catch (err) {
             console.error('Save Accounts Error:', err);

@@ -219,7 +219,10 @@ const AuthCallback = () => {
           setAuth(code, res.data.user);
           
           // 3. Client-side navigation (No page reload)
-          if (res.data.user?.isFirstLogin) {
+          const hasConnectedPlatform = res.data.user?.connectedSources?.some(src => 
+            ['ga4', 'gsc', 'google-ads', 'facebook-ads'].includes(src)
+          );
+          if (!hasConnectedPlatform) {
             navigate('/connect-accounts', { replace: true });
           } else {
             navigate('/dashboard', { replace: true });

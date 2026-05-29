@@ -170,13 +170,6 @@ export const login = async (req, res) => {
         if (accounts?.facebookAdAccountId) connectedSources.push('facebook-ads');
     }
 
-    let isFirstLogin = false;
-    if (user.isFirstLogin) {
-        isFirstLogin = true;
-        user.isFirstLogin = false;
-        await user.save();
-    }
-
     res.status(200).json({
         token: generateToken(user._id, user.email),
         user: { 
@@ -184,8 +177,7 @@ export const login = async (req, res) => {
             name: user.displayName, 
             email: user.email, 
             avatar: user.avatar, 
-            connectedSources,
-            isFirstLogin
+            connectedSources
         }
     });
 };
@@ -254,22 +246,13 @@ export const getMe = async (req, res) => {
         if (accounts?.facebookAdAccountId) connectedSources.push('facebook-ads');
     }
 
-    let isFirstLogin = false;
-    const dbUser = await User.findById(req.user._id);
-    if (dbUser && dbUser.isFirstLogin) {
-        isFirstLogin = true;
-        dbUser.isFirstLogin = false;
-        await dbUser.save();
-    }
-
     res.status(200).json({
         user: { 
             id: req.user._id, 
             name: req.user.displayName, 
             email: req.user.email, 
             avatar: req.user.avatar, 
-            connectedSources, 
-            isFirstLogin 
+            connectedSources
         },
         connectedSources
     });
