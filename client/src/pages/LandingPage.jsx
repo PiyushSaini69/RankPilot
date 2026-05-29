@@ -35,12 +35,6 @@ const LandingPage = () => {
 
                 <div className="relative z-10 max-w-5xl mx-auto text-center">
 
-                    {/* Badge */}
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 mb-6">
-                        <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse"/>
-                        <span className="text-xs font-black text-brand-400 uppercase tracking-widest">AI-Powered Analytics Platform</span>
-                    </div>
-
                     {/* Headline */}
                     <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-neutral-900 dark:text-white tracking-tighter leading-[1.1] sm:leading-[0.9] mb-6">
                         Your Data.<br/>
