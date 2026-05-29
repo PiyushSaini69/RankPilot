@@ -584,14 +584,14 @@ const DashboardLayout = ({ children, noScroll = false, title }) => {
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col h-full bg-neutral-50 dark:bg-dark-bg overflow-hidden">
                 {/* Header */}
-                <header className="flex-shrink-0 flex items-center justify-between px-3 sm:px-5 py-2.5 sm:py-3 bg-white dark:bg-dark-surface border-b border-neutral-200 dark:border-neutral-800 z-20">
-                    <div className="flex items-center gap-2 sm:gap-4 md:gap-8 flex-1">
+                <header className="flex-shrink-0 flex items-center justify-between px-5 py-4 bg-white dark:bg-dark-surface border-b border-neutral-100 dark:border-neutral-800/80 z-20 sticky top-0 transition-colors duration-200">
+                    <div className="flex items-center gap-4 flex-1">
                         {/* Mobile Menu Toggle */}
                         <button
                             onClick={() => setIsSidebarOpen(true)}
-                            className="p-1.5 sm:p-2 -ml-1 sm:-ml-2 text-neutral-500 hover:text-brand-500 md:hidden"
+                            className="p-1.5 -ml-1 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-lg transition-colors md:hidden"
                         >
-                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
                             </svg>
                         </button>
@@ -600,144 +600,50 @@ const DashboardLayout = ({ children, noScroll = false, title }) => {
                         <div className="hidden sm:flex flex-col">
                             <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-neutral-400">
                                 <span>Home</span>
-                                <span className="text-neutral-300">/</span>
-                                <span className="text-brand-500">Dashboard</span>
+                                <span className="text-neutral-300 dark:text-neutral-750">/</span>
+                                <span className="text-brand-500 dark:text-brand-400">{title || 'Dashboard'}</span>
                             </div>
-                            <h2 className="text-xs sm:text-sm md:text-base font-black text-neutral-900 dark:text-white leading-tight truncate max-w-[120px] sm:max-w-none">{title || 'Dashboard'}</h2>
-                        </div>
-
-                        {/* Search - Condensed on small screens */}
-                        <div className="flex flex-col flex-1 max-w-[140px] sm:max-w-xs md:max-w-md relative group">
-                            <div className="flex items-center bg-neutral-100 dark:bg-dark-surface border border-neutral-200 dark:border-neutral-700 rounded-xl sm:rounded-2xl px-2.5 sm:px-4 py-1.5 sm:py-2.5 w-full group focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-500/10 transition-all shadow-inner relative z-30">
-                                <MagnifyingGlassIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-400 group-focus-within:text-brand-500" strokeWidth={3} />
-                                <input
-                                    ref={searchInputRef}
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onFocus={() => setIsSearchFocused(true)}
-                                    onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                                    placeholder={window.innerWidth < 640 ? "Search..." : "Search pages, keywords..."}
-                                    className="bg-transparent border-none focus:ring-0 text-[11px] sm:text-sm font-bold w-full ml-1.5 sm:ml-3 text-neutral-900 dark:text-white placeholder:text-neutral-400"
-                                />
-                                {searchQuery && (
-                                    <button
-                                        onClick={() => setSearchQuery('')}
-                                        className="p-1 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-lg transition-colors mr-1 sm:mr-2"
-                                    >
-                                        <span className="text-[10px] sm:text-xs font-black">×</span>
-                                    </button>
-                                )}
-                                <div className="hidden lg:flex items-center gap-1.5 ml-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300">
-                                    <kbd className="px-2.5 py-1 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-dark-card text-[10px] font-black text-neutral-400 shadow-sm group-focus-within:border-brand-500/30 group-focus-within:text-brand-500 uppercase whitespace-nowrap">{navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} K</kbd>
-                                </div>
-                            </div>
-
-                            {/* Global Search Results Dropdown */}
-                            {searchQuery && isSearchFocused && (
-                                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-700 rounded-3xl shadow-2xl p-4 z-20 animate-slide-up origin-top overflow-hidden">
-                                    <div className="max-h-[400px] overflow-y-auto custom-scrollbar space-y-4">
-                                        <div className="px-4 py-2">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-4">Quick Results for "{searchQuery}"</p>
-
-                                            <div className="space-y-1">
-                                                {/* Dashboard Sections */}
-                                                {['Growth Matrix', 'Active Insights', 'Top Performing Pages'].filter(s => s.toLowerCase().includes(searchQuery.toLowerCase())).map((section, idx) => (
-                                                    <button
-                                                        key={`section-res-${idx}`}
-                                                        onClick={() => {
-                                                            const id = section.toLowerCase().includes('matrix') ? 'growth-matrix' :
-                                                                section.toLowerCase().includes('insights') ? 'insights-panel' : 'top-pages-table';
-                                                            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-                                                            setSearchQuery('');
-                                                        }}
-                                                        className="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-neutral-50 dark:hover:bg-dark-bg transition-all text-left group/sec"
-                                                    >
-                                                        <div className="w-10 h-10 rounded-xl bg-accent-500/10 text-accent-600 flex items-center justify-center group-hover/sec:bg-accent-500 group-hover/sec:text-white transition-all">
-                                                            <ChartBarIcon className="w-5 h-5" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm font-black text-neutral-900 dark:text-white">{section}</p>
-                                                            <p className="text-[10px] font-bold text-neutral-500">Dashboard Section</p>
-                                                        </div>
-                                                        <ArrowRightIcon className="w-4 h-4 ml-auto text-neutral-300 group-hover/sec:text-accent-500 transition-colors" />
-                                                    </button>
-                                                ))}
-
-                                                {/* Nav Items */}
-                                                {navItems.filter(i => i.label.toLowerCase().includes(searchQuery.toLowerCase())).map((item, idx) => (
-                                                    <button
-                                                        key={`search-res-${idx}`}
-                                                        onClick={() => { navigate(item.path); setSearchQuery(''); }}
-                                                        className="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all text-left group/res"
-                                                    >
-                                                        <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-dark-bg flex items-center justify-center group-hover/res:bg-brand-500 group-hover/res:text-white transition-all">
-                                                            <item.icon className="w-5 h-5" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm font-black text-neutral-900 dark:text-white">{item.label}</p>
-                                                            <p className="text-[10px] font-bold text-neutral-500">Navigation Item</p>
-                                                        </div>
-                                                        <ChevronRightIcon className="w-4 h-4 ml-auto text-neutral-300 group-hover/res:text-brand-500 transition-colors" />
-                                                    </button>
-                                                ))}
-                                                <button
-                                                    onClick={() => { setSearchQuery(''); navigate('/dashboard/ai-chat'); }}
-                                                    className="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-brand-50 group/ai transition-all text-left"
-                                                >
-                                                    <div className="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center text-white">
-                                                        <SparklesIcon className="w-5 h-5" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-black text-brand-600">Ask AI about "{searchQuery}"</p>
-                                                        <p className="text-[10px] font-bold text-brand-400">Natural Language Query</p>
-                                                    </div>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="p-3 bg-neutral-50 dark:bg-dark-surface/50 border-t border-neutral-100 dark:border-neutral-800 mt-2 flex justify-between items-center px-6">
-                                        <span className="text-[10px] font-bold text-neutral-400">Tip: Results filter the dashboard table automatically</span>
-                                        <span className="text-[10px] font-black text-brand-500">ESC to close</span>
-                                    </div>
-                                </div>
-                            )}
+                            <h2 className="text-xs sm:text-sm md:text-base font-black text-neutral-900 dark:text-white leading-tight truncate max-w-[120px] sm:max-w-none mt-0.5">{title || 'Dashboard'}</h2>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="flex items-center gap-3">
                         <div className="relative">
                             <button
                                 onClick={() => setIsNotifOpen(!isNotifOpen)}
-                                className="relative p-2 text-neutral-500 hover:text-brand-500 dark:text-neutral-400 dark:hover:text-brand-400 transition-colors rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                                className={`
+                                    relative p-2 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white 
+                                    transition-colors duration-150 rounded-lg
+                                    ${isNotifOpen 
+                                        ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white' 
+                                        : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/40'}
+                                `}
                             >
                                 <BellIcon className="w-5 h-5" strokeWidth={2} />
                                 {unreadCount > 0 && (
-                                    <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center leading-none border border-white dark:border-dark-surface">
-                                        {unreadCount > 9 ? '9+' : unreadCount}
-                                    </span>
+                                    <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 border border-white dark:border-dark-surface shadow-[0_1px_2px_rgba(0,0,0,0.05)]"></span>
                                 )}
                             </button>
 
                             {isNotifOpen && (
                                 <>
                                     <div className="fixed inset-0 z-40" onClick={() => setIsNotifOpen(false)} />
-                                    <div className="fixed inset-x-4 top-[64px] sm:absolute sm:top-full sm:right-0 sm:left-auto sm:mt-2 sm:w-[380px] bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                    <div className="fixed inset-x-4 top-[64px] sm:absolute sm:top-full sm:right-0 sm:left-auto sm:mt-2 sm:w-[380px] bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800/80 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150 origin-top-right">
                                         <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between bg-white dark:bg-neutral-900">
                                             <h4 className="text-[10px] font-black uppercase tracking-[0.15em] text-neutral-900 dark:text-white">Notifications</h4>
                                             {notifications.length > 0 && (
-                                                <button onClick={clearAll} className="text-[10px] font-bold text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">Clear all</button>
+                                                <button onClick={clearAll} className="text-[10px] font-bold text-neutral-455 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">Clear all</button>
                                             )}
                                         </div>
 
                                         <div className="max-h-[60vh] sm:max-h-[480px] overflow-y-auto scrollbar-hide">
                                             {notifications.length === 0 ? (
                                                 <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-                                                    <div className="w-14 h-14 rounded-2xl bg-neutral-50 dark:bg-neutral-800 flex items-center justify-center mb-4 border border-neutral-100 dark:border-neutral-700">
-                                                        <BellIcon className="w-7 h-7 text-neutral-300" />
+                                                    <div className="w-12 h-12 rounded-xl bg-neutral-50 dark:bg-neutral-800 flex items-center justify-center mb-3 border border-neutral-100 dark:border-neutral-750">
+                                                        <BellIcon className="w-6 h-6 text-neutral-300 dark:text-neutral-605" strokeWidth={1.8} />
                                                     </div>
-                                                    <p className="text-sm font-black text-neutral-900 dark:text-white">All caught up!</p>
-                                                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">No new notifications at the moment.</p>
+                                                    <p className="text-sm font-bold text-neutral-900 dark:text-white">All caught up!</p>
+                                                    <p className="text-xs text-neutral-450 dark:text-neutral-500 mt-1">No new notifications at the moment.</p>
                                                 </div>
                                             ) : (
                                                 <div className="divide-y divide-neutral-50 dark:divide-neutral-800/50">
@@ -746,27 +652,27 @@ const DashboardLayout = ({ children, noScroll = false, title }) => {
                                                         return (
                                                             <div 
                                                                 key={notif.id} 
-                                                                className={`group relative px-4 py-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-all cursor-pointer ${!notif.isRead ? 'bg-blue-50/20 dark:bg-brand-500/5' : ''}`}
+                                                                className={`group relative px-4 py-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-all cursor-pointer ${!notif.isRead ? 'bg-blue-50/10 dark:bg-brand-500/5' : ''}`}
                                                                 onClick={() => { markAsRead(notif.id); if (notif.actionPath) { navigate(notif.actionPath); setIsNotifOpen(false); } }}
                                                             >
-                                                                <div className="flex items-start gap-3.5">
-                                                                    <div className={`w-9 h-9 rounded-full ${icon.bg} flex items-center justify-center flex-shrink-0 shadow-sm border border-white dark:border-neutral-800 p-1.5`}>
+                                                                <div className="flex items-start gap-3">
+                                                                    <div className={`w-8 h-8 rounded-full ${icon.bg} flex items-center justify-center flex-shrink-0 border border-white dark:border-neutral-800 p-1.5 shadow-sm`}>
                                                                         <img src={icon.icon} className="w-full h-full object-contain" alt="Notif" />
                                                                     </div>
                                                                     <div className="flex-1 min-w-0">
                                                                         <div className="flex items-start justify-between gap-3">
-                                                                            <p className={`text-[12px] font-black leading-tight ${!notif.isRead ? 'text-neutral-900 dark:text-white' : 'text-neutral-700 dark:text-neutral-300'}`}>{notif.title}</p>
+                                                                            <p className={`text-[12px] font-bold leading-tight ${!notif.isRead ? 'text-neutral-900 dark:text-white' : 'text-neutral-700 dark:text-neutral-300'}`}>{notif.title}</p>
                                                                             <button onClick={(e) => { e.stopPropagation(); deleteNotification(notif.id); }} className="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-neutral-300 hover:text-red-500 transition-all flex-shrink-0"><XMarkIcon className="w-3 h-3" /></button>
                                                                         </div>
                                                                         <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed font-medium line-clamp-2">{notif.message}</p>
                                                                         
                                                                         <div className="flex items-center justify-between mt-2.5 gap-2">
                                                                             <div className="flex items-center gap-2">
-                                                                                <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500">{getTimeAgo(notif.timestamp)}</span>
+                                                                                <span className="text-[10px] font-medium text-neutral-400 dark:text-neutral-500">{getTimeAgo(notif.timestamp)}</span>
                                                                                 {getSourceLabel(notif.source) && (
                                                                                     <>
                                                                                         <span className="text-neutral-300 dark:text-neutral-700">·</span>
-                                                                                        <span className="text-[10px] font-black text-neutral-400 dark:text-neutral-500 flex items-center gap-1.5">
+                                                                                        <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 flex items-center gap-1.5">
                                                                                             <img src={getSourceLabel(notif.source).icon} className="w-3 h-3 object-contain" alt="src" />
                                                                                             {getSourceLabel(notif.source).label}
                                                                                         </span>
@@ -774,7 +680,7 @@ const DashboardLayout = ({ children, noScroll = false, title }) => {
                                                                                 )}
                                                                             </div>
                                                                             {notif.actionLabel && (
-                                                                                <span className="text-[10px] font-black text-brand-600 dark:text-brand-400 hover:text-brand-700">
+                                                                                <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700">
                                                                                     {notif.actionLabel} →
                                                                                 </span>
                                                                             )}
@@ -783,70 +689,75 @@ const DashboardLayout = ({ children, noScroll = false, title }) => {
                                                                 </div>
                                                             </div>
                                                         );
-                                                    })}
-                                                </div>
-                                            )}
-                                        </div>
-                                        {notifications.length > 0 && (
-                                            <div className="px-4 py-3 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/30 dark:bg-neutral-800/20 flex items-center justify-between">
-                                                <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">{notifications.length} total · {unreadCount} unread</p>
-                                                <div className="flex items-center gap-3">
-                                                    {unreadCount > 0 && (
-                                                        <button 
-                                                            onClick={markAllRead} 
-                                                            className="text-[10px] font-black uppercase tracking-wider text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"
-                                                        >
-                                                            Mark all read
-                                                        </button>
-                                                     )}
-                                                     {unreadCount > 0 && (notifications.length - unreadCount > 0) && (
-                                                         <span className="text-neutral-300 dark:text-neutral-700 text-[10px]">·</span>
-                                                     )}
-                                                     {notifications.length - unreadCount > 0 && (
-                                                         <button 
-                                                             onClick={clearRead} 
-                                                             className="text-[10px] font-black uppercase tracking-wider text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors"
-                                                         >
-                                                             Clear read
-                                                         </button>
-                                                     )}
+                                                     })}
                                                  </div>
-                                            </div>
-                                        )}
+                                             )}
+                                         </div>
+                                         {notifications.length > 0 && (
+                                             <div className="px-4 py-3 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/30 dark:bg-neutral-800/20 flex items-center justify-between">
+                                                 <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">{notifications.length} total · {unreadCount} unread</p>
+                                                 <div className="flex items-center gap-3">
+                                                     {unreadCount > 0 && (
+                                                         <button 
+                                                             onClick={markAllRead} 
+                                                             className="text-[10px] font-bold uppercase tracking-wider text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"
+                                                         >
+                                                             Mark all read
+                                                         </button>
+                                                      )}
+                                                      {unreadCount > 0 && (notifications.length - unreadCount > 0) && (
+                                                          <span className="text-neutral-300 dark:text-neutral-700 text-[10px]">·</span>
+                                                      )}
+                                                      {notifications.length - unreadCount > 0 && (
+                                                          <button 
+                                                              onClick={clearRead} 
+                                                              className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors"
+                                                          >
+                                                              Clear read
+                                                          </button>
+                                                      )}
+                                                 </div>
+                                             </div>
+                                         )}
                                     </div>
                                 </>
                             )}
                         </div>
 
-                        <div className="h-6 w-[1px] bg-neutral-200 dark:bg-neutral-800 mx-2"></div>
+                        <div className="h-5 w-[1px] bg-neutral-200 dark:bg-neutral-800 mx-2.5"></div>
 
                         <div className="relative">
                             <button
-                                className="flex items-center gap-3 p-1 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all group"
+                                className={`
+                                    flex items-center gap-2.5 p-1 rounded-xl transition-all duration-150 group
+                                    ${isUserMenuOpen 
+                                        ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white' 
+                                        : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/40'}
+                                `}
                                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                             >
                                 <div className="relative">
                                     {user?.avatar ? (
-                                        <img src={user.avatar} alt="Avatar" className="w-9 h-9 rounded-xl object-cover ring-2 ring-transparent group-hover:ring-brand-500/20 transition-all" />
+                                        <img src={user.avatar} alt="Avatar" className="w-8 h-8 rounded-lg object-cover border border-neutral-200 dark:border-neutral-700" />
                                     ) : (
-                                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-accent-500 text-white flex items-center justify-center text-xs font-black shadow-md">
+                                        <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-850 text-neutral-750 dark:text-neutral-300 flex items-center justify-center text-xs font-bold border border-neutral-200 dark:border-neutral-700 shadow-sm">
                                             {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2) : 'U'}
                                         </div>
                                     )}
-                                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-semantic-success rounded-full border-2 border-white dark:border-dark-bg"></div>
+                                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-semantic-success rounded-full border-2 border-white dark:border-dark-bg z-20"></div>
                                 </div>
                                 <div className="hidden sm:flex flex-col items-start min-w-0 max-w-[120px]">
-                                    <span className="text-sm font-black text-neutral-900 dark:text-white leading-none truncate w-full">
+                                    <span className="text-sm font-bold text-neutral-850 dark:text-neutral-250 leading-none truncate w-full group-hover:text-neutral-900 dark:group-hover:text-white transition-colors duration-150">
                                         {user?.name || 'User'}
                                     </span>
                                 </div>
-                                <ChevronDownIcon className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-600 transition-colors" strokeWidth={3} />
+                                <ChevronDownIcon className={`w-3.5 h-3.5 text-neutral-400 transition-transform duration-200 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} strokeWidth={2.5} />
                             </button>
 
                             {isUserMenuOpen && (
                                 <>
                                     <div className="fixed inset-0 z-40" onClick={() => setIsUserMenuOpen(false)}></div>
-                                    <div className="fixed inset-x-4 top-[64px] sm:absolute sm:top-full sm:right-0 sm:left-auto sm:mt-2 sm:w-64 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                    <div className="fixed inset-x-4 top-[64px] sm:absolute sm:top-full sm:right-0 sm:left-auto sm:mt-2 sm:w-64 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150 origin-top-right">
                                         {/* User Header */}
                                         <div className="px-5 py-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/30">
                                             <p className="text-sm font-black text-neutral-900 dark:text-white truncate">{user?.name || 'User'}</p>
