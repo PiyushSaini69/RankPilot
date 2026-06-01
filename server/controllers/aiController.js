@@ -890,8 +890,9 @@ CRITICAL RULES:
     const shiftRangeStr = (rangeObj) => {
         if (!rangeObj) return null;
         const shiftStr = (dStr) => {
-            const d = new Date(dStr + 'T00:00:00');
-            d.setDate(d.getDate() - 1);
+            const parts = dStr.split('-');
+            const d = new Date(Date.UTC(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)));
+            d.setUTCDate(d.getUTCDate() - 1);
             return d.toISOString().split('T')[0];
         };
         return {
