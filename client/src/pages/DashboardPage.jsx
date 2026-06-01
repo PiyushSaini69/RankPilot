@@ -6,6 +6,7 @@ import DashboardLayout from '../components/ui/DashboardLayout';
 import Logo from '../components/ui/Logo';
 
 import KpiCard from '../components/dashboard/KpiCard';
+import SectionAiSummary from '../components/dashboard/SectionAiSummary';
 import { useDateRangeStore } from '../store/dateRangeStore';
 import { useAccountsStore } from '../store/accountsStore';
 import { useAiChatStore } from '../store/aiChatStore';
@@ -120,6 +121,49 @@ const DashboardPage = () => {
   const [isDeviceMenuOpen, setIsDeviceMenuOpen] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isCustomDateMode, setIsCustomDateMode] = useState(false);
+
+  const handleInsightGenerated = useCallback((sectionKey, newInsight) => {
+    setOverviewData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        intelligence: {
+          ...prev.intelligence,
+          [sectionKey]: newInsight
+        }
+      };
+    });
+  }, []);
+
+  const [generatingWebsiteSummary, setGeneratingWebsiteSummary] = useState(false);
+  const [websiteSummaryError, setWebsiteSummaryError] = useState(null);
+
+  const handleGenerateWebsiteSummary = async () => {
+    if (!activeSiteId || !startDate || !endDate) return;
+    setGeneratingWebsiteSummary(true);
+    setWebsiteSummaryError(null);
+    try {
+      const res = await api.post('/analytics/section-summary', {
+        siteId: activeSiteId,
+        platform: 'dash',
+        sectionKey: 'websiteSummary',
+        startDate,
+        endDate,
+        device: device || 'all'
+      });
+      if (res.data?.success && res.data?.insight) {
+        handleInsightGenerated('websiteSummary', res.data.insight);
+      } else {
+        setWebsiteSummaryError("Failed to generate summary.");
+      }
+    } catch (e) {
+      console.error("Failed to generate website summary", e);
+      setWebsiteSummaryError(e.response?.data?.message || "Generation failed. Try again.");
+    } finally {
+      setGeneratingWebsiteSummary(false);
+    }
+  };
+
 
   const downloadCSV = () => {
     if (!topPages.length) return;
@@ -611,15 +655,51 @@ const DashboardPage = () => {
                             </a>
                           )}
                         </div>
-                        {(loading || !overviewData.intelligence?.websiteSummary) ? (
-                          <div className="space-y-1.5 animate-pulse mt-2.5 max-w-md">
+                        {(loading || generatingWebsiteSummary) ? (
+                          <div className="space-y-1.5 animate-pulse mt-3 max-w-md">
                             <div className="h-2 bg-neutral-200/60 dark:bg-neutral-800/60 rounded-full w-[95%]" />
-                            <div className="h-2 bg-neutral-200/60 dark:bg-neutral-800/60 rounded-full w-[75%]" />
+                            <div className="h-2 bg-neutral-200/60 dark:bg-neutral-800/60 rounded-full w-[70%]" />
+                            {generatingWebsiteSummary && (
+                              <span className="text-[9px] font-black text-brand-500 dark:text-brand-400 uppercase tracking-widest animate-pulse flex items-center gap-1.5 mt-1 select-none">
+                                <SparklesIcon className="w-3.5 h-3.5 animate-spin" /> Analyzing site performance...
+                              </span>
+                            )}
+                          </div>
+                        ) : !overviewData.intelligence?.websiteSummary ? (
+                          <div className="mt-3 flex items-center gap-3 flex-wrap">
+                            <div className="flex items-center gap-2 py-1 px-3 bg-brand-500/5 dark:bg-brand-500/10 border border-brand-100/30 dark:border-brand-500/15 rounded-full select-none">
+                              <SparklesIcon className="w-3.5 h-3.5 text-brand-500 animate-pulse shrink-0" />
+                              <span className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 tracking-wide">
+                                Unlock AI Performance Overview
+                              </span>
+                            </div>
+                            <button
+                              onClick={handleGenerateWebsiteSummary}
+                              className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-550 hover:to-indigo-500 text-white rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 shadow-sm shadow-indigo-600/10 cursor-pointer shrink-0"
+                            >
+                              <SparklesIcon className="w-2.5 h-2.5" />
+                              Unlock Overview
+                            </button>
+                            {websiteSummaryError && (
+                              <span className="text-[8px] font-bold text-red-500 block">{websiteSummaryError}</span>
+                            )}
                           </div>
                         ) : (
-                          <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-md mt-1.5 line-clamp-2">
-                            {overviewData.intelligence?.websiteSummary}
-                          </p>
+                          <div className="relative group/websum mt-3 max-w-xl">
+                            <p className="text-[11.5px] font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed pr-6 whitespace-pre-line">
+                              {overviewData.intelligence?.websiteSummary}
+                            </p>
+                            <button
+                              onClick={handleGenerateWebsiteSummary}
+                              title="Regenerate Overview"
+                              className="absolute top-0.5 right-0 p-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded opacity-0 group-hover/websum:opacity-100 transition-all duration-200 active:scale-90"
+                            >
+                              <ArrowPathIcon className="w-3.5 h-3.5 text-neutral-400 hover:text-brand-500" />
+                            </button>
+                            {websiteSummaryError && (
+                              <span className="text-[8px] font-bold text-red-500 mt-1 block">{websiteSummaryError}</span>
+                            )}
+                          </div>
                         )}
                       </div>
 
@@ -953,12 +1033,12 @@ const DashboardPage = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <KpiCard title="Website Traffic" value={formatNumber(overviewData.ga4?.sessions || 0)} change={overviewData.ga4?.growthSessions || 0} isPositive={(overviewData.ga4?.growthSessions || 0) >= 0} loading={loading || isSyncingHistorical} Icon={UsersIcon} platform="ga4" changeText="vs previous period" chartData={timeseriesData.map(d => d.Sessions)} disconnected={!activeGa4PropertyId} onClick={() => navigate(!activeGa4PropertyId ? '/connect-accounts' : '/dashboard/ga4')} insight={overviewData.intelligence?.metricTraffic} contextPrompt={`Analyze Audience Traffic: ${formatNumber(overviewData.ga4?.sessions || 0)} sessions with ${overviewData.ga4?.growthSessions || 0}% growth. What are the key drivers for this traffic trend and how can we scale it further?`} />
-                <KpiCard title="Search Traffic" value={formatNumber(overviewData.gsc?.clicks || 0)} change={overviewData.gsc?.growthClicks || 0} isPositive={(overviewData.gsc?.growthClicks || 0) >= 0} loading={loading || isSyncingHistorical} Icon={MagnifyingGlassIcon} platform="gsc" changeText="vs previous period" chartData={timeseriesData.map(d => d.Clicks)} disconnected={!activeGscSite} onClick={() => navigate(!activeGscSite ? '/connect-accounts' : '/dashboard/gsc')} insight={overviewData.intelligence?.metricClicks} contextPrompt={`Examine Organic Search performance: ${formatNumber(overviewData.gsc?.clicks || 0)} clicks this period. How can we improve our SEO trajectory and keyword rankings?`} />
-                <KpiCard title="Ad Spend" value={formatCurrency((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0))} change={Math.abs(overviewData.googleAds?.growthSpend || 0)} isPositive={(overviewData.googleAds?.growthSpend || 0) <= 0} loading={loading || isSyncingHistorical} Icon={CurrencyDollarIcon} platform="google-ads" changeText="vs previous period" chartData={timeseriesData.map(d => d.Spend || 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/google-ads')} insight={overviewData.intelligence?.metricSpend} contextPrompt={`Review our total ad investment of ${formatCurrency((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0))}. Based on our growth, is our spend allocation between Google and Meta efficient?`} />
-                <KpiCard title="Conversions" value={formatNumber((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0))} change={overviewData.googleAds?.growthConversions || 0} isPositive={(overviewData.googleAds?.growthConversions || 0) >= 0} loading={loading || isSyncingHistorical} Icon={CheckCircleIcon} platform="conversions" changeText="vs previous period" chartData={timeseriesData.map(d => d.Conversions || 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/google-ads')} insight={overviewData.intelligence?.metricConversions} contextPrompt={`Analyze conversions: ${formatNumber((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0))} total actions. What specific strategies can we use to maximize ROI from these leads?`} />
-                <KpiCard title="Ad Reach" value={formatNumber((overviewData.facebookAds?.impressions || 0) + (overviewData.googleAds?.impressions || 0))} change={overviewData.facebookAds?.growthReach || 0} isPositive={(overviewData.facebookAds?.growthReach || 0) >= 0} loading={loading || isSyncingHistorical} Icon={EyeIcon} platform="facebook" changeText="vs previous period" chartData={timeseriesData.map(d => d.Impressions || 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/facebook-ads')} insight={overviewData.intelligence?.metricImpressions} contextPrompt={`Marketing visibility: ${formatNumber((overviewData.facebookAds?.impressions || 0) + (overviewData.googleAds?.impressions || 0))} impressions. Are we building enough brand awareness compared to our competitors?`} />
-                <KpiCard title="Conversion Efficiency" value={((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0)) > 0 ? `+${(((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0)) / (((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0)) / 100)).toFixed(1)}x` : '0.0x'} change={4.2} isPositive={true} loading={loading || isSyncingHistorical} Icon={BoltIcon} platform="efficiency" changeText="vs previous period" chartData={timeseriesData.map(d => d.Spend > 0 ? (d.Conversions || 0) / ((d.Spend || 1) / 100) : 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/google-ads')} insight={overviewData.intelligence?.metricEfficiency} contextPrompt={`Audit our Efficiency Score. With a ${formatPct((overviewData.googleAds?.ctr || 0) * 100)} Google CTR and ${(overviewData.facebookAds?.roas || 0).toFixed(2)}x Meta ROAS, how can we lower the cost per conversion?`} />
+                <KpiCard title="Website Traffic" value={formatNumber(overviewData.ga4?.sessions || 0)} change={overviewData.ga4?.growthSessions || 0} isPositive={(overviewData.ga4?.growthSessions || 0) >= 0} loading={loading || isSyncingHistorical} Icon={UsersIcon} platform="ga4" changeText="vs previous period" chartData={timeseriesData.map(d => d.Sessions)} disconnected={!activeGa4PropertyId} onClick={() => navigate(!activeGa4PropertyId ? '/connect-accounts' : '/dashboard/ga4')} insight={overviewData.intelligence?.metricTraffic} sectionKey="metricTraffic" siteId={activeSiteId} startDate={startDate} endDate={endDate} device={device || 'all'} onInsightGenerated={handleInsightGenerated} contextPrompt={`Analyze Audience Traffic: ${formatNumber(overviewData.ga4?.sessions || 0)} sessions with ${overviewData.ga4?.growthSessions || 0}% growth. What are the key drivers for this traffic trend and how can we scale it further?`} />
+                <KpiCard title="Search Traffic" value={formatNumber(overviewData.gsc?.clicks || 0)} change={overviewData.gsc?.growthClicks || 0} isPositive={(overviewData.gsc?.growthClicks || 0) >= 0} loading={loading || isSyncingHistorical} Icon={MagnifyingGlassIcon} platform="gsc" changeText="vs previous period" chartData={timeseriesData.map(d => d.Clicks)} disconnected={!activeGscSite} onClick={() => navigate(!activeGscSite ? '/connect-accounts' : '/dashboard/gsc')} insight={overviewData.intelligence?.metricClicks} sectionKey="metricClicks" siteId={activeSiteId} startDate={startDate} endDate={endDate} device={device || 'all'} onInsightGenerated={handleInsightGenerated} contextPrompt={`Examine Organic Search performance: ${formatNumber(overviewData.gsc?.clicks || 0)} clicks this period. How can we improve our SEO trajectory and keyword rankings?`} />
+                <KpiCard title="Ad Spend" value={formatCurrency((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0))} change={Math.abs(overviewData.googleAds?.growthSpend || 0)} isPositive={(overviewData.googleAds?.growthSpend || 0) <= 0} loading={loading || isSyncingHistorical} Icon={CurrencyDollarIcon} platform="google-ads" changeText="vs previous period" chartData={timeseriesData.map(d => d.Spend || 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/google-ads')} insight={overviewData.intelligence?.metricSpend} sectionKey="metricSpend" siteId={activeSiteId} startDate={startDate} endDate={endDate} device={device || 'all'} onInsightGenerated={handleInsightGenerated} contextPrompt={`Review our total ad investment of ${formatCurrency((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0))}. Based on our growth, is our spend allocation between Google and Meta efficient?`} />
+                <KpiCard title="Conversions" value={formatNumber((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0))} change={overviewData.googleAds?.growthConversions || 0} isPositive={(overviewData.googleAds?.growthConversions || 0) >= 0} loading={loading || isSyncingHistorical} Icon={CheckCircleIcon} platform="conversions" changeText="vs previous period" chartData={timeseriesData.map(d => d.Conversions || 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/google-ads')} insight={overviewData.intelligence?.metricConversions} sectionKey="metricConversions" siteId={activeSiteId} startDate={startDate} endDate={endDate} device={device || 'all'} onInsightGenerated={handleInsightGenerated} contextPrompt={`Analyze conversions: ${formatNumber((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0))} total actions. What specific strategies can we use to maximize ROI from these leads?`} />
+                <KpiCard title="Ad Reach" value={formatNumber((overviewData.facebookAds?.impressions || 0) + (overviewData.googleAds?.impressions || 0))} change={overviewData.facebookAds?.growthReach || 0} isPositive={(overviewData.facebookAds?.growthReach || 0) >= 0} loading={loading || isSyncingHistorical} Icon={EyeIcon} platform="facebook" changeText="vs previous period" chartData={timeseriesData.map(d => d.Impressions || 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/facebook-ads')} insight={overviewData.intelligence?.metricImpressions} sectionKey="metricImpressions" siteId={activeSiteId} startDate={startDate} endDate={endDate} device={device || 'all'} onInsightGenerated={handleInsightGenerated} contextPrompt={`Marketing visibility: ${formatNumber((overviewData.facebookAds?.impressions || 0) + (overviewData.googleAds?.impressions || 0))} impressions. Are we building enough brand awareness compared to our competitors?`} />
+                <KpiCard title="Conversion Efficiency" value={((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0)) > 0 ? `+${(((overviewData.googleAds?.conversions || 0) + (overviewData.facebookAds?.conversions || 0)) / (((overviewData.facebookAds?.spend || 0) + (overviewData.googleAds?.spend || 0)) / 100)).toFixed(1)}x` : '0.0x'} change={4.2} isPositive={true} loading={loading || isSyncingHistorical} Icon={BoltIcon} platform="efficiency" changeText="vs previous period" chartData={timeseriesData.map(d => d.Spend > 0 ? (d.Conversions || 0) / ((d.Spend || 1) / 100) : 0)} disconnected={!activeGoogleAdsCustomerId && !activeFacebookAdAccountId} onClick={() => navigate((!activeGoogleAdsCustomerId && !activeFacebookAdAccountId) ? '/connect-accounts' : '/dashboard/google-ads')} insight={overviewData.intelligence?.metricEfficiency} sectionKey="metricEfficiency" siteId={activeSiteId} startDate={startDate} endDate={endDate} device={device || 'all'} onInsightGenerated={handleInsightGenerated} contextPrompt={`Audit our Efficiency Score. With a ${formatPct((overviewData.googleAds?.ctr || 0) * 100)} Google CTR and ${(overviewData.facebookAds?.roas || 0).toFixed(2)}x Meta ROAS, how can we lower the cost per conversion?`} />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1009,21 +1089,18 @@ const DashboardPage = () => {
                   )}
 
                   {activeGa4PropertyId && (
-                    <div className="mt-6 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                      <h4 className="text-[10.5px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                      {(loading || isSyncingHistorical) ? (
-                        <div className="space-y-1.5 animate-pulse">
-                          <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
-                          <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[80%]" />
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-start gap-2.5">
-                          <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                            {overviewData.intelligence?.overviewGA4 || "Analyzing high-volume traffic across user engagement."}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    <SectionAiSummary
+                      insight={overviewData.intelligence?.overviewGA4}
+                      loading={loading || isSyncingHistorical}
+                      platform="dash"
+                      sectionKey="overviewGA4"
+                      siteId={activeSiteId}
+                      startDate={startDate}
+                      endDate={endDate}
+                      device={device || 'all'}
+                      onInsightGenerated={handleInsightGenerated}
+                      title="AI Summary"
+                    />
                   )}
                 </div>
 
@@ -1073,21 +1150,18 @@ const DashboardPage = () => {
                   )}
 
                   {activeGscSite && (
-                    <div className="mt-6 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                      <h4 className="text-[10.5px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                      {(loading || isSyncingHistorical) ? (
-                        <div className="space-y-1.5 animate-pulse">
-                          <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
-                          <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[80%]" />
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-start gap-2.5">
-                          <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                            {overviewData.intelligence?.overviewGSC || "SEO visibility is showing stable organic growth."}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    <SectionAiSummary
+                      insight={overviewData.intelligence?.overviewGSC}
+                      loading={loading || isSyncingHistorical}
+                      platform="dash"
+                      sectionKey="overviewGSC"
+                      siteId={activeSiteId}
+                      startDate={startDate}
+                      endDate={endDate}
+                      device={device || 'all'}
+                      onInsightGenerated={handleInsightGenerated}
+                      title="AI Summary"
+                    />
                   )}
                 </div>
 
@@ -1136,21 +1210,18 @@ const DashboardPage = () => {
                   )}
 
                   {activeGoogleAdsCustomerId && (
-                    <div className="mt-6 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                      <h4 className="text-[10.5px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                      {(loading || isSyncingHistorical) ? (
-                        <div className="space-y-1.5 animate-pulse">
-                          <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
-                          <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[80%]" />
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-start gap-2.5">
-                          <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                            {overviewData.intelligence?.overviewGAds || "Google Ads campaigns are actively spending."}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    <SectionAiSummary
+                      insight={overviewData.intelligence?.overviewGAds}
+                      loading={loading || isSyncingHistorical}
+                      platform="dash"
+                      sectionKey="overviewGAds"
+                      siteId={activeSiteId}
+                      startDate={startDate}
+                      endDate={endDate}
+                      device={device || 'all'}
+                      onInsightGenerated={handleInsightGenerated}
+                      title="AI Summary"
+                    />
                   )}
                 </div>
 
@@ -1199,21 +1270,18 @@ const DashboardPage = () => {
                   )}
 
                   {activeFacebookAdAccountId && (
-                    <div className="mt-6 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                      <h4 className="text-[10.5px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                      {(loading || isSyncingHistorical) ? (
-                        <div className="space-y-1.5 animate-pulse">
-                          <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
-                          <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[80%]" />
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-start gap-2.5">
-                          <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                            {overviewData.intelligence?.overviewFAds || "Facebook ad reach is expanding profitably."}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    <SectionAiSummary
+                      insight={overviewData.intelligence?.overviewFAds}
+                      loading={loading || isSyncingHistorical}
+                      platform="dash"
+                      sectionKey="overviewFAds"
+                      siteId={activeSiteId}
+                      startDate={startDate}
+                      endDate={endDate}
+                      device={device || 'all'}
+                      onInsightGenerated={handleInsightGenerated}
+                      title="AI Summary"
+                    />
                   )}
                 </div>
               </div>
@@ -1325,21 +1393,18 @@ const DashboardPage = () => {
                 </div>
 
                 {(activeGoogleAdsCustomerId || activeFacebookAdAccountId) && (
-                  <div className="mt-4 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                    <h4 className="text-[10.5px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                    {(loading || isSyncingHistorical) ? (
-                      <div className="space-y-1.5 animate-pulse">
-                        <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
-                        <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[80%]" />
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-start gap-2.5">
-                        <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                          {overviewData.intelligence?.adWinnerInsight || "Platform performance comparison shows clear efficiency leaders."}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  <SectionAiSummary
+                    insight={overviewData.intelligence?.adWinnerInsight}
+                    loading={loading || isSyncingHistorical}
+                    platform="dash"
+                    sectionKey="adWinnerInsight"
+                    siteId={activeSiteId}
+                    startDate={startDate}
+                    endDate={endDate}
+                    device={device || 'all'}
+                    onInsightGenerated={handleInsightGenerated}
+                    title="AI Summary"
+                  />
                 )}
               </div>
 
@@ -1427,21 +1492,18 @@ const DashboardPage = () => {
                   )}
                 </div>
 
-                <div className="mt-4 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                  <h4 className="text-[10.5px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                  {(loading || isSyncingHistorical) ? (
-                    <div className="space-y-1.5 animate-pulse">
-                      <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
-                      <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[90%]" />
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-start gap-2.5">
-                      <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                        {overviewData.intelligence?.growthMatrixInsight || "Organic and paid growth trends are being correlated to identify scaling triggers."}
-                      </p>
-                    </div>
-                  )}
-                </div>
+                <SectionAiSummary
+                  insight={overviewData.intelligence?.growthMatrixInsight}
+                  loading={loading || isSyncingHistorical}
+                  platform="dash"
+                  sectionKey="growthMatrixInsight"
+                  siteId={activeSiteId}
+                  startDate={startDate}
+                  endDate={endDate}
+                  device={device || 'all'}
+                  onInsightGenerated={handleInsightGenerated}
+                  title="AI Summary"
+                />
               </div>
 
 
@@ -1479,20 +1541,19 @@ const DashboardPage = () => {
                   <DataTable columns={pageColumns} data={filteredPages} loading={loading || isSyncingHistorical} initialLimit={5} className="border-none" rowClassName="py-2" />
                 </div>
 
-                <div className="mx-4 mb-4 p-3.5 bg-brand-50/20 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-2xl">
-                  <h4 className="text-[11px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                  {(loading || isSyncingHistorical) ? (
-                    <div className="space-y-1.5 animate-pulse">
-                      <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
-                      <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[80%]" />
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-start gap-2.5">
-                      <p className="text-[12px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                        {overviewData.intelligence?.topPagesInsight || "Landing page performance and growth bottlenecks."}
-                      </p>
-                    </div>
-                  )}
+                <div className="mx-4 mb-4">
+                  <SectionAiSummary
+                    insight={overviewData.intelligence?.topPagesInsight}
+                    loading={loading || isSyncingHistorical}
+                    platform="dash"
+                    sectionKey="topPagesInsight"
+                    siteId={activeSiteId}
+                    startDate={startDate}
+                    endDate={endDate}
+                    device={device || 'all'}
+                    onInsightGenerated={handleInsightGenerated}
+                    title="AI Summary"
+                  />
                 </div>
               </div>
 
@@ -1580,20 +1641,19 @@ const DashboardPage = () => {
                   </table>
                 </div>
 
-                <div className="mt-4 p-4 bg-brand-50/40 dark:bg-brand-500/5 border border-brand-100/30 dark:border-brand-500/10 rounded-2xl">
-                  <h4 className="text-[11px] font-black text-neutral-900 dark:text-white mb-1.5 uppercase tracking-wider">AI Summary</h4>
-                  {(loading || isSyncingHistorical) ? (
-                    <div className="space-y-1.5 animate-pulse">
-                      <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
-                      <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[90%]" />
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-start gap-2.5">
-                      <p className="text-[12px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                        {overviewData.intelligence?.comparisonInsight || "Historical performance growth benchmarks."}
-                      </p>
-                    </div>
-                  )}
+                <div className="mt-4">
+                  <SectionAiSummary
+                    insight={overviewData.intelligence?.comparisonInsight}
+                    loading={loading || isSyncingHistorical}
+                    platform="dash"
+                    sectionKey="comparisonInsight"
+                    siteId={activeSiteId}
+                    startDate={startDate}
+                    endDate={endDate}
+                    device={device || 'all'}
+                    onInsightGenerated={handleInsightGenerated}
+                    title="AI Summary"
+                  />
                 </div>
               </div>
             </>

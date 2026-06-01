@@ -7,7 +7,7 @@ import AiIntelligence from '../models/AiIntelligence.js';
 import mongoose from 'mongoose';
 import { syncGsc, syncGa4, syncGoogleAds, syncFacebookAds } from '../services/syncService.js';
 import NodeCache from 'node-cache';
-import { generateGa4Intelligence, generateGscIntelligence, generateDashboardIntelligence, getPlaceholderIntelligence } from '../services/aiIntelligenceService.js';
+import { getPlaceholderIntelligence, generateSingleSectionIntelligence } from '../services/aiIntelligenceService.js';
 
 const analyticsCache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
 
@@ -300,26 +300,11 @@ export const getDashboardSummary = async (req, res) => {
 
                 if (!hasActualData) {
                     result.intelligence = getPlaceholderIntelligence('dash', 'no_data');
-                } else {
-                    result.intelligence = await generateDashboardIntelligence(result, acc);
-
-                    if (siteId && !result.intelligence.isFallback) {
-                        await AiIntelligence.findOneAndUpdate(
-                            { siteId, platform: 'dash', startDate, endDate, device },
-                            {
-                                userId,
-                                content: result.intelligence,
-                                lastSyncedAtOnGeneration: new Date(latestSync),
-                                createdAt: new Date()
-                            },
-                            { upsert: true }
-                        );
-                    }
+                } else { result.intelligence = existingAi?.content || {};
                 }
             }
         }
 
-        // Cache only when no historical sync is in progress (to avoid caching incomplete data)
         const isDashHistoricalSyncing =
             (acc.ga4PropertyId && !acc.ga4HistoricalComplete) ||
             (acc.gscSiteUrl && !acc.gscHistoricalComplete) ||
@@ -578,26 +563,11 @@ export const getGa4Summary = async (req, res) => {
             } else {
                 if (!(result.totalSessions?.value > 0)) {
                     result.intelligence = getPlaceholderIntelligence('ga4', 'no_data');
-                } else {
-                    result.intelligence = await generateGa4Intelligence(result, siteName);
-
-                    if (siteId && !result.intelligence.isFallback) {
-                        await AiIntelligence.findOneAndUpdate(
-                            { siteId, platform: 'ga4', startDate, endDate, device },
-                            {
-                                userId,
-                                content: result.intelligence,
-                                lastSyncedAtOnGeneration: ga4LastSyncedAt || new Date(),
-                                createdAt: new Date()
-                            },
-                            { upsert: true }
-                        );
-                    }
+                } else {result.intelligence = existingAi?.content || {};
                 }
             }
         }
 
-        // Cache only when GA4 historical sync is complete
         if (ga4HistoricalComplete) analyticsCache.set(cacheKey, result);
         res.status(200).json(result);
     } catch (error) {
@@ -829,21 +799,7 @@ export const getGscSummary = async (req, res) => {
             } else {
                 if (!(result.searchClicks?.value > 0)) {
                     result.intelligence = getPlaceholderIntelligence('gsc', 'no_data');
-                } else {
-                    result.intelligence = await generateGscIntelligence(result, siteName);
-
-                    if (siteId && !result.intelligence.isFallback) {
-                        await AiIntelligence.findOneAndUpdate(
-                            { siteId, platform: 'gsc', startDate, endDate, device },
-                            {
-                                userId,
-                                content: result.intelligence,
-                                lastSyncedAtOnGeneration: gscLastSyncedAt || new Date(),
-                                createdAt: new Date()
-                            },
-                            { upsert: true }
-                        );
-                    }
+                } else { result.intelligence = existingAi?.content || {};
                 }
             }
         }
@@ -1257,5 +1213,110 @@ export const syncAccountData = async (req, res) => {
             success: false,
             message: 'Synchronization failed: ' + error.message
         });
+    }
+};
+
+export const getSectionSummary = async (req, res) => {
+    const { siteId, platform, sectionKey, startDate, endDate, device = 'all' } = req.body;
+    const userId = req.user._id;
+
+    if (!siteId || !platform || !sectionKey || !startDate || !endDate) {
+        return res.status(400).json({ success: false, message: 'Missing required parameters' });
+    }
+
+    try {
+        const acc = await UserAccounts.findOne({ _id: siteId, userId });
+        if (!acc) {
+            return res.status(404).json({ success: false, message: 'Account not found' });
+        }
+
+        const latestSync = Math.max(
+            new Date(acc.gscLastSyncedAt || 0),
+            new Date(acc.ga4LastSyncedAt || 0),
+            new Date(acc.googleAdsLastSyncedAt || 0),
+            new Date(acc.facebookAdsLastSyncedAt || 0)
+        );
+
+        // 1. Check if cached AI intelligence exists
+        const existingAi = await AiIntelligence.findOne({
+            siteId,
+            platform,
+            startDate,
+            endDate,
+            device
+        });
+
+        const isAiValid = existingAi &&
+            existingAi.lastSyncedAtOnGeneration >= latestSync &&
+            existingAi.content &&
+            existingAi.content[sectionKey];
+
+        if (isAiValid) {
+            return res.status(200).json({ success: true, insight: existingAi.content[sectionKey] });
+        }
+
+        // 2. Fetch the required data using the exact existing methods in this controller
+        let dataToAnalyze = null;
+        
+        // Mock a fake req/res context for reusing standard functions
+        const mockReq = {
+            query: { startDate, endDate, siteId, device },
+            user: { _id: userId }
+        };
+
+        let mockResData = null;
+        const mockRes = {
+            status: () => ({
+                json: (val) => { mockResData = val; }
+            })
+        };
+
+        if (platform === 'ga4') {
+            await getGa4Summary(mockReq, mockRes);
+            dataToAnalyze = mockResData;
+        } else if (platform === 'gsc') {
+            await getGscSummary(mockReq, mockRes);
+            dataToAnalyze = mockResData;
+        } else if (['dash', 'google-ads', 'facebook', 'conversions', 'efficiency'].includes(platform)) {
+            await getDashboardSummary(mockReq, mockRes);
+            dataToAnalyze = mockResData;
+        }
+
+        if (!dataToAnalyze) {
+            return res.status(500).json({ success: false, message: 'Failed to aggregate section metrics' });
+        }
+
+        // 3. Call single section generator
+        const siteName = acc.siteName || 'your website';
+        const targetPlatform = ['dash', 'google-ads', 'facebook', 'conversions', 'efficiency'].includes(platform) ? 'dash' : platform;
+        const summaryText = await generateSingleSectionIntelligence(targetPlatform, sectionKey, dataToAnalyze, siteName, acc);
+
+        if (!summaryText || summaryText.includes('failed')) {
+            return res.status(500).json({ success: false, message: 'Gemini insight generation failed' });
+        }
+
+        // 4. Save back to cache incrementally
+        const contentUpdate = existingAi?.content || {};
+        contentUpdate[sectionKey] = summaryText;
+
+        await AiIntelligence.findOneAndUpdate(
+            { siteId, platform, startDate, endDate, device },
+            {
+                userId,
+                content: contentUpdate,
+                lastSyncedAtOnGeneration: new Date(latestSync),
+                createdAt: new Date()
+            },
+            { upsert: true }
+        );
+
+        // Clear cache for this user since data changed
+        clearUserCache(userId);
+
+        res.status(200).json({ success: true, insight: summaryText });
+
+    } catch (err) {
+        console.error('getSectionSummary controller error:', err);
+        res.status(500).json({ success: false, message: 'Failed to generate on-demand section summary' });
     }
 };

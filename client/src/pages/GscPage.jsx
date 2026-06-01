@@ -4,6 +4,8 @@ import { formatDistanceToNow } from 'date-fns';
     import DashboardLayout from '../components/ui/DashboardLayout';
     import KpiCard from '../components/dashboard/KpiCard';
     import DataTable from '../components/dashboard/DataTable';
+    import SectionAiSummary from '../components/dashboard/SectionAiSummary';
+    import SummaryStripCard from '../components/dashboard/SummaryStripCard';
     import { useDateRangeStore } from '../store/dateRangeStore';
     import { useAccountsStore } from '../store/accountsStore';
     import api from '../api';
@@ -50,24 +52,6 @@ import { formatDistanceToNow } from 'date-fns';
         <img src="https://www.gstatic.com/images/branding/product/2x/search_console_64dp.png" alt="GSC" className={`${className} object-contain`} />
     );
 
-    const SectionAiSummary = ({ insight, loading, sectionTitle, title = "AI SUMMARY" }) => (
-        <div className="mt-4 p-4 bg-brand-50/10 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-[1.5rem] animate-in fade-in duration-700">
-            <div className="flex items-center gap-2 mb-3">
-                <h4 className="text-[10px] font-black text-neutral-900 dark:text-white uppercase tracking-[0.15em]">AI SUMMARY</h4>
-            </div>
-            {loading ? (
-                <div className="space-y-2 animate-pulse mb-4">
-                    <div className="h-2 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
-                    <div className="h-2 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[85%]" />
-                </div>
-            ) : (
-                <p className="text-[12px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
-                    {insight || "Analyzing section data for strategic intelligence..."}
-                </p>
-            )}
-        </div>
-    );
-
     const EmptyState = ({ message='No data for this period', sub='Try selecting a wider date range' }) => (
     <div className="flex flex-col items-center justify-center py-12 text-neutral-400 dark:text-neutral-500">
         <div className="text-4xl mb-3 opacity-50">📭</div>
@@ -75,6 +59,8 @@ import { formatDistanceToNow } from 'date-fns';
         <p className="text-xs mt-1 font-medium">{sub}</p>
     </div>
     );
+
+
 
     const GscPage = () => {
         const startDate = useDateRangeStore(s => s.startDate);
@@ -121,6 +107,19 @@ import { formatDistanceToNow } from 'date-fns';
         const [loading, setLoading] = useState(false);
         
         const [data, setData] = useState(null);
+
+        const handleInsightGenerated = (sectionKey, newInsight) => {
+            setData(prev => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    intelligence: {
+                        ...prev.intelligence,
+                        [sectionKey]: newInsight
+                    }
+                };
+            });
+        };
 
         const [isDateMenuOpen, setIsDateMenuOpen] = useState(false);
         const [isDeviceMenuOpen, setIsDeviceMenuOpen] = useState(false);
@@ -745,6 +744,13 @@ import { formatDistanceToNow } from 'date-fns';
                             changeText="vs last period"
                             chartData={(data?.searchClicks?.timeseries || []).map(d => d.clicks).slice(-30)}
                             insight={data?.intelligence?.searchClicks}
+                            platform="gsc"
+                            sectionKey="searchClicks"
+                            siteId={activeSiteId}
+                            startDate={gscStart}
+                            endDate={gscEnd}
+                            device={device}
+                            onInsightGenerated={handleInsightGenerated}
                         />
                         <KpiCard
                             title="Impressions"
@@ -756,6 +762,13 @@ import { formatDistanceToNow } from 'date-fns';
                             changeText="vs last period"
                             chartData={(data?.impressions?.timeseries || []).map(d => d.impressions).slice(-30)}
                             insight={data?.intelligence?.impressions}
+                            platform="gsc"
+                            sectionKey="impressions"
+                            siteId={activeSiteId}
+                            startDate={gscStart}
+                            endDate={gscEnd}
+                            device={device}
+                            onInsightGenerated={handleInsightGenerated}
                         />
                         <KpiCard
                             title="Avg. CTR"
@@ -767,6 +780,13 @@ import { formatDistanceToNow } from 'date-fns';
                             changeText="vs last period"
                             chartData={(data?.avgCTR?.timeseries || []).map(d => d.ctr).slice(-30)}
                             insight={data?.intelligence?.avgCtr}
+                            platform="gsc"
+                            sectionKey="avgCtr"
+                            siteId={activeSiteId}
+                            startDate={gscStart}
+                            endDate={gscEnd}
+                            device={device}
+                            onInsightGenerated={handleInsightGenerated}
                         />
                         <KpiCard
                             title="Avg. Position"
@@ -778,35 +798,63 @@ import { formatDistanceToNow } from 'date-fns';
                             changeText="vs last period"
                             chartData={(data?.avgPosition?.timeseries || []).map(d => d.position).slice(-30)}
                             insight={data?.intelligence?.avgPosition}
+                            platform="gsc"
+                            sectionKey="avgPosition"
+                            siteId={activeSiteId}
+                            startDate={gscStart}
+                            endDate={gscEnd}
+                            device={device}
+                            onInsightGenerated={handleInsightGenerated}
                         />
                     </div>
 
                     {/* ADD 2 — Summary Strip */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                        {[
-                            { label: 'Total Queries', value: formatNumber(data?.totalQueries || 0), icon: <MagnifyingGlassIcon className="w-5 h-5 text-blue-500" />, insight: data?.intelligence?.totalQueries },
-                            { label: 'Total Pages', value: formatNumber(data?.totalPages || 0), icon: <Square3Stack3DIcon className="w-5 h-5 text-emerald-500" />, insight: data?.intelligence?.totalPages },
-                            { label: 'Top Position', value: data?.topPosition > 0 ? `#${data.topPosition.toFixed(1)}` : '—', icon: <TrophyIcon className="w-5 h-5 text-amber-500" />, insight: data?.intelligence?.topPosition }
-                        ].map((card, idx) => (
-                            <div key={idx} className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 shadow-sm group hover:border-brand-500/30 transition-all flex flex-col">
-                                <div className="flex items-center gap-4 mb-3">
-                                    <div className="w-10 h-10 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 flex items-center justify-center border border-neutral-100 dark:border-neutral-700/50 group-hover:scale-110 transition-transform">
-                                        {card.icon}
-                                    </div>
-                                    <div>
-                                        <div className="text-xl font-black text-neutral-900 dark:text-white tabular-nums">
-                                            {(loading || isSyncing) ? <div className="h-6 w-20 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /> : card.value}
-                                        </div>
-                                        <div className="text-xs text-neutral-800 dark:text-neutral-200 font-bold mt-0.5">{card.label}</div>
-                                    </div>
-                                </div>
-                                {card.insight && !(loading || isSyncing) && (
-                                    <p className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed italic border-t border-neutral-100 dark:border-neutral-800 pt-2 mt-auto">
-                                        {card.insight}
-                                    </p>
-                                )}
-                            </div>
-                        ))}
+                        <SummaryStripCard
+                            label="Total Queries"
+                            value={formatNumber(data?.totalQueries || 0)}
+                            icon={<MagnifyingGlassIcon className="w-5 h-5 text-blue-500" />}
+                            insight={data?.intelligence?.totalQueries}
+                            platform="gsc"
+                            sectionKey="totalQueries"
+                            siteId={activeSiteId}
+                            startDate={gscStart}
+                            endDate={gscEnd}
+                            device={device}
+                            onInsightGenerated={handleInsightGenerated}
+                            loading={loading}
+                            isSyncing={isSyncing}
+                        />
+                        <SummaryStripCard
+                            label="Total Pages"
+                            value={formatNumber(data?.totalPages || 0)}
+                            icon={<Square3Stack3DIcon className="w-5 h-5 text-emerald-500" />}
+                            insight={data?.intelligence?.totalPages}
+                            platform="gsc"
+                            sectionKey="totalPages"
+                            siteId={activeSiteId}
+                            startDate={gscStart}
+                            endDate={gscEnd}
+                            device={device}
+                            onInsightGenerated={handleInsightGenerated}
+                            loading={loading}
+                            isSyncing={isSyncing}
+                        />
+                        <SummaryStripCard
+                            label="Top Position"
+                            value={data?.topPosition > 0 ? `#${data.topPosition.toFixed(1)}` : '—'}
+                            icon={<TrophyIcon className="w-5 h-5 text-amber-500" />}
+                            insight={data?.intelligence?.topPosition}
+                            platform="gsc"
+                            sectionKey="topPosition"
+                            siteId={activeSiteId}
+                            startDate={gscStart}
+                            endDate={gscEnd}
+                            device={device}
+                            onInsightGenerated={handleInsightGenerated}
+                            loading={loading}
+                            isSyncing={isSyncing}
+                        />
                     </div>
 
                     {/* Performance Resonance Section */}
@@ -923,6 +971,13 @@ import { formatDistanceToNow } from 'date-fns';
                                 insight={data?.intelligence?.searchPerformanceOverview} 
                                 loading={loading || isSyncing} 
                                 sectionTitle="AI PERFORMANCE INSIGHT"
+                                platform="gsc"
+                                sectionKey="searchPerformanceOverview"
+                                siteId={activeSiteId}
+                                startDate={gscStart}
+                                endDate={gscEnd}
+                                device={device}
+                                onInsightGenerated={handleInsightGenerated}
                             />
                         </div>
                     </div>
@@ -994,7 +1049,18 @@ import { formatDistanceToNow } from 'date-fns';
                                 </ResponsiveContainer>
                             )}
                             <div className="mt-4">
-                                <SectionAiSummary insight={data?.intelligence?.clickThroughRateTrend} loading={loading || isSyncing} sectionTitle="AI CTR INSIGHT" />
+                                <SectionAiSummary 
+                                    insight={data?.intelligence?.clickThroughRateTrend} 
+                                    loading={loading || isSyncing} 
+                                    sectionTitle="AI CTR INSIGHT"
+                                    platform="gsc"
+                                    sectionKey="clickThroughRateTrend"
+                                    siteId={activeSiteId}
+                                    startDate={gscStart}
+                                    endDate={gscEnd}
+                                    device={device}
+                                    onInsightGenerated={handleInsightGenerated}
+                                />
                             </div>
                         </div>
 
@@ -1058,7 +1124,18 @@ import { formatDistanceToNow } from 'date-fns';
                                 </ResponsiveContainer>
                             )}
                             <div className="mt-4">
-                                <SectionAiSummary insight={data?.intelligence?.averageRankingPosition} loading={loading || isSyncing} sectionTitle="AI POSITION INSIGHT" />
+                                <SectionAiSummary 
+                                    insight={data?.intelligence?.averageRankingPosition} 
+                                    loading={loading || isSyncing} 
+                                    sectionTitle="AI POSITION INSIGHT"
+                                    platform="gsc"
+                                    sectionKey="averageRankingPosition"
+                                    siteId={activeSiteId}
+                                    startDate={gscStart}
+                                    endDate={gscEnd}
+                                    device={device}
+                                    onInsightGenerated={handleInsightGenerated}
+                                />
                             </div>
                         </div>
                     </div>
@@ -1124,7 +1201,18 @@ import { formatDistanceToNow } from 'date-fns';
                                 </div>
                             )}
                             <div className="mt-auto pt-4">
-                                <SectionAiSummary insight={data?.intelligence?.lowCTRKeywords} loading={loading || isSyncing} sectionTitle="AI OPPORTUNITY INSIGHT" />
+                                <SectionAiSummary 
+                                    insight={data?.intelligence?.lowCTRKeywords} 
+                                    loading={loading || isSyncing} 
+                                    sectionTitle="AI OPPORTUNITY INSIGHT"
+                                    platform="gsc"
+                                    sectionKey="lowCTRKeywords"
+                                    siteId={activeSiteId}
+                                    startDate={gscStart}
+                                    endDate={gscEnd}
+                                    device={device}
+                                    onInsightGenerated={handleInsightGenerated}
+                                />
                             </div>
                         </div>
 
@@ -1187,7 +1275,18 @@ import { formatDistanceToNow } from 'date-fns';
                                 </div>
                             )}
                             <div className="mt-auto pt-4">
-                                <SectionAiSummary insight={data?.intelligence?.keywordsNearPage1} loading={loading || isSyncing} sectionTitle="AI RANKING INSIGHT" />
+                                <SectionAiSummary 
+                                    insight={data?.intelligence?.keywordsNearPage1} 
+                                    loading={loading || isSyncing} 
+                                    sectionTitle="AI RANKING INSIGHT"
+                                    platform="gsc"
+                                    sectionKey="keywordsNearPage1"
+                                    siteId={activeSiteId}
+                                    startDate={gscStart}
+                                    endDate={gscEnd}
+                                    device={device}
+                                    onInsightGenerated={handleInsightGenerated}
+                                />
                             </div>
                         </div>
                     </div>
@@ -1231,7 +1330,18 @@ import { formatDistanceToNow } from 'date-fns';
                                     initialLimit={5} 
                                 />
                             <div className="p-5 border-t border-neutral-100 dark:border-neutral-800">
-                                <SectionAiSummary insight={data?.intelligence?.topQueries} loading={loading || isSyncing} sectionTitle="AI QUERY INSIGHT" />
+                                <SectionAiSummary 
+                                    insight={data?.intelligence?.topQueries} 
+                                    loading={loading || isSyncing} 
+                                    sectionTitle="AI QUERY INSIGHT"
+                                    platform="gsc"
+                                    sectionKey="topQueries"
+                                    siteId={activeSiteId}
+                                    startDate={gscStart}
+                                    endDate={gscEnd}
+                                    device={device}
+                                    onInsightGenerated={handleInsightGenerated}
+                                />
                             </div>
                         </div>
                         
@@ -1272,7 +1382,18 @@ import { formatDistanceToNow } from 'date-fns';
                                     initialLimit={6} 
                                 />
                             <div className="p-5 border-t border-neutral-100 dark:border-neutral-800">
-                                <SectionAiSummary insight={data?.intelligence?.topLandingPages} loading={loading || isSyncing} sectionTitle="AI PAGE INSIGHT" />
+                                <SectionAiSummary 
+                                    insight={data?.intelligence?.topLandingPages} 
+                                    loading={loading || isSyncing} 
+                                    sectionTitle="AI PAGE INSIGHT"
+                                    platform="gsc"
+                                    sectionKey="topLandingPages"
+                                    siteId={activeSiteId}
+                                    startDate={gscStart}
+                                    endDate={gscEnd}
+                                    device={device}
+                                    onInsightGenerated={handleInsightGenerated}
+                                />
                             </div>
                         </div>
                     </div>
@@ -1339,7 +1460,18 @@ import { formatDistanceToNow } from 'date-fns';
                             )}
                         </div>
                         <div className="mt-4">
-                            <SectionAiSummary insight={data?.intelligence?.dailyImpressionVolume} loading={loading || isSyncing} sectionTitle="AI VISIBILITY INSIGHT" />
+                            <SectionAiSummary 
+                                insight={data?.intelligence?.dailyImpressionVolume} 
+                                loading={loading || isSyncing} 
+                                sectionTitle="AI VISIBILITY INSIGHT"
+                                platform="gsc"
+                                sectionKey="dailyImpressionVolume"
+                                siteId={activeSiteId}
+                                startDate={gscStart}
+                                endDate={gscEnd}
+                                device={device}
+                                onInsightGenerated={handleInsightGenerated}
+                            />
                         </div>
                     </div>
 
@@ -1429,7 +1561,13 @@ import { formatDistanceToNow } from 'date-fns';
                          insight={data?.intelligence?.periodComparison} 
                          loading={loading || isSyncing} 
                          sectionTitle="AI SUMMARY"
-                         contextPrompt={`Analyze my GSC master growth trajectory. Comparing this period vs last: Clicks grew/fell by ${data?.searchClicks?.change || 0}%, Impressions by ${data?.impressions?.change || 0}%, and Position shifted from #${data?.periodComparison?.lastPeriod?.position?.toFixed(1) || '0.0'} to #${data?.avgPosition?.value?.toFixed(1) || '0.0'}. What is my overall organic health score?`}
+                         platform="gsc"
+                         sectionKey="periodComparison"
+                         siteId={activeSiteId}
+                         startDate={gscStart}
+                         endDate={gscEnd}
+                         device={device}
+                         onInsightGenerated={handleInsightGenerated}
                     />
                     </div>
 

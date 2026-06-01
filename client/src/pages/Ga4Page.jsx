@@ -6,6 +6,8 @@ import toast from 'react-hot-toast';
 import DashboardLayout from '../components/ui/DashboardLayout';
 import KpiCard from '../components/dashboard/KpiCard';
 import DataTable from '../components/dashboard/DataTable';
+import SectionAiSummary from '../components/dashboard/SectionAiSummary';
+import SummaryStripCard from '../components/dashboard/SummaryStripCard';
 import { useDateRangeStore } from '../store/dateRangeStore';
 import { useAccountsStore } from '../store/accountsStore';
 import { useAiChatStore } from '../store/aiChatStore';
@@ -50,21 +52,7 @@ const Ga4Logo = ({ className = "w-6 h-6" }) => (
     <img src="https://www.vectorlogo.zone/logos/google_analytics/google_analytics-icon.svg" alt="GA4" className={`${className} object-contain`} />
 );
 
-const SectionAiSummary = ({ insight, loading, title = "AI SUMMARY" }) => (
-    <div className="mt-4 p-4 bg-brand-50/10 dark:bg-brand-500/5 border border-brand-100/50 dark:border-brand-500/20 rounded-[1.5rem] animate-in fade-in duration-700">
-        <h4 className="text-[10px] font-black text-neutral-900 dark:text-white uppercase tracking-[0.15em] mb-3">{title}</h4>
-        {loading ? (
-            <div className="space-y-2 animate-pulse mb-4">
-                <div className="h-2 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
-                <div className="h-2 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[85%]" />
-            </div>
-        ) : (
-            <p className="text-[12px] font-semibold text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
-                {insight || "Analyzing section data for strategic intelligence..."}
-            </p>
-        )}
-    </div>
-);
+
 
 const Ga4Page = () => {
     const startDate = useDateRangeStore(s => s.startDate);
@@ -98,6 +86,19 @@ const Ga4Page = () => {
     const [isCustomDateMode, setIsCustomDateMode] = useState(false);
 
     const [data, setData] = useState(null);
+
+    const handleInsightGenerated = (sectionKey, newInsight) => {
+        setData(prev => {
+            if (!prev) return prev;
+            return {
+                ...prev,
+                intelligence: {
+                    ...prev.intelligence,
+                    [sectionKey]: newInsight
+                }
+            };
+        });
+    };
 
     const presetLabels = {
         'today': 'Today',
@@ -717,8 +718,14 @@ const Ga4Page = () => {
                         isPositive={data?.activeUsers.isPositive}
                         changeText="vs last period"
                         chartData={data?.activeUsers.timeseries.map(d => d.users).slice(-10)}
-                        insight={data?.intelligence.activeUsers}
-                        contextPrompt={`Act as my Marketing Coach. My website has ${formatNumber(data?.activeUsers?.value)} active users with ${formatNumber(data?.newUsers)} being new visitors. Daily active users trend for the last 30 days: ${(data?.activeUsers?.timeseries || []).slice(-30).map(d => d.users).join(', ')}. Analyze this acquisition and provide a 1-sentence summary + 1-sentence strategic insight.`}
+                        insight={data?.intelligence?.activeUsers}
+                        platform="ga4"
+                        sectionKey="activeUsers"
+                        siteId={activeSiteId}
+                        startDate={startDate}
+                        endDate={endDate}
+                        device={device}
+                        onInsightGenerated={handleInsightGenerated}
                     />
                     <KpiCard
                         title="Total Sessions"
@@ -729,8 +736,14 @@ const Ga4Page = () => {
                         isPositive={data?.totalSessions.isPositive}
                         changeText="vs last period"
                         chartData={data?.totalSessions.timeseries.map(d => d.sessions).slice(-10)}
-                        insight={data?.intelligence.totalSessions}
-                        contextPrompt={`Act as my Marketing Coach. Total sessions are ${formatNumber(data?.totalSessions?.value)} with ${formatNumber(data?.activeUsers?.value)} active users. Daily sessions trend for the last 30 days: ${(data?.totalSessions?.timeseries || []).slice(-30).map(d => d.sessions).join(', ')}. Compare this volume to my user base and provide a 1-sentence summary + 1-sentence strategic insight.`}
+                        insight={data?.intelligence?.totalSessions}
+                        platform="ga4"
+                        sectionKey="totalSessions"
+                        siteId={activeSiteId}
+                        startDate={startDate}
+                        endDate={endDate}
+                        device={device}
+                        onInsightGenerated={handleInsightGenerated}
                     />
                     <KpiCard
                         title="Engagement Rate"
@@ -741,8 +754,14 @@ const Ga4Page = () => {
                         isPositive={data?.engagementRate.isPositive}
                         changeText="vs last period"
                         chartData={data?.engagementRate.timeseries.map(d => d.engagementRate).slice(-10)}
-                        insight={data?.intelligence.engagementRate}
-                        contextPrompt={`Act as my Marketing Coach. My Engagement Rate is ${data?.engagementRates?.engagementRate || '0'}%. Daily engagement rate trend for the last 30 days: ${(data?.engagementRate?.timeseries || []).slice(-30).map(d => `${d.engagementRate}%`).join(', ')}. Analyze this content resonance and provide a 1-sentence summary + 1-sentence strategic insight.`}
+                        insight={data?.intelligence?.engagementRate}
+                        platform="ga4"
+                        sectionKey="engagementRate"
+                        siteId={activeSiteId}
+                        startDate={startDate}
+                        endDate={endDate}
+                        device={device}
+                        onInsightGenerated={handleInsightGenerated}
                     />
                     <KpiCard
                         title="Avg. Session Duration"
@@ -753,37 +772,64 @@ const Ga4Page = () => {
                         isPositive={data?.avgSessionDuration.isPositive}
                         changeText="vs last period"
                         chartData={data?.avgSessionDuration.timeseries.map(d => d.avgSessionDuration).slice(-10)}
-                        insight={data?.intelligence.avgSessionDuration}
-                        contextPrompt={`Act as my Marketing Coach. Users spend an average of ${data?.avgSessionDuration?.value} on site. Daily session duration trend for the last 30 days: ${(data?.avgSessionDuration?.timeseries || []).slice(-30).map(d => `${d.avgSessionDuration}s`).join(', ')}. Analyze this retention and provide a 1-sentence summary + 1-sentence strategic insight.`}
+                        insight={data?.intelligence?.avgSessionDuration}
+                        platform="ga4"
+                        sectionKey="avgSessionDuration"
+                        siteId={activeSiteId}
+                        startDate={startDate}
+                        endDate={endDate}
+                        device={device}
+                        onInsightGenerated={handleInsightGenerated}
                     />
                 </div>
 
                 {/* ADD 2 — Summary Strip */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                    {[
-                        { label: 'Page Views', value: formatNumber(data?.pageViews), icon: <ChartBarIcon className="w-5 h-5 text-blue-500" />, insight: data?.intelligence.pageViews },
-                        { label: 'New Users', value: formatNumber(data?.newUsers), icon: <UsersIcon className="w-5 h-5 text-emerald-500" />, insight: data?.intelligence.newUsers },
-                        { label: 'Pages Per Session', value: data?.pagesPerSession, icon: <GlobeAltIcon className="w-5 h-5 text-purple-500" />, insight: data?.intelligence.pagesPerSession }
-                    ].map((card, idx) => (
-                        <div key={idx} className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 shadow-sm group hover:border-brand-500/30 transition-all flex flex-col">
-                            <div className="flex items-center gap-4 mb-3">
-                                <div className="w-10 h-10 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 flex items-center justify-center border border-neutral-100 dark:border-neutral-700/50 group-hover:scale-110 transition-transform">
-                                    {card.icon}
-                                </div>
-                                <div>
-                                    <div className="text-xl font-black text-neutral-900 dark:text-white tabular-nums">
-                                        {(loading || isSyncing) ? <div className="h-6 w-20 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /> : card.value}
-                                    </div>
-                                    <div className="text-xs text-neutral-800 dark:text-neutral-200 font-bold mt-0.5">{card.label}</div>
-                                </div>
-                            </div>
-                            {card.insight && !(loading || isSyncing) && (
-                                <p className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 leading-relaxed italic border-t border-neutral-100 dark:border-neutral-800 pt-2 mt-auto">
-                                    {card.insight}
-                                </p>
-                            )}
-                        </div>
-                    ))}
+                    <SummaryStripCard
+                        label="Page Views"
+                        value={formatNumber(data?.pageViews)}
+                        icon={<ChartBarIcon className="w-5 h-5 text-blue-500" />}
+                        insight={data?.intelligence?.pageViews}
+                        platform="ga4"
+                        sectionKey="pageViews"
+                        siteId={activeSiteId}
+                        startDate={startDate}
+                        endDate={endDate}
+                        device={device}
+                        onInsightGenerated={handleInsightGenerated}
+                        loading={loading}
+                        isSyncing={isSyncing}
+                    />
+                    <SummaryStripCard
+                        label="New Users"
+                        value={formatNumber(data?.newUsers)}
+                        icon={<UsersIcon className="w-5 h-5 text-emerald-500" />}
+                        insight={data?.intelligence?.newUsers}
+                        platform="ga4"
+                        sectionKey="newUsers"
+                        siteId={activeSiteId}
+                        startDate={startDate}
+                        endDate={endDate}
+                        device={device}
+                        onInsightGenerated={handleInsightGenerated}
+                        loading={loading}
+                        isSyncing={isSyncing}
+                    />
+                    <SummaryStripCard
+                        label="Pages Per Session"
+                        value={data?.pagesPerSession}
+                        icon={<GlobeAltIcon className="w-5 h-5 text-purple-500" />}
+                        insight={data?.intelligence?.pagesPerSession}
+                        platform="ga4"
+                        sectionKey="pagesPerSession"
+                        siteId={activeSiteId}
+                        startDate={startDate}
+                        endDate={endDate}
+                        device={device}
+                        onInsightGenerated={handleInsightGenerated}
+                        loading={loading}
+                        isSyncing={isSyncing}
+                    />
                 </div>
 
                 {/* Timeseries Chart Row (FIX Matrix + ADD New vs Returning) */}
@@ -876,8 +922,15 @@ const Ga4Page = () => {
                         </div>
                         <div className="px-8 pb-8">
                             <SectionAiSummary
-                                insight={data?.intelligence.sessionsOverTime}
+                                insight={data?.intelligence?.sessionsOverTime}
                                 loading={loading || isSyncing}
+                                platform="ga4"
+                                sectionKey="sessionsOverTime"
+                                siteId={activeSiteId}
+                                startDate={startDate}
+                                endDate={endDate}
+                                device={device}
+                                onInsightGenerated={handleInsightGenerated}
                             />
                         </div>
                     </div>
@@ -961,8 +1014,15 @@ const Ga4Page = () => {
                         </div>
                         <div className="mt-auto">
                             <SectionAiSummary
-                                insight={data?.intelligence.newVsReturningUsers}
+                                insight={data?.intelligence?.newVsReturningUsers}
                                 loading={loading || isSyncing}
+                                platform="ga4"
+                                sectionKey="newVsReturningUsers"
+                                siteId={activeSiteId}
+                                startDate={startDate}
+                                endDate={endDate}
+                                device={device}
+                                onInsightGenerated={handleInsightGenerated}
                             />
                         </div>
                     </div>
@@ -1019,8 +1079,15 @@ const Ga4Page = () => {
                         💡 Engagement Rate counts sessions where user stayed 10+ sec, converted, or viewed 2+ pages.
                     </div>
                     <SectionAiSummary
-                        insight={data?.intelligence.engagementRates}
+                        insight={data?.intelligence?.engagementRates}
                         loading={loading || isSyncing}
+                        platform="ga4"
+                        sectionKey="engagementRates"
+                        siteId={activeSiteId}
+                        startDate={startDate}
+                        endDate={endDate}
+                        device={device}
+                        onInsightGenerated={handleInsightGenerated}
                     />
                 </div>
 
@@ -1085,8 +1152,15 @@ const Ga4Page = () => {
                             </ResponsiveContainer>
                         )}
                         <SectionAiSummary
-                            insight={data?.intelligence.bounceRateOverTime}
+                            insight={data?.intelligence?.bounceRateOverTime}
                             loading={loading || isSyncing}
+                            platform="ga4"
+                            sectionKey="bounceRateOverTime"
+                            siteId={activeSiteId}
+                            startDate={startDate}
+                            endDate={endDate}
+                            device={device}
+                            onInsightGenerated={handleInsightGenerated}
                         />
                     </div>
 
@@ -1144,8 +1218,15 @@ const Ga4Page = () => {
                             </ResponsiveContainer>
                         )}
                         <SectionAiSummary
-                            insight={data?.intelligence.pageViewsOverTime}
+                            insight={data?.intelligence?.pageViewsOverTime}
                             loading={loading || isSyncing}
+                            platform="ga4"
+                            sectionKey="pageViewsOverTime"
+                            siteId={activeSiteId}
+                            startDate={startDate}
+                            endDate={endDate}
+                            device={device}
+                            onInsightGenerated={handleInsightGenerated}
                         />
                     </div>
                 </div>
@@ -1183,10 +1264,17 @@ const Ga4Page = () => {
                             />
                         </div>
                         <div className="p-5 pt-0">
-                            <SectionAiSummary
-                                insight={data?.intelligence.topTrafficSources}
-                                loading={loading || isSyncing}
-                            />
+                        <SectionAiSummary
+                            insight={data?.intelligence?.topTrafficSources}
+                            loading={loading || isSyncing}
+                            platform="ga4"
+                            sectionKey="topTrafficSources"
+                            siteId={activeSiteId}
+                            startDate={startDate}
+                            endDate={endDate}
+                            device={device}
+                            onInsightGenerated={handleInsightGenerated}
+                        />
                         </div>
                     </div>
 
@@ -1221,10 +1309,17 @@ const Ga4Page = () => {
                             />
                         </div>
                         <div className="p-5 pt-0">
-                            <SectionAiSummary
-                                insight={data?.intelligence.topPages}
-                                loading={loading || isSyncing}
-                            />
+                        <SectionAiSummary
+                            insight={data?.intelligence?.topPages}
+                            loading={loading || isSyncing}
+                            platform="ga4"
+                            sectionKey="topPages"
+                            siteId={activeSiteId}
+                            startDate={startDate}
+                            endDate={endDate}
+                            device={device}
+                            onInsightGenerated={handleInsightGenerated}
+                        />
                         </div>
                     </div>
                 </div>
@@ -1313,10 +1408,17 @@ const Ga4Page = () => {
                             </div> {/* md:flex-row inner content ends */}
                         </div> {/* flex-1 content wrapper ends */}
                         <div className="mt-auto">
-                            <SectionAiSummary
-                                insight={data?.intelligence.deviceBreakdown}
-                                loading={loading || isSyncing}
-                            />
+                        <SectionAiSummary
+                            insight={data?.intelligence?.deviceBreakdown}
+                            loading={loading || isSyncing}
+                            platform="ga4"
+                            sectionKey="deviceBreakdown"
+                            siteId={activeSiteId}
+                            startDate={startDate}
+                            endDate={endDate}
+                            device={device}
+                            onInsightGenerated={handleInsightGenerated}
+                        />
                         </div>
                     </div> {/* Device Breakdown card ends */}
 
@@ -1367,10 +1469,17 @@ const Ga4Page = () => {
                             })}
                         </div> {/* flex-1 content wrapper ends */}
                         <div className="mt-auto">
-                            <SectionAiSummary
-                                insight={data?.intelligence.topLocations}
-                                loading={loading || isSyncing}
-                            />
+                        <SectionAiSummary
+                            insight={data?.intelligence?.topLocations}
+                            loading={loading || isSyncing}
+                            platform="ga4"
+                            sectionKey="topLocations"
+                            siteId={activeSiteId}
+                            startDate={startDate}
+                            endDate={endDate}
+                            device={device}
+                            onInsightGenerated={handleInsightGenerated}
+                        />
                         </div>
                     </div> {/* Geography Breakdown card ends */}
                 </div> {/* grid ends */}
@@ -1498,8 +1607,15 @@ const Ga4Page = () => {
                         </table>
                     </div>
                     <SectionAiSummary
-                        insight={data?.intelligence.thisPeriodVsLastPeriod}
+                        insight={data?.intelligence?.thisPeriodVsLastPeriod}
                         loading={loading || isSyncing}
+                        platform="ga4"
+                        sectionKey="thisPeriodVsLastPeriod"
+                        siteId={activeSiteId}
+                        startDate={startDate}
+                        endDate={endDate}
+                        device={device}
+                        onInsightGenerated={handleInsightGenerated}
                     />
                 </div>
 

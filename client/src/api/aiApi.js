@@ -13,3 +13,5 @@ export const getSuggestedQuestions = (siteId, timezone) => {
     const query = params.toString();
     return api.get(`/ai/suggested-questions${query ? `?${query}` : ''}`);
 };
+
+export const getSectionSummary = (data) => api.post('/analytics/section-summary', data);

@@ -1,7 +1,61 @@
-import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
+import React, { useState } from 'react';
+import { ArrowUpIcon, ArrowDownIcon, SparklesIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
+import api from '../../api';
 
-const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Icon, loading = false, chartData = [], disconnected = false, onClick, insight, contextPrompt, platform }) => {
+const KpiCard = ({ 
+  title, 
+  value, 
+  change, 
+  changeText, 
+  valueSuffix, 
+  isPositive, 
+  Icon, 
+  loading = false, 
+  chartData = [], 
+  disconnected = false, 
+  onClick, 
+  insight, 
+  platform, 
+  sectionKey, 
+  siteId, 
+  startDate, 
+  endDate, 
+  device, 
+  onInsightGenerated 
+}) => {
+
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleGenerate = async (e) => {
+    e.stopPropagation();
+    if (!siteId || !startDate || !endDate || !sectionKey) return;
+    setGenerating(true);
+    setError(null);
+    try {
+      const res = await api.post('/analytics/section-summary', {
+        siteId,
+        platform,
+        sectionKey,
+        startDate,
+        endDate,
+        device: device || 'all'
+      });
+      if (res.data?.success && res.data?.insight) {
+        if (onInsightGenerated) {
+          onInsightGenerated(sectionKey, res.data.insight);
+        }
+      } else {
+        setError("Failed to generate insight.");
+      }
+    } catch (err) {
+      console.error("KPI summary generation failed", err);
+      setError(err.response?.data?.message || "Generation failed. Try again.");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   // Loading state matching the updated dimensions
   if (loading) return (
@@ -185,10 +239,49 @@ const KpiCard = ({ title, value, change, changeText, valueSuffix, isPositive, Ic
       </div>
 
       {/* AI Insight Snippet */}
-      {insight && !disconnected && (
-        <p className="text-[12px] font-semibold text-neutral-500 dark:text-neutral-400 leading-relaxed mb-3">
-          {insight}
-        </p>
+      {!disconnected && (
+        <div className="mt-2 mb-3 border-t border-dashed border-neutral-100 dark:border-neutral-800/80 pt-2 shrink-0">
+          {generating ? (
+            <div className="space-y-1.5 animate-pulse py-2 px-2.5 bg-brand-50/5 dark:bg-brand-500/5 border border-dashed border-brand-100/50 dark:border-brand-500/20 rounded-xl">
+              <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[85%]" />
+              <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full w-[55%]" />
+            </div>
+          ) : insight ? (
+            <div className="relative group/insight">
+              <p className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 leading-relaxed pr-5 whitespace-pre-line">
+                {insight}
+              </p>
+              <button 
+                onClick={handleGenerate}
+                title="Regenerate"
+                className="absolute top-0 right-0 p-0.5 hover:bg-neutral-150 dark:hover:bg-neutral-800 rounded opacity-0 group-hover/insight:opacity-100 transition-all duration-200 active:scale-90"
+              >
+                <ArrowPathIcon className="w-3 h-3 text-neutral-400 hover:text-brand-500" />
+              </button>
+            </div>
+          ) : (
+            <div 
+              className="flex items-center justify-between gap-3 py-1.5 pl-3 pr-2 bg-white dark:bg-neutral-900/50 border border-neutral-150/70 dark:border-neutral-800 rounded-xl group/unlock transition-all duration-300 shadow-[0_1px_4px_rgba(0,0,0,0.02)] hover:border-brand-500/20 hover:shadow-[0_2px_8px_-1px_rgba(99,102,241,0.03)]"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <SparklesIcon className="w-3.5 h-3.5 text-brand-500 shrink-0" />
+                <span className="text-[10.5px] font-bold text-neutral-700 dark:text-neutral-300 truncate select-none">
+                  Unlock AI Insight
+                </span>
+              </div>
+              <button
+                onClick={handleGenerate}
+                className="px-3 py-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-550 hover:to-indigo-500 group-hover/unlock:scale-105 text-white rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all shadow-sm shrink-0 active:scale-95 cursor-pointer"
+              >
+                <SparklesIcon className="w-2.5 h-2.5" />
+                Unlock
+              </button>
+            </div>
+          )}
+          {error && (
+            <div className="text-[8px] font-bold text-red-500 mt-1">{error}</div>
+          )}
+        </div>
       )}
 
       {/* Bottom Row: change badge + context text */}

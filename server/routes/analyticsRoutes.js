@@ -1,5 +1,5 @@
 import express from 'express';
-import { getDashboardSummary, getGa4Summary, getGscSummary, getGoogleAdsSummary, getFacebookAdsSummary, syncAccountData } from '../controllers/analyticsController.js';
+import { getDashboardSummary, getGa4Summary, getGscSummary, getGoogleAdsSummary, getFacebookAdsSummary, syncAccountData, getSectionSummary } from '../controllers/analyticsController.js';
 import { exportPdf } from '../controllers/exportController.js';
 import { protect } from '../middleware/auth.js';
 import { syncLimiter } from '../middleware/rateLimiter.js';
@@ -14,6 +14,7 @@ router.get('/ga4-summary', protect, validate(analyticsQuerySchema), getGa4Summar
 router.get('/gsc-summary', protect, validate(analyticsQuerySchema), getGscSummary);
 router.get('/google-ads-summary', protect, validate(analyticsQuerySchema), getGoogleAdsSummary);
 router.get('/facebook-ads-summary', protect, validate(analyticsQuerySchema), getFacebookAdsSummary);
+router.post('/section-summary', protect, getSectionSummary);
 router.post('/sync', protect, syncLimiter, validate(syncDataSchema), syncAccountData);
 router.post('/export/pdf', protect, exportPdf);
 
