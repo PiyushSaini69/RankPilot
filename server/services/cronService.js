@@ -8,10 +8,20 @@ import {
     generateWeeklyInsightsForAllUsers,
     generateSuggestedQuestionsForAllUsers
 } from './notificationMonitoringService.js';
+import { cleanupOldMetricsData } from './cleanupService.js';
 
 
 export const initCronJobs = () => {
      // 🟢 SECTION 1: SYSTEM MONITORING & ALERTS
+
+    // Daily Historical Data Cleanup - midnight at 3:00 AM
+    cron.schedule('0 3 * * *', async () => {
+        try {
+            await cleanupOldMetricsData();
+        } catch (err) {
+            console.error('❌ [Cron] Data cleanup failed:', err);
+        }
+    }, { timezone: "Asia/Kolkata" });
 
     // Daily Checks (Tokens, Inactivity, Ad Spikes) - Midnight at 12:00 AM
     cron.schedule('0 0 * * *', async () => {
