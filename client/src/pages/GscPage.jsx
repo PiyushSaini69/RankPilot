@@ -81,8 +81,31 @@ import { formatDistanceToNow } from 'date-fns';
         const endDate = useDateRangeStore(s => s.endDate);
         const preset = useDateRangeStore(s => s.preset);
         const setPreset = useDateRangeStore(s => s.setPreset);
+        const tempStartDate = useDateRangeStore(s => s.tempStartDate);
+        const tempEndDate = useDateRangeStore(s => s.tempEndDate);
+        const setTempStartDate = useDateRangeStore(s => s.setTempStartDate);
+        const setTempEndDate = useDateRangeStore(s => s.setTempEndDate);
+        const applyCustomRange = useDateRangeStore(s => s.applyCustomRange);
         const device = useFilterStore(s => s.device);
         const setFilters = useFilterStore(s => s.setFilters);
+
+        // Adjust for GSC 48h delay: shift preset dates 1 day back (except custom)
+        const getGscDates = () => {
+            if (preset === 'custom' || !startDate || !endDate) {
+                return { gscStart: startDate, gscEnd: endDate };
+            }
+            const adjustDate = (dStr, offset) => {
+                const d = new Date(dStr + 'T00:00:00');
+                d.setDate(d.getDate() + offset);
+                return d.toISOString().split('T')[0];
+            };
+            return {
+                gscStart: adjustDate(startDate, -1),
+                gscEnd: adjustDate(endDate, -1)
+            };
+        };
+
+        const { gscStart, gscEnd } = getGscDates();
 
         const activeGscSite = useAccountsStore(s => s.gsc?.gscSiteUrl);
         const ga4 = useAccountsStore(s => s.ga4);
@@ -101,7 +124,6 @@ import { formatDistanceToNow } from 'date-fns';
         const [isDateMenuOpen, setIsDateMenuOpen] = useState(false);
         const [isDeviceMenuOpen, setIsDeviceMenuOpen] = useState(false);
         const [isCustomDateMode, setIsCustomDateMode] = useState(false);
-        const [tempDateRange, setTempDateRange] = useState({ start: startDate, end: endDate });
         const [isExportingPdf, setIsExportingPdf] = useState(false);
         const [showAllLowCtr, setShowAllLowCtr] = useState(false);
         const [showAllNearPage1, setShowAllNearPage1] = useState(false);
@@ -111,8 +133,8 @@ import { formatDistanceToNow } from 'date-fns';
             'yesterday': 'Yesterday',
             '7d': 'Last 7 Days',
             '28d': 'Last 28 Days',
-            '90d': 'Last 90 Days',
-            '1y': 'Last Year',
+            'this_week': 'This Week',
+            'last_week': 'Last Week',
             'custom': 'Custom Range'
         };
 
@@ -132,8 +154,8 @@ import { formatDistanceToNow } from 'date-fns';
             setLoading(true);
             try {
                 const query = new URLSearchParams({
-                    startDate,
-                    endDate,
+                    startDate: gscStart,
+                    endDate: gscEnd,
                     device: device || 'all',
                     ...(activeSiteId && { siteId: activeSiteId })
                 }).toString();
@@ -148,39 +170,23 @@ import { formatDistanceToNow } from 'date-fns';
             } finally {
                 setLoading(false);
             }
-        }, [activeGscSite, startDate, endDate, device, activeSiteId]);
+        }, [activeGscSite, gscStart, gscEnd, device, activeSiteId]);
 
         const handleDatePresetSelect = (p) => {
             if (p.value === 'custom') {
                 setIsCustomDateMode(true);
                 return;
             }
-            const fmt = (d) => {
-                const date = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
-                return date.toISOString().split('T')[0];
-            };
-            let start = new Date();
-            let end = new Date();
-            if (p.value === 'yesterday') {
-                start.setDate(start.getDate() - 1);
-                end.setDate(end.getDate() - 1);
-            } else if (p.value !== 'today') {
-                start.setDate(start.getDate() - p.days);
-            }
-            setPreset(p.value, fmt(start), fmt(end));
+            setPreset(p.value);
             setIsDateMenuOpen(false);
             setIsCustomDateMode(false);
         };
 
         const handleApplyCustomDate = () => {
-            setPreset('custom', tempDateRange.start, tempDateRange.end);
+            applyCustomRange();
             setIsDateMenuOpen(false);
             setIsCustomDateMode(false);
         };
-
-        useEffect(() => {
-            setTempDateRange({ start: startDate, end: endDate });
-        }, [startDate, endDate]);
 
         const handleManualRefresh = async () => {
             if (!activeSiteId) return;
@@ -461,7 +467,7 @@ import { formatDistanceToNow } from 'date-fns';
                                 <div className="flex flex-col sm:flex-row gap-2 shrink-0 self-start lg:self-center">
                                     <button
                                         onClick={() => {
-                                            const fullPrompt = `Act as my elite Organic Search Coach and SEO Growth Strategist. I want you to perform a deep-dive, professional technical SEO audit of my Google Search Console (GSC) dashboard for the period ${startDate} to ${endDate}.
+                                            const fullPrompt = `Act as my elite Organic Search Coach and SEO Growth Strategist. I want you to perform a deep-dive, professional technical SEO audit of my Google Search Console (GSC) dashboard for the period ${gscStart} to ${gscEnd}.
       
                                                 Here is the COMPLETE raw analytical SEO dataset of my site's Search Console integration:
       
@@ -560,10 +566,12 @@ import { formatDistanceToNow } from 'date-fns';
                                                     {!isCustomDateMode ? (
                                                         <>
                                                             {[
-                                                                { label: 'Today', value: 'today', days: 0 },
-                                                                { label: 'Yesterday', value: 'yesterday', days: 1 },
-                                                                { label: 'Last 7 Days', value: '7d', days: 7 },
-                                                                { label: 'Last 28 Days', value: '28d', days: 28 },
+                                                                { label: 'Today', value: 'today' },
+                                                                { label: 'Yesterday', value: 'yesterday' },
+                                                                { label: 'Last 7 Days', value: '7d' },
+                                                                { label: 'Last 28 Days', value: '28d' },
+                                                                { label: 'This Week', value: 'this_week' },
+                                                                { label: 'Last Week', value: 'last_week' },
                                                                 { label: 'Custom Range', value: 'custom', icon: CalendarIcon },
                                                             ].map((p) => (
                                                                 <button
@@ -590,8 +598,8 @@ import { formatDistanceToNow } from 'date-fns';
                                                                     <label className="text-[8px] font-black text-neutral-400 uppercase ml-1">Start</label>
                                                                     <input
                                                                         type="date"
-                                                                        value={tempDateRange.start}
-                                                                        onChange={(e) => setTempDateRange({ ...tempDateRange, start: e.target.value })}
+                                                                        value={preset === 'custom' ? tempStartDate : gscStart}
+                                                                        onChange={(e) => setTempStartDate(e.target.value)}
                                                                         className="w-full bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg px-2 py-1.5 text-[10px] font-bold outline-none text-neutral-900 dark:text-white"
                                                                     />
                                                                 </div>
@@ -599,8 +607,8 @@ import { formatDistanceToNow } from 'date-fns';
                                                                     <label className="text-[8px] font-black text-neutral-400 uppercase ml-1">End</label>
                                                                     <input
                                                                         type="date"
-                                                                        value={tempDateRange.end}
-                                                                        onChange={(e) => setTempDateRange({ ...tempDateRange, end: e.target.value })}
+                                                                        value={preset === 'custom' ? tempEndDate : gscEnd}
+                                                                        onChange={(e) => setTempEndDate(e.target.value)}
                                                                         className="w-full bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg px-2 py-1.5 text-[10px] font-bold outline-none text-neutral-900 dark:text-white"
                                                                     />
                                                                 </div>
@@ -809,7 +817,7 @@ import { formatDistanceToNow } from 'date-fns';
                                 <button
                                     onClick={() => {
                                         const dailyDataStr = (data?.searchPerformanceOverview || []).map(d => `- Date: ${d.date} | Clicks: ${d.clicks} | Impressions: ${d.impressions}`).join('\n');
-                                        openWithQuestion(`Act as my elite SEO Growth Strategist and Analytics Expert. Analyze my Search Performance Overview daily dataset for the period ${startDate} to ${endDate}:
+                                        openWithQuestion(`Act as my elite SEO Growth Strategist and Analytics Expert. Analyze my Search Performance Overview daily dataset for the period ${gscStart} to ${gscEnd}:
 
                                         Daily Click & Impression Trend:
                                         ${dailyDataStr}
@@ -926,7 +934,7 @@ import { formatDistanceToNow } from 'date-fns';
                                     <button 
                                         onClick={() => {
                                             const dailyCtrStr = (data?.clickThroughRateTrend || []).map(d => `- Date: ${d.date} | CTR: ${d.ctr}%`).join('\n');
-                                            openWithQuestion(`Act as my elite SEO Growth Strategist. Analyze my GSC Click-Through Rate (CTR) Trend for the period ${startDate} to ${endDate}:
+                                            openWithQuestion(`Act as my elite SEO Growth Strategist. Analyze my GSC Click-Through Rate (CTR) Trend for the period ${gscStart} to ${gscEnd}:
 
                                             Daily CTR Trend:
                                             ${dailyCtrStr}
@@ -995,7 +1003,7 @@ import { formatDistanceToNow } from 'date-fns';
                                     <button 
                                         onClick={() => {
                                             const dailyPosStr = (data?.averageRankingPosition || []).map(d => `- Date: ${d.date} | Avg Position: #${d.position}`).join('\n');
-                                            openWithQuestion(`Act as my elite SEO Ranking Coach. Analyze my Average Ranking Position trend for the period ${startDate} to ${endDate}:
+                                            openWithQuestion(`Act as my elite SEO Ranking Coach. Analyze my Average Ranking Position trend for the period ${gscStart} to ${gscEnd}:
 
                                                 Daily Position Trend:
                                                 ${dailyPosStr}

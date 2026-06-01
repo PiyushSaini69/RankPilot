@@ -105,17 +105,50 @@ export const exportPdf = async (req, res) => {
             } catch (e) {}
 
             const calculateDateRange = (preset) => {
+                const path = window.location.pathname;
+                const isGsc = path.includes('/gsc');
+                
                 const end = new Date();
-                end.setDate(end.getDate() - 1);
-                const start = new Date(end);
+                // GA4 is yesterday-anchored (1 day offset), GSC has 48h delay so it shifts 2 days offset (1 more day)
+                end.setDate(end.getDate() - (isGsc ? 2 : 1));
+                let start = new Date(end);
 
                 if (preset === 'today') return `Today: ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
                 if (preset === 'yesterday') return `Yesterday: ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 
-                if (preset === '7d') start.setDate(end.getDate() - 6);
-                else if (preset === '28d') start.setDate(end.getDate() - 27);
-                else if (preset === '90d') start.setDate(end.getDate() - 89);
-                else if (preset === '12m' || preset === '1y') start.setFullYear(end.getFullYear() - 1);
+                if (preset === '7d') {
+                    start.setDate(end.getDate() - 6);
+                } else if (preset === '28d') {
+                    start.setDate(end.getDate() - 27);
+                } else if (preset === 'this_week') {
+                    const today = new Date();
+                    const day = today.getDay();
+                    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+                    const monday = new Date(today);
+                    monday.setDate(diff);
+                    const weekEnd = isGsc 
+                        ? (day === 1 ? new Date(today.getTime() - 86400000) : new Date(end.getTime() - 86400000))
+                        : (day === 1 ? today : end);
+                    return `This Week: ${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+                } else if (preset === 'last_week') {
+                    const today = new Date();
+                    const day = today.getDay();
+                    const diff = today.getDate() - day + (day === 0 ? -6 : 1) - 7;
+                    const mondayLastWeek = new Date(today);
+                    mondayLastWeek.setDate(diff);
+                    const sundayLastWeek = new Date(mondayLastWeek);
+                    sundayLastWeek.setDate(sundayLastWeek.getDate() + 6);
+                    
+                    if (isGsc) {
+                        mondayLastWeek.setDate(mondayLastWeek.getDate() - 1);
+                        sundayLastWeek.setDate(sundayLastWeek.getDate() - 1);
+                    }
+                    return `Last Week: ${mondayLastWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${sundayLastWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+                } else if (preset === '90d') {
+                    start.setDate(end.getDate() - 89);
+                } else if (preset === '12m' || preset === '1y') {
+                    start.setFullYear(end.getFullYear() - 1);
+                }
 
                 return `Period: ${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
             };

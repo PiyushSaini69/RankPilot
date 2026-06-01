@@ -211,12 +211,30 @@ export const fetchPlatformData = async (
         try {
             const baseFilter = { 'metadata.platformAccountId': config.id, ...deviceFilter, ...channelFilterQuery };
 
+            // Use config-specific dates to support GSC 48h offset dynamically
+            let configCurrentStart = currentStart;
+            let configCurrentEnd = currentEnd;
+            let configPrevStart = prevStart;
+            let configPrevEnd = prevEnd;
+
+            if (config.key === 'gsc') {
+                const shiftDate = (dateObj, offset) => {
+                    const d = new Date(dateObj);
+                    d.setDate(d.getDate() + offset);
+                    return d;
+                };
+                configCurrentStart = shiftDate(currentStart, -1);
+                configCurrentEnd = shiftDate(currentEnd, -1);
+                configPrevStart = shiftDate(prevStart, -1);
+                configPrevEnd = shiftDate(prevEnd, -1);
+            }
+
             // ── 1. TOTALS (always) ──────────────────────────────────────────
             const totalsAgg = await config.model.aggregate([
-                { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
+                { $match: { ...baseFilter, date: { $gte: configPrevStart, $lte: configCurrentEnd } } },
                 {
                     $group: {
-                        _id: { period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
+                        _id: { period: { $cond: [{ $gte: ['$date', configCurrentStart] }, 'current', 'previous'] } },
                         ...Object.fromEntries(config.metrics.map(m => [
                             m, AVG_METRICS.includes(m) ? { $avg: `$metrics.${m}` } : { $sum: `$metrics.${m}` }
                         ])),
@@ -234,7 +252,7 @@ export const fetchPlatformData = async (
 
             // ── 2. DAILY BREAKDOWN (standard + full) ───────────────────────
             const dailyAgg = await config.model.aggregate([
-                { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
+                { $match: { ...baseFilter, date: { $gte: configCurrentStart, $lte: configCurrentEnd } } },
                 {
                     $group: {
                         _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
@@ -413,9 +431,9 @@ export const fetchPlatformData = async (
 
                 // Top Queries with impression-weighted position (standard + full)
                 const queries = await GscMetric.aggregate([
-                    { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
+                    { $match: { ...baseFilter, date: { $gte: configPrevStart, $lte: configCurrentEnd } } },
                     { $group: {
-                        _id: { query: "$metadata.dimensions.query", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
+                        _id: { query: "$metadata.dimensions.query", period: { $cond: [{ $gte: ['$date', configCurrentStart] }, 'current', 'previous'] } },
                         clicks: { $sum: "$metrics.clicks" },
                         impressions: { $sum: "$metrics.impressions" },
                         // FIX: impression-weighted position
@@ -443,9 +461,9 @@ export const fetchPlatformData = async (
 
                 // Top GSC Pages with impression-weighted position (standard + full)
                 const gscPages = await GscMetric.aggregate([
-                    { $match: { ...baseFilter, date: { $gte: prevStart, $lte: currentEnd } } },
+                    { $match: { ...baseFilter, date: { $gte: configPrevStart, $lte: configCurrentEnd } } },
                     { $group: {
-                        _id: { page: "$metadata.dimensions.page", period: { $cond: [{ $gte: ['$date', currentStart] }, 'current', 'previous'] } },
+                        _id: { page: "$metadata.dimensions.page", period: { $cond: [{ $gte: ['$date', configCurrentStart] }, 'current', 'previous'] } },
                         clicks: { $sum: "$metrics.clicks" },
                         impressions: { $sum: "$metrics.impressions" },
                         weightedPosition: { $sum: { $multiply: ["$metrics.position", "$metrics.impressions"] } }
@@ -472,7 +490,7 @@ export const fetchPlatformData = async (
                 if (isFull) {
                     // GSC Countries
                     const gscCountries = await GscMetric.aggregate([
-                        { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
+                        { $match: { ...baseFilter, date: { $gte: configCurrentStart, $lte: configCurrentEnd } } },
                         { $group: {
                             _id: "$metadata.dimensions.country",
                             clicks: { $sum: "$metrics.clicks" },
@@ -489,7 +507,7 @@ export const fetchPlatformData = async (
 
                     // GSC Devices
                     const gscDevices = await GscMetric.aggregate([
-                        { $match: { ...baseFilter, date: { $gte: currentStart, $lte: currentEnd } } },
+                        { $match: { ...baseFilter, date: { $gte: configCurrentStart, $lte: configCurrentEnd } } },
                         { $group: {
                             _id: "$metadata.dimensions.device",
                             clicks: { $sum: "$metrics.clicks" },
@@ -808,24 +826,99 @@ CRITICAL RULES:
     const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
     const todayStr = nowLocal.toISOString().split('T')[0];
 
-    // Pre-calculate common date ranges — ensures AI matches dashboard exactly
-    const getDateStr = (daysBack) => {
-        const d = new Date(nowLocal);
-        d.setDate(d.getDate() - daysBack);
-        return d.toISOString().split('T')[0];
+    // Pre-calculate common date ranges — ensures AI matches dashboard exactly (yesterday-anchored, inclusive)
+    const getDatesForPresetVanilla = (preset) => {
+        const fmt = (d) => d.toISOString().split('T')[0];
+        const today = new Date(nowLocal);
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        if (preset === 'today') {
+            return { startDate: fmt(today), endDate: fmt(today) };
+        }
+        if (preset === 'yesterday') {
+            return { startDate: fmt(yesterday), endDate: fmt(yesterday) };
+        }
+        if (preset === '7d') {
+            const start = new Date(yesterday);
+            start.setDate(start.getDate() - 6);
+            return { startDate: fmt(start), endDate: fmt(yesterday) };
+        }
+        if (preset === '28d') {
+            const start = new Date(yesterday);
+            start.setDate(start.getDate() - 27);
+            return { startDate: fmt(start), endDate: fmt(yesterday) };
+        }
+        if (preset === '30d') {
+            const start = new Date(yesterday);
+            start.setDate(start.getDate() - 29);
+            return { startDate: fmt(start), endDate: fmt(yesterday) };
+        }
+        if (preset === '90d') {
+            const start = new Date(yesterday);
+            start.setDate(start.getDate() - 89);
+            return { startDate: fmt(start), endDate: fmt(yesterday) };
+        }
+        if (preset === 'this_week') {
+            const day = today.getDay();
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(today);
+            monday.setDate(diff);
+            const end = day === 1 ? today : yesterday;
+            return { startDate: fmt(monday), endDate: fmt(end) };
+        }
+        if (preset === 'last_week') {
+            const day = today.getDay();
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1) - 7;
+            const mondayLastWeek = new Date(today);
+            mondayLastWeek.setDate(diff);
+            const sundayLastWeek = new Date(mondayLastWeek);
+            sundayLastWeek.setDate(sundayLastWeek.getDate() + 6);
+            return { startDate: fmt(mondayLastWeek), endDate: fmt(sundayLastWeek) };
+        }
+        return null;
     };
+
+    const range7d = getDatesForPresetVanilla('7d');
+    const range28d = getDatesForPresetVanilla('28d');
+    const range30d = getDatesForPresetVanilla('30d');
+    const range90d = getDatesForPresetVanilla('90d');
+    const rangeThisWeek = getDatesForPresetVanilla('this_week');
+    const rangeLastWeek = getDatesForPresetVanilla('last_week');
+
+    // GSC specific ranges (shifted 1 day back due to GSC 48h API delay)
+    const shiftRangeStr = (rangeObj) => {
+        if (!rangeObj) return null;
+        const shiftStr = (dStr) => {
+            const d = new Date(dStr + 'T00:00:00');
+            d.setDate(d.getDate() - 1);
+            return d.toISOString().split('T')[0];
+        };
+        return {
+            startDate: shiftStr(rangeObj.startDate),
+            endDate: shiftStr(rangeObj.endDate)
+        };
+    };
+
+    const range7dGsc = shiftRangeStr(range7d);
+    const range28dGsc = shiftRangeStr(range28d);
+    const range30dGsc = shiftRangeStr(range30d);
+    const range90dGsc = shiftRangeStr(range90d);
+    const rangeThisWeekGsc = shiftRangeStr(rangeThisWeek);
+    const rangeLastWeekGsc = shiftRangeStr(rangeLastWeek);
 
     const dateContext = `\n\n[REAL-TIME CONTEXT]:
 - Today: ${todayStr}
 - User Timezone: ${userTimezone}
-- "Last 7 days" = ${getDateStr(7)} to ${todayStr}
-- "Last 28 days" = ${getDateStr(28)} to ${todayStr}
-- "Last 30 days" = ${getDateStr(30)} to ${todayStr}
-- "Last 90 days" = ${getDateStr(90)} to ${todayStr}
-- "This week" = ${getDateStr(7)} to ${todayStr}
-- "This month" = ${getDateStr(30)} to ${todayStr}
-- "Last quarter" = ${getDateStr(90)} to ${todayStr}
-ALWAYS use these exact date ranges. Never calculate differently.`;
+- "Last 7 days" = ${range7d.startDate} to ${range7d.endDate} (Search Console: ${range7dGsc.startDate} to ${range7dGsc.endDate})
+- "Last 28 days" = ${range28d.startDate} to ${range28d.endDate} (Search Console: ${range28dGsc.startDate} to ${range28dGsc.endDate})
+- "Last 30 days" = ${range30d.startDate} to ${range30d.endDate} (Search Console: ${range30dGsc.startDate} to ${range30dGsc.endDate})
+- "Last 90 days" = ${range90d.startDate} to ${range90d.endDate} (Search Console: ${range90dGsc.startDate} to ${range90dGsc.endDate})
+- "This week" = ${rangeThisWeek.startDate} to ${rangeThisWeek.endDate} (Search Console: ${rangeThisWeekGsc.startDate} to ${rangeThisWeekGsc.endDate})
+- "Last week" = ${rangeLastWeek.startDate} to ${rangeLastWeek.endDate} (Search Console: ${rangeLastWeekGsc.startDate} to ${rangeLastWeekGsc.endDate})
+- "This month" = ${range30d.startDate} to ${range30d.endDate} (Search Console: ${range30dGsc.startDate} to ${range30dGsc.endDate})
+- "Last quarter" = ${range90d.startDate} to ${range90d.endDate} (Search Console: ${range90dGsc.startDate} to ${range90dGsc.endDate})
+ALWAYS use these exact date ranges. GSC ranges are automatically shifted 1 day earlier by the tool to account for GSC's 48-hour API delay.`;
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -993,10 +1086,13 @@ export const generateWeeklyInsightInternal = async (userId, siteId, userTimezone
         const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
         const todayStr = nowLocal.toISOString().split('T')[0];
 
-        // Last 7 days date range
-        const endDate = todayStr;
-        const startDate = new Date(nowLocal);
-        startDate.setDate(startDate.getDate() - 7);
+        // Yesterday-anchored Last 7 days date range (inclusive, exactly 7 days)
+        const yesterday = new Date(nowLocal);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const endDate = yesterday.toISOString().split('T')[0];
+
+        const startDate = new Date(yesterday);
+        startDate.setDate(startDate.getDate() - 6);
         const startDateStr = startDate.toISOString().split('T')[0];
 
         // FIX 2: Fetch connection status
@@ -1175,7 +1271,7 @@ CRITICAL: ONLY audit platforms marked as CONNECTED. Skip disconnected platforms 
             insightPrompt = fs.readFileSync(path.join(process.cwd(), 'prompts', 'weekly-insight.txt'), 'utf8');
         }
 
-        const dateContext = `\n\n[REAL-TIME CONTEXT]: Today is ${todayStr}. Generate a weekly performance audit for the last 7 days using the REAL DATA provided above.`;
+        const dateContext = `\n\n[REAL-TIME CONTEXT]: Today is ${todayStr}. Generate a weekly performance audit for the last 7 days (yesterday-anchored: ${startDateStr} to ${endDate}) using the REAL DATA provided above.`;
 
         // FIX 4: No tool calls needed — data already injected
         // Only use aiTools as fallback if real data fetch failed
@@ -1255,10 +1351,13 @@ export const generateSuggestedQuestionsInternal = async (userId, siteId, timezon
         const nowLocal = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
         const todayStr = nowLocal.toISOString().split('T')[0];
 
-        // Date range: last 30 days
-        const endDate = todayStr;
-        const startDate = new Date(nowLocal);
-        startDate.setDate(startDate.getDate() - 30);
+        // Date range: last 28 days (yesterday-anchored, inclusive, exactly 28 days)
+        const yesterday = new Date(nowLocal);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const endDate = yesterday.toISOString().split('T')[0];
+
+        const startDate = new Date(yesterday);
+        startDate.setDate(startDate.getDate() - 27);
         const startDateStr = startDate.toISOString().split('T')[0];
 
         // Fetch Connection Status
@@ -1329,7 +1428,7 @@ export const generateSuggestedQuestionsInternal = async (userId, siteId, timezon
 
             if (summaryData.gsc) {
                 const s = summaryData.gsc;
-                lines.push(`\n[GSC LAST 30 DAYS]`);
+                lines.push(`\n[GSC LAST 28 DAYS]`);
                 lines.push(`- Clicks: ${s.clicks} (${s.clicksGrowth}%)`);
                 lines.push(`- Impressions: ${s.impressions} (${s.impressionsGrowth}%)`);
                 lines.push(`- CTR: ${s.ctr}`);
@@ -1345,7 +1444,7 @@ export const generateSuggestedQuestionsInternal = async (userId, siteId, timezon
 
             if (summaryData.googleAds) {
                 const a = summaryData.googleAds;
-                lines.push(`\n[GOOGLE ADS LAST 30 DAYS]`);
+                lines.push(`\n[GOOGLE ADS LAST 28 DAYS]`);
                 lines.push(`- Spend: $${a.spend} (${a.spendGrowth}%)`);
                 lines.push(`- Clicks: ${a.clicks} (${a.clicksGrowth}%)`);
                 lines.push(`- Conversions: ${a.conversions} (${a.conversionsGrowth}%)`);
@@ -1356,7 +1455,7 @@ export const generateSuggestedQuestionsInternal = async (userId, siteId, timezon
 
             if (summaryData.facebookAds) {
                 const f = summaryData.facebookAds;
-                lines.push(`\n[META ADS LAST 30 DAYS]`);
+                lines.push(`\n[META ADS LAST 28 DAYS]`);
                 lines.push(`- Spend: $${f.spend} (${f.spendGrowth}%)`);
                 lines.push(`- Clicks: ${f.clicks} (${f.clicksGrowth}%)`);
                 lines.push(`- Conversions: ${f.conversions} (${f.conversionsGrowth}%)`);
@@ -1373,7 +1472,7 @@ export const generateSuggestedQuestionsInternal = async (userId, siteId, timezon
             }
 
             realDataContext = lines.length > 0
-                ? `\n\n[REAL ANALYTICS DATA - Last 30 Days]:\n${lines.join('\n')}`
+                ? `\n\n[REAL ANALYTICS DATA - Last 28 Days]:\n${lines.join('\n')}`
                 : "";
 
         } catch (dataErr) {
@@ -1401,7 +1500,7 @@ CRITICAL: ONLY generate questions for platforms marked as 'CONNECTED'. Never men
             suggestPrompt = fs.readFileSync(path.join(process.cwd(), 'prompts', 'suggested-questions.txt'), 'utf8');
         }
 
-        const dateContext = `\n\n[REAL-TIME CONTEXT]: Today's date is ${todayStr}. Return ONLY a JSON array of 4 strings. Each question MUST be under 15 words, a single sentence, and based on the REAL DATA provided above — not generic.`;
+        const dateContext = `\n\n[REAL-TIME CONTEXT]: Today's date is ${todayStr}. Suggested questions are for the last 28 days (yesterday-anchored: ${startDateStr} to ${endDate}). Return ONLY a JSON array of 4 strings. Each question MUST be under 15 words, a single sentence, and based on the REAL DATA provided above — not generic.`;
 
         // FIX 3: Inject real data into the prompt — no tool call needed
         // AI now has actual numbers to generate specific questions

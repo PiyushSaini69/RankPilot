@@ -15,56 +15,28 @@ import {
 } from '@heroicons/react/24/outline';
 
 const FilterBar = ({ showDevice = true, showCampaign = false, showChannel = false, onRefresh, loading }) => {
-    const { preset, setPreset, startDate, endDate } = useDateRangeStore();
+    const { preset, setPreset, startDate, endDate, tempStartDate, tempEndDate, setTempStartDate, setTempEndDate, applyCustomRange } = useDateRangeStore();
     const { device, campaign, channel, setFilters, resetFilters } = useFilterStore();
     const [showPicker, setShowPicker] = React.useState(false);
-    const [tempDates, setTempDates] = React.useState({ start: startDate, end: endDate });
 
 
 
-    // Sync temp dates when store changes or picker opens
-    React.useEffect(() => {
-        if (showPicker) {
-            setTempDates({ start: startDate, end: endDate });
-        }
-    }, [showPicker, startDate, endDate]);
+
 
     const datePresets = [
         { label: 'Today', value: 'today', days: 0 },
         { label: 'Yesterday', value: 'yesterday', days: 1 },
         { label: '7D', value: '7d', days: 7 },
         { label: '28D', value: '28d', days: 28 },
-        { label: '90D', value: '90d', days: 90 },
-        { label: '1Y', value: '1y', days: 365 },
     ];
 
     const handleDatePreset = (p) => {
-        const fmt = (d) => {
-            const date = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
-            return date.toISOString().split('T')[0];
-        };
-        
-        let start = new Date();
-        let end = new Date();
-
-        if (p.value === 'today') {
-            // Current day
-        } else if (p.value === 'yesterday') {
-            start.setDate(start.getDate() - 1);
-            end.setDate(end.getDate() - 1);
-        } else {
-            start.setDate(start.getDate() - p.days);
-        }
-        
-        const startStr = fmt(start);
-        const endStr = fmt(end);
-        setPreset(p.value, startStr, endStr);
-        setTempDates({ start: startStr, end: endStr });
+        setPreset(p.value);
         setShowPicker(false);
     };
 
     const handleApplyCustomRange = () => {
-        setPreset('custom', tempDates.start, tempDates.end);
+        applyCustomRange();
         setShowPicker(false);
     };
 
@@ -178,8 +150,8 @@ const FilterBar = ({ showDevice = true, showCampaign = false, showChannel = fals
                         <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Start Date</label>
                         <input
                             type="date"
-                            value={tempDates.start}
-                            onChange={(e) => setTempDates(prev => ({ ...prev, start: e.target.value }))}
+                            value={tempStartDate}
+                            onChange={(e) => setTempStartDate(e.target.value)}
                             className="bg-neutral-100 dark:bg-neutral-800 border-none rounded-xl px-4 py-2.5 text-sm font-bold text-neutral-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all"
                         />
                     </div>
@@ -188,8 +160,8 @@ const FilterBar = ({ showDevice = true, showCampaign = false, showChannel = fals
                         <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">End Date</label>
                         <input
                             type="date"
-                            value={tempDates.end}
-                            onChange={(e) => setTempDates(prev => ({ ...prev, end: e.target.value }))}
+                            value={tempEndDate}
+                            onChange={(e) => setTempEndDate(e.target.value)}
                             className="bg-neutral-100 dark:bg-neutral-800 border-none rounded-xl px-4 py-2.5 text-sm font-bold text-neutral-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all"
                         />
                     </div>

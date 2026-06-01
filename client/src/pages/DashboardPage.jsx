@@ -90,7 +90,7 @@ const RankPilotLogo = ({ className = "w-5 h-5" }) => (
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { openWithQuestion } = useAiChatStore();
-  const { preset, startDate, endDate, setPreset } = useDateRangeStore();
+  const { preset, startDate, endDate, setPreset, tempStartDate, tempEndDate, setTempStartDate, setTempEndDate, applyCustomRange } = useDateRangeStore();
   const { device, campaign, channel, searchQuery, setFilters } = useFilterStore();
   const {
     gsc,
@@ -118,9 +118,8 @@ const DashboardPage = () => {
   const [selectedMetric, setSelectedMetric] = useState('Sessions');
   const [isDateMenuOpen, setIsDateMenuOpen] = useState(false);
   const [isDeviceMenuOpen, setIsDeviceMenuOpen] = useState(false);
-  const [isCustomDateMode, setIsCustomDateMode] = useState(false);
-  const [tempDateRange, setTempDateRange] = useState({ start: startDate, end: endDate });
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isCustomDateMode, setIsCustomDateMode] = useState(false);
 
   const downloadCSV = () => {
     if (!topPages.length) return;
@@ -294,25 +293,13 @@ const DashboardPage = () => {
       setIsCustomDateMode(true);
       return;
     }
-    const fmt = (d) => {
-      const date = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
-      return date.toISOString().split('T')[0];
-    };
-    let start = new Date();
-    let end = new Date();
-    if (p.value === 'yesterday') {
-      start.setDate(start.getDate() - 1);
-      end.setDate(end.getDate() - 1);
-    } else if (p.value !== 'today') {
-      start.setDate(start.getDate() - p.days);
-    }
-    setPreset(p.value, fmt(start), fmt(end));
+    setPreset(p.value);
     setIsDateMenuOpen(false);
     setIsCustomDateMode(false);
   };
 
   const handleApplyCustomDate = () => {
-    setPreset('custom', tempDateRange.start, tempDateRange.end);
+    applyCustomRange();
     setIsDateMenuOpen(false);
     setIsCustomDateMode(false);
   };
@@ -686,6 +673,8 @@ const DashboardPage = () => {
                                 yesterday: 'Yesterday',
                                 '7d': 'Last 7 Days',
                                 '28d': 'Last 28 Days',
+                                this_week: 'This Week',
+                                last_week: 'Last Week',
                                 custom: 'Custom'
                               }[preset] || preset}
                             </span>
@@ -697,10 +686,12 @@ const DashboardPage = () => {
                               {!isCustomDateMode ? (
                                 <>
                                   {[
-                                    { label: 'Today', value: 'today', days: 0 },
-                                    { label: 'Yesterday', value: 'yesterday', days: 1 },
-                                    { label: 'Last 7 Days', value: '7d', days: 7 },
-                                    { label: 'Last 28 Days', value: '28d', days: 28 },
+                                    { label: 'Today', value: 'today' },
+                                    { label: 'Yesterday', value: 'yesterday' },
+                                    { label: 'Last 7 Days', value: '7d' },
+                                    { label: 'Last 28 Days', value: '28d' },
+                                    { label: 'This Week', value: 'this_week' },
+                                    { label: 'Last Week', value: 'last_week' },
                                     { label: 'Custom Range', value: 'custom', icon: CalendarIcon },
                                   ].map((p) => (
                                     <button
@@ -727,8 +718,8 @@ const DashboardPage = () => {
                                       <label className="text-[8px] font-black text-neutral-400 uppercase ml-1">Start</label>
                                       <input
                                         type="date"
-                                        value={tempDateRange.start}
-                                        onChange={(e) => setTempDateRange({ ...tempDateRange, start: e.target.value })}
+                                        value={tempStartDate}
+                                        onChange={(e) => setTempStartDate(e.target.value)}
                                         className="w-full bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg px-2 py-1.5 text-[10px] font-bold outline-none"
                                       />
                                     </div>
@@ -736,8 +727,8 @@ const DashboardPage = () => {
                                       <label className="text-[8px] font-black text-neutral-400 uppercase ml-1">End</label>
                                       <input
                                         type="date"
-                                        value={tempDateRange.end}
-                                        onChange={(e) => setTempDateRange({ ...tempDateRange, end: e.target.value })}
+                                        value={tempEndDate}
+                                        onChange={(e) => setTempEndDate(e.target.value)}
                                         className="w-full bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg px-2 py-1.5 text-[10px] font-bold outline-none"
                                       />
                                     </div>
