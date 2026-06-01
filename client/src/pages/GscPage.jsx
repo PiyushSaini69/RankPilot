@@ -95,8 +95,9 @@ import { formatDistanceToNow } from 'date-fns';
                 return { gscStart: startDate, gscEnd: endDate };
             }
             const adjustDate = (dStr, offset) => {
-                const d = new Date(dStr + 'T00:00:00');
-                d.setDate(d.getDate() + offset);
+                const parts = dStr.split('-');
+                const d = new Date(Date.UTC(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)));
+                d.setUTCDate(d.getUTCDate() + offset);
                 return d.toISOString().split('T')[0];
             };
             return {
@@ -175,6 +176,8 @@ import { formatDistanceToNow } from 'date-fns';
         const handleDatePresetSelect = (p) => {
             if (p.value === 'custom') {
                 setIsCustomDateMode(true);
+                setTempStartDate(gscStart);
+                setTempEndDate(gscEnd);
                 return;
             }
             setPreset(p.value);
@@ -598,7 +601,7 @@ import { formatDistanceToNow } from 'date-fns';
                                                                     <label className="text-[8px] font-black text-neutral-400 uppercase ml-1">Start</label>
                                                                     <input
                                                                         type="date"
-                                                                        value={preset === 'custom' ? tempStartDate : gscStart}
+                                                                        value={tempStartDate}
                                                                         onChange={(e) => setTempStartDate(e.target.value)}
                                                                         className="w-full bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg px-2 py-1.5 text-[10px] font-bold outline-none text-neutral-900 dark:text-white"
                                                                     />
@@ -607,7 +610,7 @@ import { formatDistanceToNow } from 'date-fns';
                                                                     <label className="text-[8px] font-black text-neutral-400 uppercase ml-1">End</label>
                                                                     <input
                                                                         type="date"
-                                                                        value={preset === 'custom' ? tempEndDate : gscEnd}
+                                                                        value={tempEndDate}
                                                                         onChange={(e) => setTempEndDate(e.target.value)}
                                                                         className="w-full bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg px-2 py-1.5 text-[10px] font-bold outline-none text-neutral-900 dark:text-white"
                                                                     />
